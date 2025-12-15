@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <title>Hypertrophie Tracker</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0f172a; color: white; padding-bottom: 80px; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+
+        .header { text-align: center; padding: 40px 20px 30px; }
+        .header h1 { font-size: 28px; margin-bottom: 10px; color: #60a5fa; }
+        .btn { width: 100%; padding: 18px; margin: 8px 0; background: linear-gradient(135deg, #2563eb, #3b82f6); border: none; border-radius: 12px; color: white; font-size: 18px; font-weight: 600; cursor: pointer; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+        .btn:active { transform: scale(0.98); }
+        .btn-secondary { background: #334155; }
+        .btn-success { background: #16a34a; }
+        .btn-danger { background: #ef4444; }
+        .btn-icon { background: transparent; border: none; color: #94a3b8; padding: 5px; font-size: 18px; cursor: pointer; }
+        .btn-icon-danger { color: #ef4444; }
+
+        .card { background: #1e293b; border-radius: 12px; padding: 15px; margin: 15px 0; border: 1px solid #334155; }
+        .exercise-header { display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px; }
+        .exercise-title-group { flex: 1; }
+        .exercise-header h3 { font-size: 17px; margin-bottom: 4px; color: #e2e8f0; }
+        .exercise-meta { font-size: 13px; color: #94a3b8; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+        .timer-btn { background: #334155; color: #60a5fa; border: 1px solid #60a5fa; border-radius: 4px; padding: 2px 8px; font-size: 12px; cursor: pointer; }
+
+        .set-row { background: #0f172a; border-radius: 8px; padding: 10px; margin: 6px 0; display: flex; gap: 10px; align-items: center; }
+        .set-label { color: #64748b; width: 50px; font-size: 14px; font-weight: 700; }
+
+        .set-select, .set-input {
+            flex: 1;
+            padding: 12px;
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 6px;
+            color: white;
+            font-size: 16px;
+            text-align: center;
+        }
+        .set-select:focus, .set-input:focus { border-color: #60a5fa; outline: none; }
+
+        .mini-btn {
+            padding: 10px 12px;
+            border-radius: 8px;
+            border: 1px solid #334155;
+            background: #1e293b;
+            color: #e2e8f0;
+            font-weight: 700;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .mini-btn:active { transform: scale(0.98); }
+
+        .timer-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #1e293b; padding: 15px; border-top: 1px solid #334155; display: flex; justify-content: space-between; align-items: center; z-index: 100; box-shadow: 0 -4px 20px rgba(0,0,0,0.5); }
+        .timer-display { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size: 24px; font-weight: 800; color: #60a5fa; }
+        .timer-controls { display: flex; gap: 10px; align-items: center; }
+        .btn-small { padding: 8px 16px; border-radius: 6px; border: none; font-weight: 700; cursor: pointer; }
+
+        .history-item { background: #1e293b; border-radius: 12px; margin: 10px 0; overflow: hidden; border: 1px solid #334155; }
+        .history-header { padding: 15px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; gap: 10px; }
+        .history-details { padding: 15px; border-top: 1px solid #334155; display: none; background: #0f172a; }
+        .history-details.open { display: block; }
+
+        .sticky-header { position: sticky; top: 0; background: #0f172a; padding: 15px 20px; z-index: 50; border-bottom: 1px solid #334155; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+
+        .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 200; padding: 20px; }
+        .modal { width: 100%; max-width: 520px; background: #0f172a; border: 1px solid #334155; border-radius: 14px; padding: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.6); }
+        .modal h3 { font-size: 16px; color: #e2e8f0; margin-bottom: 10px; }
+        .modal p { color: #94a3b8; font-size: 13px; margin-bottom: 10px; line-height: 1.4; }
+        .modal-input { width: 100%; padding: 14px; border-radius: 10px; border: 1px solid #334155; background: #1e293b; color: white; font-size: 16px; margin-bottom: 12px; }
+        .modal-actions { display: flex; gap: 10px; }
+        .chip { display: inline-block; background: #1e293b; border: 1px solid #334155; color: #e2e8f0; padding: 4px 8px; border-radius: 999px; font-size: 12px; margin-top: 6px; }
+
+        .stat-card { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 14px; margin: 12px 0; }
+        .stat-row { display: flex; justify-content: space-between; gap: 10px; padding: 6px 0; border-bottom: 1px solid #334155; }
+        .stat-row:last-child { border-bottom: none; }
+        .muted { color: #94a3b8; }
+        .small { font-size: 13px; }
+        .line { margin-top: 6px; color: #94a3b8; font-size: 12px; line-height: 1.35; }
+        .chips { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
+        .chip2 { background:#1e293b; border:1px solid #334155; color:#e2e8f0; padding:2px 8px; border-radius:999px; font-size:13px; }
+    </style>
+</head>
+<body>
+
+<div id="app"></div>
+
+<audio id="timer-beep" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"></audio>
+
+<script>
+    const workoutPlan = {
+        'Push A': [
+            { name: 'Bankdrücken (Kurzhantel/Maschine)', sets: 3, reps: '5-8', pause: 150 },
+            { name: 'Schrägbankdrücken (Kurzhantel)', sets: 3, reps: '8-12', pause: 120 },
+            { name: 'Butterfly / Pec Deck', sets: 3, reps: '12-20', pause: 75 },
+            { name: 'Seitheben (KH oder Kabel)', sets: 4, reps: '10-20', pause: 75 },
+            { name: 'Overhead-Trizeps Kabel', sets: 3, reps: '12-20', pause: 75 },
+            { name: 'Trizepsdrücken Kabel (Seil)', sets: 3, reps: '10-15', pause: 75 }
+        ],
+        'Pull A': [
+            { name: 'Latzug (neutral/V-Griff)', sets: 4, reps: '6-10', pause: 150 },
+            { name: 'Pullover (Maschine/Kabel)', sets: 4, reps: '8-12', pause: 120 },
+            { name: 'Kabelrudern eng', sets: 3, reps: '10-12', pause: 105 },
+            { name: 'Reverse Fly (Maschine)', sets: 4, reps: '12-20', pause: 75 },
+            { name: 'Face Pull (Seil)', sets: 2, reps: '15-20', pause: 75 },
+            { name: 'Bizepscurl (SZ oder Kabel)', sets: 3, reps: '8-12', pause: 75 },
+            { name: 'Incline Curl / High Cable Curl', sets: 3, reps: '10-15', pause: 75 }
+        ],
+        'Beine': [
+            { name: 'Hack Squat ODER Kniebeuge', sets: 3, reps: '5-10', pause: 180 },
+            { name: 'Rumänisches Kreuzheben (RDL)', sets: 3, reps: '6-10', pause: 180 },
+            { name: 'Lunges mit Gewicht', sets: 3, reps: '10-15', pause: 150 },
+            { name: 'Beinstrecker', sets: 3, reps: '12-15', pause: 90 },
+            { name: 'Beinbeuger sitzend', sets: 4, reps: '10-15', pause: 90 },
+            { name: 'Wadenheben (stehend/sitzend)', sets: 4, reps: '8-15', pause: 90 },
+            { name: 'Bauch: Cable Crunch / Knee Raise', sets: 3, reps: '10-15', pause: 75 }
+        ],
+        'Push B': [
+            { name: 'Schrägbank (Maschine/Smith)', sets: 3, reps: '8-12', pause: 120 },
+            { name: 'Brustpresse Flach (Maschine)', sets: 3, reps: '8-12', pause: 120 },
+            { name: 'Kabel-Flys (low-to-high/klassisch)', sets: 3, reps: '12-20', pause: 75 },
+            { name: 'Schulterpresse (Maschine) ODER Landmine', sets: 3, reps: '8-12', pause: 120 },
+            { name: 'Seitheben (Kabel, Variante)', sets: 4, reps: '12-20', pause: 75 },
+            { name: 'Trizeps: Dips-Maschine oder Kabel', sets: 3, reps: '8-12', pause: 90 }
+        ],
+        'Pull B': [
+            { name: 'Rudern brustgestützt (Maschine/T-Bar)', sets: 4, reps: '8-12', pause: 120 },
+            { name: 'Latzug (anderer Griff als Pull A)', sets: 3, reps: '10-15', pause: 90 },
+            { name: 'Rudermaschine (z.B. Hammer Strength)', sets: 3, reps: '10-12', pause: 105 },
+            { name: 'Reverse Fly', sets: 4, reps: '12-20', pause: 75 },
+            { name: 'External Rotation (Kabel)', sets: 2, reps: '15-20', pause: 75 },
+            { name: 'Bizeps Kabelcurl', sets: 3, reps: '10-15', pause: 75 },
+            { name: 'Hammer Curls', sets: 2, reps: '10-15', pause: 75 }
+        ]
+    };
+
+    const KEY_HISTORY = 'workoutHistory';
+    const KEY_DRAFT = 'workoutDraft';
+    const KEY_LIBRARY = 'exerciseLibrary';
+
+    function clampInt(n, min, max) {
+        if (!Number.isFinite(n)) return null;
+        const x = Math.trunc(n);
+        if (x < min || x > max) return null;
+        return x;
+    }
+
+    function parseDecimalDE(input) {
+        if (input === null || input === undefined) return null;
+        const s = String(input).trim();
+        if (s === '') return null;
+        const normalized = s.replace(',', '.');
+        const n = Number(normalized);
+        if (!Number.isFinite(n)) return null;
+        if (n < 0) return null;
+        return n;
+    }
+
+    function formatDecimalDE(n, maxFrac = 2) {
+        if (!Number.isFinite(n)) return '';
+        return n.toLocaleString('de-DE', { maximumFractionDigits: maxFrac });
+    }
+
+    function formatDate(isoString) {
+        return new Date(isoString).toLocaleDateString('de-DE', {
+            weekday: 'short', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit'
+        });
+    }
+
+    function generateExerciseId(name) {
+        return 'ex_' + String(name || '').toLowerCase().trim().replace(/\s+/g, '_').replace(/[^\wäöüß_()-]/g, '').slice(0, 60);
+    }
+
+    function seedLibraryFromPlan() {
+        const names = [];
+        Object.keys(workoutPlan).forEach(k => workoutPlan[k].forEach(ex => names.push(ex.name)));
+        const unique = Array.from(new Set(names.map(x => x.trim()).filter(Boolean))).sort((a,b)=>a.localeCompare(b,'de'));
+        return unique;
+    }
+
+    function loadLibrary() {
+        try {
+            const raw = JSON.parse(localStorage.getItem(KEY_LIBRARY) || 'null');
+            if (Array.isArray(raw) && raw.length) return Array.from(new Set(raw.map(x => String(x).trim()).filter(Boolean))).sort((a,b)=>a.localeCompare(b,'de'));
+        } catch (e) {}
+        const seeded = seedLibraryFromPlan();
+        localStorage.setItem(KEY_LIBRARY, JSON.stringify(seeded));
+        return seeded;
+    }
+
+    function saveLibrary(list) {
+        const clean = Array.from(new Set((list || []).map(x => String(x).trim()).filter(Boolean))).sort((a,b)=>a.localeCompare(b,'de'));
+        localStorage.setItem(KEY_LIBRARY, JSON.stringify(clean));
+        return clean;
+    }
+
+    function addToLibrary(name) {
+        const n = String(name || '').trim();
+        if (!n) return;
+        state.exerciseLibrary = saveLibrary([...(state.exerciseLibrary || []), n]);
+    }
+
+    function isSetDone(s) {
+        return Number.isFinite(s.reps) && Number.isFinite(s.weight) && s.reps > 0 && s.weight > 0;
+    }
+
+    function normalizeWorkout(w) {
+        if (!w || typeof w !== 'object') return null;
+        const out = {
+            id: Number(w.id) || Date.now(),
+            type: String(w.type || ''),
+            date: String(w.date || new Date().toISOString()),
+            exercises: Array.isArray(w.exercises) ? w.exercises.map(ex => normalizeExercise(ex)).filter(Boolean) : []
+        };
+        if (!out.type || !out.exercises.length) return null;
+        return out;
+    }
+
+    function normalizeExercise(ex) {
+        if (!ex || typeof ex !== 'object') return null;
+        const name = String(ex.name || '').trim();
+        if (!name) return null;
+
+        const plannedSets = Number(ex.plannedSets) || Number(ex.sets) || 0;
+        const repsTarget = String(ex.reps || '');
+        const pause = Number(ex.pause) || 0;
+        const exerciseId = String(ex.exerciseId || '') || generateExerciseId(name);
+
+        const completedRaw = Array.isArray(ex.completed) ? ex.completed : [];
+        const completed = completedRaw.map(s => ({
+            reps: clampInt(parseInt(s.reps, 10), 1, 25),
+            weight: parseDecimalDE(s.weight)
+        }));
+
+        while (completed.length < plannedSets) completed.push({ reps: null, weight: null });
+
+        return { name, exerciseId, plannedSets, sets: plannedSets, reps: repsTarget, pause, completed };
+    }
+
+    function loadHistory() {
+        try {
+            const raw = JSON.parse(localStorage.getItem(KEY_HISTORY) || '[]');
+            const list = Array.isArray(raw) ? raw.map(normalizeWorkout).filter(Boolean) : [];
+            return list;
+        } catch (e) {
+            return [];
+        }
+    }
+
+    function saveDraft() {
+        if (!state.currentWorkout) return;
+        localStorage.setItem(KEY_DRAFT, JSON.stringify(state.currentWorkout));
+        state.hasDraft = true;
+    }
+
+    function clearDraft() {
+        localStorage.removeItem(KEY_DRAFT);
+        state.hasDraft = false;
+    }
+
+    function loadDraft() {
+        try {
+            const raw = JSON.parse(localStorage.getItem(KEY_DRAFT) || 'null');
+            const w = normalizeWorkout(raw);
+            return w;
+        } catch (e) {
+            return null;
+        }
+    }
+
+    function calcE1RM(weight, reps) {
+        if (!Number.isFinite(weight) || !Number.isFinite(reps) || reps <= 0) return null;
+        return weight * (1 + reps / 30);
+    }
+
+    function workoutVolume(w) {
+        let sum = 0;
+        w.exercises.forEach(ex => {
+            ex.completed.forEach(s => {
+                if (Number.isFinite(s.weight) && Number.isFinite(s.reps) && s.weight > 0 && s.reps > 0) sum += s.weight * s.reps;
+            });
+        });
+        return sum;
+    }
+
+    function exerciseTopE1RM(ex) {
+        let best = null;
+        ex.completed.forEach(s => {
+            const e = calcE1RM(s.weight, s.reps);
+            if (Number.isFinite(e)) best = best === null ? e : Math.max(best, e);
+        });
+        return best;
+    }
+
+    function formatE1RM(n) {
+        if (!Number.isFinite(n)) return '-';
+        return formatDecimalDE(n, 1) + ' kg';
+    }
+
+    function formatVolume(n) {
+        if (!Number.isFinite(n)) return '-';
+        return formatDecimalDE(n, 0) + ' kg';
+    }
+
+    function buildPRIndex(workouts) {
+        const pr = new Map();
+        for (const w of workouts) {
+            for (const ex of w.exercises) {
+                const key = ex.exerciseId || generateExerciseId(ex.name);
+                if (!pr.has(key)) pr.set(key, { name: ex.name, bestE1RM: null, bestWeightAtReps: new Map() });
+                const entry = pr.get(key);
+                entry.name = ex.name || entry.name;
+
+                ex.completed.forEach(s => {
+                    if (Number.isFinite(s.weight) && Number.isFinite(s.reps) && s.weight > 0 && s.reps > 0) {
+                        const e = calcE1RM(s.weight, s.reps);
+                        if (Number.isFinite(e)) entry.bestE1RM = entry.bestE1RM === null ? e : Math.max(entry.bestE1RM, e);
+
+                        const old = entry.bestWeightAtReps.get(s.reps);
+                        if (!Number.isFinite(old) || s.weight > old) entry.bestWeightAtReps.set(s.reps, s.weight);
+                    }
+                });
+            }
+        }
+        return pr;
+    }
+
+    function getLastExercisePerformance(exerciseId) {
+        for (const w of state.workouts) {
+            const ex = (w.exercises || []).find(e => e.exerciseId === exerciseId);
+            if (!ex) continue;
+
+            const doneSets = ex.completed.filter(isSetDone);
+            if (!doneSets.length) continue;
+
+            const topE1 = exerciseTopE1RM(ex);
+            return {
+                date: w.date,
+                sets: doneSets.map(s => ({ reps: s.reps, weight: s.weight })),
+                topE1RM: topE1
+            };
+        }
+        return null;
+    }
+
+    let state = {
+        view: 'select',
+        workouts: loadHistory(),
+        currentWorkout: null,
+        expandedId: null,
+        timer: { active: false, timeLeft: 0, interval: null },
+        modal: null,
+        exerciseLibrary: loadLibrary(),
+        hasDraft: false
+    };
+
+    const draft = loadDraft();
+    if (draft) state.hasDraft = true;
+
+    function saveWorkouts() {
+        localStorage.setItem(KEY_HISTORY, JSON.stringify(state.workouts));
+    }
+
+    function startWorkout(type) {
+        const base = workoutPlan[type].map(ex => {
+            const name = ex.name;
+            const exerciseId = generateExerciseId(name);
+            return {
+                ...ex,
+                name,
+                exerciseId,
+                plannedSets: ex.sets,
+                completed: Array(ex.sets).fill(null).map(() => ({ reps: null, weight: null }))
+            };
+        });
+
+        state.currentWorkout = {
+            id: Date.now(),
+            type,
+            date: new Date().toISOString(),
+            exercises: base
+        };
+        state.view = 'workout';
+        saveDraft();
+        render();
+    }
+
+    function resumeDraft() {
+        const d = loadDraft();
+        if (!d) {
+            state.hasDraft = false;
+            return render();
+        }
+        state.currentWorkout = d;
+        state.view = 'workout';
+        render();
+    }
+
+    function finishWorkout() {
+        if (!confirm("Training wirklich beenden?")) return;
+
+        const w = normalizeWorkout(state.currentWorkout);
+        if (!w) {
+            alert("Training konnte nicht gespeichert werden (Daten ungültig).");
+            return;
+        }
+
+        state.workouts.unshift(w);
+        saveWorkouts();
+        clearDraft();
+        stopTimer();
+        state.currentWorkout = null;
+        state.view = 'history';
+        render();
+    }
+
+    function cancelWorkout() {
+        if (!confirm("Training abbrechen? Fortschritt bleibt als Draft gespeichert (Fortsetzen möglich).")) return;
+        stopTimer();
+        state.currentWorkout = null;
+        state.view = 'select';
+        render();
+    }
+
+    function openRenameModal(exIdx) {
+        const ex = state.currentWorkout.exercises[exIdx];
+        state.modal = { type: 'rename', exIdx, value: ex.name || '' };
+        render();
+        setTimeout(() => {
+            const el = document.getElementById('rename-input');
+            if (el) el.focus();
+        }, 0);
+    }
+
+    function closeModal() {
+        state.modal = null;
+        render();
+    }
+
+    function updateModalValue(v) {
+        if (!state.modal) return;
+        state.modal.value = v;
+    }
+
+    function applyRename() {
+        if (!state.modal || state.modal.type !== 'rename') return;
+        const exIdx = state.modal.exIdx;
+        const newName = String(state.modal.value || '').trim();
+        if (!newName) return;
+
+        const ex = state.currentWorkout.exercises[exIdx];
+        ex.name = newName;
+
+        // Umbenennung wird als neue Übung behandelt: neue ID -> last-time/PRs passen zu diesem Namen
+        ex.exerciseId = generateExerciseId(newName);
+
+        addToLibrary(newName);
+        saveDraft();
+        closeModal();
+    }
+
+    function updateReps(exIdx, setIdx, value) {
+        const v = value === '' ? null : clampInt(parseInt(value, 10), 1, 25);
+        state.currentWorkout.exercises[exIdx].completed[setIdx].reps = v;
+        saveDraft();
+    }
+
+    function updateWeight(exIdx, setIdx, value) {
+        const n = parseDecimalDE(value);
+        state.currentWorkout.exercises[exIdx].completed[setIdx].weight = n;
+        saveDraft();
+    }
+
+    function normalizeWeightInput(el) {
+        const n = parseDecimalDE(el.value);
+        el.value = n === null ? '' : formatDecimalDE(n, 2);
+    }
+
+    function addSet(exIdx) {
+        const ex = state.currentWorkout.exercises[exIdx];
+        ex.completed.push({ reps: null, weight: null });
+        saveDraft();
+        render();
+    }
+
+    function removeSet(exIdx, setIdx) {
+        const ex = state.currentWorkout.exercises[exIdx];
+        if (ex.completed.length <= 1) return;
+        ex.completed.splice(setIdx, 1);
+        saveDraft();
+        render();
+    }
+
+    function startTimer(seconds) {
+        stopTimer();
+        state.timer.timeLeft = Number(seconds) || 0;
+        state.timer.active = state.timer.timeLeft > 0;
+        renderTimer();
+
+        if (!state.timer.active) return;
+
+        state.timer.interval = setInterval(() => {
+            state.timer.timeLeft--;
+            if (state.timer.timeLeft <= 0) {
+                document.getElementById('timer-beep').play().catch(() => {});
+                stopTimer();
+                alert("Pause vorbei! Weiter geht's!");
+            }
+            renderTimer();
+        }, 1000);
+    }
+
+    function stopTimer() {
+        if (state.timer.interval) clearInterval(state.timer.interval);
+        state.timer.active = false;
+        state.timer.timeLeft = 0;
+        state.timer.interval = null;
+        renderTimer();
+    }
+
+    function addTime(seconds) {
+        const add = Number(seconds) || 0;
+        state.timer.timeLeft = Math.max(0, (state.timer.timeLeft || 0) + add);
+        if (!state.timer.active && state.timer.timeLeft > 0) startTimer(state.timer.timeLeft);
+        else renderTimer();
+    }
+
+    function formatTime(seconds) {
+        const m = Math.floor(seconds / 60);
+        const s = seconds % 60;
+        return `${m}:${s < 10 ? '0' : ''}${s}`;
+    }
+
+    function exportData() {
+        const payload = {
+            version: 1,
+            exportedAt: new Date().toISOString(),
+            workouts: state.workouts,
+            exerciseLibrary: state.exerciseLibrary
+        };
+        const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `hypertrophie-tracker-backup-${new Date().toISOString().slice(0,10)}.json`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+    }
+
+    function triggerImport() {
+        const input = document.getElementById('import-file');
+        if (input) input.click();
+    }
+
+    function handleImportFile(ev) {
+        const file = ev.target.files && ev.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+            try {
+                const data = JSON.parse(reader.result);
+                const importedWorkouts = Array.isArray(data.workouts) ? data.workouts.map(normalizeWorkout).filter(Boolean) : null;
+                const importedLibrary = Array.isArray(data.exerciseLibrary) ? data.exerciseLibrary : null;
+
+                if (!importedWorkouts) throw new Error('invalid');
+
+                if (!confirm("Import ersetzt deinen aktuellen Verlauf (Backup). Fortfahren?")) return;
+
+                state.workouts = importedWorkouts;
+                saveWorkouts();
+
+                if (importedLibrary) state.exerciseLibrary = saveLibrary(importedLibrary);
+                else state.exerciseLibrary = saveLibrary(state.exerciseLibrary);
+
+                alert("Import erfolgreich.");
+                state.view = 'history';
+                render();
+            } catch (e) {
+                alert("Import fehlgeschlagen. Datei ist kein gültiges Backup.");
+            } finally {
+                ev.target.value = '';
+            }
+        };
+        reader.readAsText(file);
+    }
+
+    function deleteWorkout(id) {
+        if (!confirm("Dieses Training wirklich löschen?")) return;
+        state.workouts = state.workouts.filter(w => w.id !== id);
+        if (state.expandedId === id) state.expandedId = null;
+        saveWorkouts();
+        render();
+    }
+
+    function toggleHistory(id) {
+        state.expandedId = state.expandedId === id ? null : id;
+        render();
+    }
+
+    function renderTimer() {
+        const timerEl = document.getElementById('timer-bar');
+        if (!timerEl) return;
+
+        timerEl.style.display = 'flex';
+        timerEl.innerHTML = `
+            <div class="timer-display">${state.timer.active ? formatTime(state.timer.timeLeft) : '--:--'}</div>
+            <div class="timer-controls">
+                ${state.timer.active
+                    ? `<button class="btn-small" style="background:#ef4444; color:white" onclick="stopTimer()">Stop</button>
+                       <button class="btn-small" style="background:#334155; color:white" onclick="addTime(30)">+30s</button>`
+                    : `<span style="color:#94a3b8; font-size:14px">Pausentimer inaktiv</span>`
+                }
+            </div>
+        `;
+    }
+
+    function repsOptions(selected) {
+        let out = `<option value="">Wdh</option>`;
+        for (let i = 1; i <= 25; i++) out += `<option value="${i}" ${selected === i ? 'selected' : ''}>${i}</option>`;
+        return out;
+    }
+
+    function renderModal() {
+        if (!state.modal) return '';
+        if (state.modal.type === 'rename') {
+            const suggestions = (state.exerciseLibrary || []).slice(0, 400);
+            return `
+                <div class="modal-backdrop" onclick="closeModal()">
+                    <div class="modal" onclick="event.stopPropagation()">
+                        <h3>Übung ersetzen</h3>
+                        <p>Freitext möglich. Neue Namen werden gespeichert und später vorgeschlagen.</p>
+
+                        <input id="rename-input" class="modal-input"
+                               list="exercise-suggestions"
+                               value="${(state.modal.value || '').replace(/"/g, '&quot;')}"
+                               oninput="updateModalValue(this.value)"
+                               placeholder="z.B. Latzug neutral (V-Griff)" />
+
+                        <datalist id="exercise-suggestions">
+                            ${suggestions.map(n => `<option value="${String(n).replace(/"/g, '&quot;')}"></option>`).join('')}
+                        </datalist>
+
+                        <div class="modal-actions">
+                            <button class="btn btn-secondary" style="margin:0; padding:14px" onclick="closeModal()">Abbrechen</button>
+                            <button class="btn btn-success" style="margin:0; padding:14px" onclick="applyRename()">Speichern</button>
+                        </div>
+
+                        <div class="chip">Hinweis: Umbenennung wird als neue Übung behandelt (eigene PRs/Last-Time).</div>
+                    </div>
+                </div>
+            `;
+        }
+        return '';
+    }
+
+    function renderSelect() {
+        return `
+            <div class="container">
+                <div class="header">
+                    <h1>🔥 Dein Tracker</h1>
+                    <p style="color:#94a3b8">Wähle deine heutige Session</p>
+                </div>
+
+                ${state.hasDraft ? `
+                    <button class="btn btn-success" onclick="resumeDraft()">
+                        <span>▶️ Training fortsetzen (Draft)</span>
+                        <span style="opacity:0.7">→</span>
+                    </button>
+                ` : ''}
+
+                ${Object.keys(workoutPlan).map(type => `
+                    <button class="btn" onclick="startWorkout('${type}')">
+                        <span>${type}</span>
+                        <span style="opacity:0.5">→</span>
+                    </button>
+                `).join('')}
+
+                <button class="btn btn-secondary" style="margin-top:20px" onclick="state.view='history'; render()">
+                    <span>📜 Verlauf</span><span style="opacity:0.7">→</span>
+                </button>
+
+                <div style="margin-top:18px">
+                    <button class="btn btn-secondary" onclick="exportData()">
+                        <span>⬇️ Export / Backup</span><span style="opacity:0.7">JSON</span>
+                    </button>
+                    <button class="btn btn-secondary" onclick="triggerImport()">
+                        <span>⬆️ Import / Restore</span><span style="opacity:0.7">JSON</span>
+                    </button>
+                    <input id="import-file" type="file" accept="application/json" style="display:none" onchange="handleImportFile(event)" />
+                </div>
+            </div>
+        `;
+    }
+
+    function renderWorkout() {
+        const w = state.currentWorkout;
+        if (!w) { state.view = 'select'; return renderSelect(); }
+
+        const prIndex = buildPRIndex(state.workouts);
+
+        return `
+            <div class="sticky-header">
+                <div>
+                    <div style="color: #60a5fa; font-size: 20px; font-weight: 800;">${w.type}</div>
+                    <div style="color: #94a3b8; font-size: 12px;">⏱ Timer · Draft wird automatisch gespeichert · + Satz möglich</div>
+                </div>
+                <button class="btn-success" style="padding: 8px 16px; border-radius: 6px; border:none; font-weight:800; cursor:pointer" onclick="finishWorkout()">Fertig</button>
+            </div>
+
+            <div class="container" style="padding-bottom: 120px;">
+                ${w.exercises.map((ex, exIdx) => {
+                    const topE1 = exerciseTopE1RM(ex);
+                    const pr = prIndex.get(ex.exerciseId);
+                    const prText = pr && Number.isFinite(pr.bestE1RM) ? `Best e1RM bisher: ${formatE1RM(pr.bestE1RM)}` : 'Best e1RM bisher: -';
+                    const nowText = Number.isFinite(topE1) ? `Heute Top e1RM: ${formatE1RM(topE1)}` : 'Heute Top e1RM: -';
+
+                    const last = getLastExercisePerformance(ex.exerciseId);
+                    const lastLine = last
+                        ? (() => {
+                            const sets = last.sets.slice(0, 4).map(s => `${s.reps}×${formatDecimalDE(s.weight, 2)} kg`).join(' · ');
+                            const more = last.sets.length > 4 ? ' · …' : '';
+                            return `Letztes Mal (${formatDate(last.date)}): ${sets}${more} · Top e1RM: ${formatE1RM(last.topE1RM)}`;
+                        })()
+                        : 'Letztes Mal: -';
+
+                    return `
+                        <div class="card">
+                            <div class="exercise-header">
+                                <div class="exercise-title-group">
+                                    <h3>
+                                        ${ex.name}
+                                        <button class="btn-icon" onclick="openRenameModal(${exIdx})">✏️</button>
+                                    </h3>
+                                    <div class="exercise-meta">
+                                        <span>Target: ${ex.plannedSets || ex.sets} × ${ex.reps}</span>
+                                        <span>Aktuell: ${ex.completed.length} Sätze</span>
+                                        <button class="timer-btn" onclick="startTimer(${ex.pause})">⏱ ${ex.pause}s</button>
+                                        <span class="muted small">${nowText}</span>
+                                        <span class="muted small">${prText}</span>
+                                    </div>
+                                    <div class="line">${lastLine}</div>
+                                </div>
+                            </div>
+
+                            ${ex.completed.map((set, setIdx) => `
+                                <div class="set-row">
+                                    <span class="set-label">${setIdx + 1}</span>
+
+                                    <select class="set-select"
+                                        onchange="updateReps(${exIdx}, ${setIdx}, this.value)"
+                                    >
+                                        ${repsOptions(set.reps)}
+                                    </select>
+
+                                    <input class="set-input"
+                                           type="text"
+                                           inputmode="decimal"
+                                           pattern="[0-9]*[.,]?[0-9]*"
+                                           placeholder="kg"
+                                           value="${set.weight === null ? '' : formatDecimalDE(set.weight, 2)}"
+                                           oninput="updateWeight(${exIdx}, ${setIdx}, this.value)"
+                                           onblur="normalizeWeightInput(this)" />
+
+                                    <button class="mini-btn" onclick="removeSet(${exIdx}, ${setIdx})">−</button>
+                                </div>
+                            `).join('')}
+
+                            <div style="display:flex; gap:10px; margin-top:10px;">
+                                <button class="mini-btn" style="flex:1" onclick="addSet(${exIdx})">+ Satz</button>
+                            </div>
+                        </div>
+                    `;
+                }).join('')}
+
+                <button class="btn btn-danger" style="margin-top:10px" onclick="cancelWorkout()">
+                    <span>Abbrechen</span><span style="opacity:0.7">Draft bleibt</span>
+                </button>
+            </div>
+
+            <div id="timer-bar" class="timer-bar"></div>
+
+            ${renderModal()}
+        `;
+    }
+
+    function renderHistory() {
+        return `
+            <div class="sticky-header">
+                <button class="btn-icon" onclick="state.view='select'; render()">← Zurück</button>
+                <div style="font-size: 18px; font-weight:800;">Verlauf</div>
+                <div style="width:30px"></div>
+            </div>
+
+            <div class="container">
+                <div style="margin:10px 0 18px 0">
+                    <button class="btn btn-secondary" onclick="exportData()">
+                        <span>⬇️ Export / Backup</span><span style="opacity:0.7">JSON</span>
+                    </button>
+                    <button class="btn btn-secondary" onclick="triggerImport()">
+                        <span>⬆️ Import / Restore</span><span style="opacity:0.7">JSON</span>
+                    </button>
+                    <input id="import-file" type="file" accept="application/json" style="display:none" onchange="handleImportFile(event)" />
+                </div>
+
+                ${state.workouts.length === 0 ? `
+                    <div style="text-align: center; padding: 40px; color: #64748b;">
+                        Keine Trainings gefunden.
+                    </div>
+                ` : state.workouts.map(w => {
+                    const vol = workoutVolume(w);
+
+                    // Nur Übungen, die wirklich gemacht wurden
+                    const doneExercises = (w.exercises || []).filter(ex => (ex.completed || []).some(isSetDone));
+
+                    return `
+                        <div class="history-item">
+                            <div class="history-header" onclick="toggleHistory(${w.id})">
+                                <div style="flex:1">
+                                    <div style="color: #e2e8f0; font-size: 16px; font-weight:800;">${w.type}</div>
+                                    <div style="color: #94a3b8; font-size: 13px;">${formatDate(w.date)} · Volumen: ${formatVolume(vol)}</div>
+                                </div>
+
+                                <button class="btn-icon btn-icon-danger" onclick="event.stopPropagation(); deleteWorkout(${w.id})">🗑️</button>
+                                <span style="color: #60a5fa; font-size:18px">${state.expandedId === w.id ? '−' : '+'}</span>
+                            </div>
+
+                            <div class="history-details ${state.expandedId === w.id ? 'open' : ''}">
+                                ${doneExercises.length === 0 ? `
+                                    <div class="muted small">Keine geloggten Übungen.</div>
+                                ` : doneExercises.map(ex => {
+                                    const topE1 = exerciseTopE1RM(ex);
+                                    const setsDone = ex.completed.filter(isSetDone);
+
+                                    return `
+                                        <div style="margin-bottom: 14px; border-bottom: 1px solid #1e293b; padding-bottom:10px;">
+                                            <div style="color:#e2e8f0; font-size:14px; font-weight:800; margin-bottom:4px;">${ex.name}</div>
+                                            <div class="muted small">Top e1RM: ${formatE1RM(topE1)}</div>
+
+                                            <div class="chips">
+                                                ${setsDone.map(s => `
+                                                    <span class="chip2">${s.reps} × ${formatDecimalDE(s.weight, 2)} kg</span>
+                                                `).join('')}
+                                            </div>
+                                        </div>
+                                    `;
+                                }).join('')}
+                            </div>
+                        </div>
+                    `;
+                }).join('')}
+            </div>
+        `;
+    }
+
+    function render() {
+        const app = document.getElementById('app');
+
+        if (state.view === 'select') app.innerHTML = renderSelect();
+        else if (state.view === 'workout') app.innerHTML = renderWorkout();
+        else if (state.view === 'history') app.innerHTML = renderHistory();
+        else app.innerHTML = renderSelect();
+
+        if (state.view === 'workout') renderTimer();
+    }
+
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'hidden') {
+            if (state.currentWorkout) saveDraft();
+        }
+    });
+
+    render();
+</script>
+</body>
+</html>
