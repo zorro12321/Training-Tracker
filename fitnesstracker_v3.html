@@ -1925,25 +1925,42 @@
   // Export / Import (Backup)
   // -----------------------
   function exportData() {
-    const payload = {
-      version: 3,
-      exportedAt: new Date().toISOString(),
-      muscleGroups: state.muscleGroups,
-      exercises: state.exercises,
-      templates: state.templates,
-      workouts: state.workouts,
-      bodyweightLogs: state.bodyweightLogs
-    };
-    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `hypertrophie-tracker-backup-${new Date().toISOString().slice(0,10)}.json`;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 1500);
-  }
+  const payload = {
+    version: 3,
+    exportedAt: new Date().toISOString(),
+    muscleGroups: state.muscleGroups,
+    exercises: state.exercises,
+    templates: state.templates,
+    workouts: state.workouts,
+    bodyweightLogs: state.bodyweightLogs
+  };
+
+  const json = JSON.stringify(payload, null, 2);
+  const filename = `hypertrophie-tracker-backup-${new Date().toISOString().slice(0,10)}.json`;
+  const blob = new Blob([json], { type: 'application/json' });
+
+  // iOS/Modern Mobile: Share-Sheet (sehr zuverlässig)
+  try {
+    const file = new File([blob], filename, { type: 'application/json' });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      navigator.share({ files: [file], title: 'Backup', text: 'Training-Tracker Backup' });
+      return;
+    }
+  } catch (e) {}
+
+  // Fallback: klassischer Download-Link
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.rel = 'noopener';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+
+  // wichtig: nicht sofort revoken (Safari kann sonst “abwürgen”)
+  setTimeout(() => URL.revokeObjectURL(url), 1500);
+}
 
   function triggerImport() {
     const input = document.getElementById('import-file');
