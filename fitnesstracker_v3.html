@@ -78,6 +78,8 @@
     /* Header */
     .sticky-header{
       position: sticky;
+      isolation: isolate;
+      contain: paint;
       top: 0;
       z-index: 60;
       padding: calc(12px + env(safe-area-inset-top)) 16px 12px;
@@ -91,6 +93,26 @@
     }
     @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))){
       .sticky-header{ background: rgba(7,11,22,0.92); }
+    }
+
+    /* iOS Safari: avoid backdrop-filter compositing artifacts on fixed/sticky surfaces */
+    @supports (-webkit-touch-callout: none){
+      .sticky-header,
+      .timer-bar,
+      .modal-backdrop{
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+      }
+      .sticky-header{
+        background: rgba(7,11,22,0.92) !important;
+      }
+      .timer-bar{
+        background: linear-gradient(180deg, rgba(7,11,22,0.92), rgba(7,11,22,0.86)) !important;
+        box-shadow: 0 -10px 30px rgba(0,0,0,0.38);
+      }
+      .modal-backdrop{
+        background: rgba(0,0,0,0.62) !important;
+      }
     }
 
     .sticky-title{
@@ -463,9 +485,14 @@
       position: fixed;
       left: 0; right: 0; bottom: 0;
       z-index: 100;
+      isolation: isolate;
+      contain: paint;
+      transform: translateZ(0);
+      will-change: transform;
+
       padding: 14px 14px calc(14px + env(safe-area-inset-bottom));
       border-top: 1px solid rgba(148,163,184,0.14);
-      background: rgba(7,11,22,0.78);
+      background: linear-gradient(180deg, rgba(7,11,22,0.86), rgba(7,11,22,0.78));
       backdrop-filter: blur(18px);
       -webkit-backdrop-filter: blur(18px);
       display:flex;
