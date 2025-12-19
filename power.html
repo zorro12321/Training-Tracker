@@ -2,44 +2,140 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-<style>
-  :root {
-    --safe-top: env(safe-area-inset-top);
-    --safe-bottom: env(safe-area-inset-bottom);
-    --accent: #60a5fa;
-    --bg: #0f172a;
-    --card: #1e293b;
-    --border: #334155;
-  }
-  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-  body { 
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
-    background: var(--bg); color: white; 
-    padding-top: var(--safe-top);
-    padding-bottom: calc(85px + var(--safe-bottom)); 
-    overscroll-behavior-y: none;
-  }
-  /* Deine restlichen V3 Styles hier behalten, aber diese hinzufügen: */
-  .last-perf-badge {
-    background: rgba(96, 165, 250, 0.1); border-left: 3px solid var(--accent);
-    border-radius: 6px; padding: 8px 12px; margin: 10px 0; font-size: 13px; color: var(--accent);
-  }
-  .tab-bar {
-    position: fixed; bottom: 0; left: 0; right: 0; height: calc(65px + var(--safe-bottom));
-    background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
-    display: flex; justify-content: space-around; padding-bottom: var(--safe-bottom);
-    border-top: 1px solid var(--border); z-index: 1000;
-  }
-  .tab-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #94a3b8; font-size: 10px; font-weight: 600; text-decoration: none; gap: 4px; }
-  .tab-item.active { color: var(--accent); }
-  .tab-item .icon { font-size: 22px; }
-  .set-input, .set-select { font-size: 16px !important; } /* Verhindert Auto-Zoom auf iPhone */
-</style>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <title>Hypertrophie Tracker</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0f172a; color: white; padding-bottom: calc(84px + env(safe-area-inset-bottom)); }
+    .container { max-width: 680px; margin: 0 auto; padding: 20px; }
+
+    .header { text-align: center; padding: 36px 20px 22px; }
+    .header h1 { font-size: 28px; margin-bottom: 8px; color: #60a5fa; }
+    .muted { color: #94a3b8; }
+    .small { font-size: 13px; }
+
+    .btn { width: 100%; padding: 18px; margin: 8px 0; background: linear-gradient(135deg, #2563eb, #3b82f6); border: none; border-radius: 12px; color: white; font-size: 18px; font-weight: 700; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+    .btn:active { transform: scale(0.98); }
+
+    button, input, select { -webkit-tap-highlight-color: transparent; }
+
+    .btn-secondary { background: #334155; }
+    .btn-success { background: #16a34a; }
+    .btn-danger { background: #ef4444; }
+
+    .btn-icon { background: transparent; border: none; color: #94a3b8; padding: 6px; font-size: 18px; cursor: pointer; }
+    .btn-icon-danger { color: #ef4444; }
+
+    .sticky-header { position: sticky; top: 0; background: #0f172a; padding: 14px 18px; z-index: 60; border-bottom: 1px solid #334155; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+    .sticky-title { font-size: 18px; font-weight: 800; }
+    .pill { background: #1e293b; border: 1px solid #334155; color: #e2e8f0; padding: 6px 10px; border-radius: 999px; font-size: 12px; }
+
+    .card { background: #1e293b; border-radius: 12px; padding: 14px; margin: 14px 0; border: 1px solid #334155; }
+    .row { display:flex; justify-content:space-between; align-items:center; gap:10px; }
+    .exercise-header { display:flex; justify-content:space-between; align-items:flex-start; gap:10px; }
+    .exercise-title { font-size: 16px; font-weight: 800; color: #e2e8f0; }
+    .exercise-meta { font-size: 13px; color: #94a3b8; display:flex; gap:10px; align-items:center; flex-wrap: wrap; margin-top: 4px; }
+    .timer-btn { background: #334155; color: #60a5fa; border: 1px solid #60a5fa; border-radius: 6px; padding: 4px 10px; font-size: 12px; cursor: pointer; }
+    .line { margin-top: 8px; color: #94a3b8; font-size: 12px; line-height: 1.35; }
+
+    .set-row { background: #0f172a; border-radius: 10px; padding: 10px; margin: 7px 0; display:flex; gap:10px; align-items:center; }
+    .set-label { color:#64748b; width: 44px; font-size: 14px; font-weight: 800; text-align:center; }
+
+    .set-select, .set-input {
+      flex: 1;
+      padding: 12px;
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 10px;
+      color: white;
+      font-size: 16px;
+      text-align: center;
+    }
+    .set-select:focus, .set-input:focus { border-color:#60a5fa; outline: none; }
+
+    .mini-btn {
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid #334155;
+      background: #1e293b;
+      color: #e2e8f0;
+      font-weight: 800;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .mini-btn:active { transform: scale(0.98); }
+
+    .timer-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #1e293b; padding: 14px 16px calc(14px + env(safe-area-inset-bottom)) 16px; border-top: 1px solid #334155; display:flex; justify-content:space-between; align-items:center; z-index: 100; }
+    .timer-display { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size: 22px; font-weight: 900; color:#60a5fa; }
+    .timer-controls { display:flex; gap:10px; align-items:center; }
+    .btn-small { padding: 8px 14px; border-radius: 10px; border: none; font-weight: 900; cursor: pointer; }
+
+    .history-item { background:#1e293b; border-radius: 12px; margin: 10px 0; overflow:hidden; border:1px solid #334155; }
+    .history-header { padding: 14px; display:flex; justify-content:space-between; align-items:center; cursor:pointer; gap:10px; }
+    .history-details { padding: 14px; border-top:1px solid #334155; display:none; background:#0f172a; }
+    .history-details.open { display:block; }
+    .chips { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
+    .chip2 { background:#1e293b; border:1px solid #334155; color:#e2e8f0; padding:2px 8px; border-radius:999px; font-size:13px; }
+
+    .section-title { font-size: 14px; font-weight: 900; color:#e2e8f0; margin: 10px 0 6px; }
+    .list-item { padding: 12px; border:1px solid #334155; border-radius: 12px; background:#1e293b; margin: 8px 0; display:flex; justify-content:space-between; align-items:center; gap:10px; }
+    .list-item .name { font-weight: 900; color:#e2e8f0; }
+    .list-item .sub { font-size: 12px; color:#94a3b8; margin-top: 2px; }
+    .list-actions { display:flex; gap:8px; align-items:center; }
+
+    .input { width: 100%; padding: 14px; border-radius: 12px; border: 1px solid #334155; background:#1e293b; color:white; font-size: 16px; margin: 8px 0; }
+    .select { width: 100%; padding: 14px; border-radius: 12px; border: 1px solid #334155; background:#1e293b; color:white; font-size: 16px; margin: 8px 0; }
+
+    .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display:flex; align-items:center; justify-content:center; z-index: 200; padding: 18px 18px calc(18px + env(safe-area-inset-bottom)) 18px; }
+    .modal { width: 100%; max-width: 560px; background:#0f172a; border:1px solid #334155; border-radius: 16px; padding: 16px; box-shadow: 0 30px 90px rgba(0,0,0,0.65); }
+    .modal h3 { font-size: 16px; font-weight: 900; color:#e2e8f0; margin-bottom: 8px; }
+    .modal p { color:#94a3b8; font-size: 13px; line-height:1.4; margin-bottom: 10px; }
+    .modal-actions { display:flex; gap:10px; }
+
+    .grid2 { display:grid; grid-template-columns: 1fr 1fr; gap:10px; }
+    @media (max-width: 520px){ .grid2 { grid-template-columns: 1fr; } }
+
+
+    @media (max-width: 520px){
+      .modal-backdrop { align-items: flex-end; }
+      .modal { max-width: 100%; border-radius: 18px 18px 0 0; }
+    }
+
+
+
+    .toast {
+      position: fixed;
+      left: 12px;
+      right: 12px;
+      bottom: calc(84px + env(safe-area-inset-bottom));
+      z-index: 250;
+      background: rgba(30,41,59,0.96);
+      border: 1px solid #334155;
+      border-radius: 14px;
+      padding: 12px 14px;
+      color: #e2e8f0;
+      box-shadow: 0 18px 60px rgba(0,0,0,0.6);
+      opacity: 0;
+      transform: translateY(8px);
+      pointer-events: none;
+      transition: opacity 160ms ease, transform 160ms ease;
+      line-height: 1.35;
+    }
+    .toast.show { opacity: 1; transform: translateY(0); pointer-events: auto; }
+
+    #fatal {
+      position: fixed; inset: 0; z-index: 9999; display: none;
+      background: rgba(0,0,0,0.92); padding: 16px; overflow: auto;
+      color: #e2e8f0; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      white-space: pre-wrap;
+    }
+  </style>
 </head>
 <body>
   <div id="app"></div>
   <div id="fatal"></div>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <audio id="timer-beep" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"></audio>
 
 
@@ -145,6 +241,80 @@
       .replaceAll('>', '&gt;')
       .replaceAll('"', '&quot;');
   }
+
+
+  // -----------------------
+  // iOS UX helpers
+  // -----------------------
+  let _toastTimer = null;
+  function showToast(message, ms = 2500) {
+    const el = document.getElementById('toast');
+    if (!el) return;
+    el.textContent = String(message || '');
+    el.classList.add('show');
+    if (_toastTimer) clearTimeout(_toastTimer);
+    _toastTimer = setTimeout(() => el.classList.remove('show'), ms);
+  }
+  document.addEventListener('click', (e) => {
+    const t = e.target;
+    if (t && t.id === 'toast') t.classList.remove('show');
+  });
+
+  // Timer sound: iOS requires a user gesture before audio can play.
+  let _audioUnlocked = false;
+  let _audioCtx = null;
+
+  function unlockTimerSound() {
+    if (_audioUnlocked) return;
+    try {
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      if (!Ctx) { _audioUnlocked = true; return; }
+      _audioCtx = new Ctx();
+      if (_audioCtx.state === 'suspended') _audioCtx.resume().catch(() => {});
+      // tiny silent "priming" sound
+      const osc = _audioCtx.createOscillator();
+      const gain = _audioCtx.createGain();
+      gain.gain.value = 0;
+      osc.connect(gain);
+      gain.connect(_audioCtx.destination);
+      osc.start();
+      osc.stop(_audioCtx.currentTime + 0.01);
+      _audioUnlocked = true;
+    } catch {
+      _audioUnlocked = true;
+    }
+  }
+
+  function playTimerBeep() {
+    // Prefer WebAudio (more reliable on iOS than <audio> from remote URLs)
+    try {
+      if (_audioCtx) {
+        if (_audioCtx.state === 'suspended') _audioCtx.resume().catch(() => {});
+        const osc = _audioCtx.createOscillator();
+        const gain = _audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.value = 880;
+        const t0 = _audioCtx.currentTime;
+        gain.gain.setValueAtTime(0.0001, t0);
+        gain.gain.exponentialRampToValueAtTime(0.18, t0 + 0.01);
+        gain.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.14);
+        osc.connect(gain);
+        gain.connect(_audioCtx.destination);
+        osc.start(t0);
+        osc.stop(t0 + 0.16);
+        return;
+      }
+    } catch {}
+
+    // fallback: HTML audio element (may still fail if not unlocked)
+    const a = document.getElementById('timer-beep');
+    if (a) a.play().catch(() => {});
+  }
+
+  // Unlock on first interaction
+  document.addEventListener('pointerdown', unlockTimerSound, { once: true, passive: true });
+  document.addEventListener('touchstart', unlockTimerSound, { once: true, passive: true });
+
 
   function clampInt(n, min, max) {
     if (!Number.isFinite(n)) return null;
@@ -447,6 +617,8 @@
 
   normalizeAllWorkouts();
 
+  function go(view) { state.view = view; render(); }
+
   // -----------------------
   // Start / resume workouts
   // -----------------------
@@ -747,14 +919,6 @@
     return null;
   }
 
-  function getOverloadInfo(exerciseId) {
-  const last = getLastExercisePerformance(exerciseId);
-  if (!last) return null;
-  const dateStr = new Date(last.date).toLocaleDateString('de-DE', {day:'2-digit', month:'2-digit'});
-  const dataStr = last.sets.map(s => `${s.reps}x${s.weight}kg`).join(' | ');
-  return { date: dateStr, data: dataStr };
-}
-
   // -----------------------
   // Timer (endAt based)
   // -----------------------
@@ -764,10 +928,10 @@
     if (now >= state.timer.endAt) {
       if (!state.timer.notified) {
         state.timer.notified = true;
-        const a = document.getElementById('timer-beep');
-        if (a) a.play().catch(() => {});
+        playTimerBeep();
         stopTimer(false);
-        alert("Pause vorbei! Weiter geht's!");
+        try { if (navigator.vibrate) navigator.vibrate([120, 60, 120]); } catch {}
+        showToast("Pause vorbei! Weiter geht's!", 3200);
       } else {
         stopTimer(false);
       }
@@ -826,8 +990,8 @@
       <div class="timer-display">${state.timer.active ? formatTime(left) : '--:--'}</div>
       <div class="timer-controls">
         ${state.timer.active
-          ? `<button class="btn-small" style="background:#ef4444; color:white" onclick="stopTimer()">Stop</button>
-             <button class="btn-small" style="background:#334155; color:white" onclick="addTime(30)">+30s</button>`
+          ? `<button class="btn-small" style="background:#ef4444; color:white" data-action="timer_stop">Stop</button>
+             <button class="btn-small" style="background:#334155; color:white" data-action="timer_add" data-seconds="30">+30s</button>`
           : `<span class="muted small">Pausentimer inaktiv</span>`
         }
       </div>
@@ -840,6 +1004,22 @@
     } else {
       // re-evaluate timer after coming back
       if (state.timer.active) tickTimer();
+    }
+  });
+
+
+  // -----------------------
+  // Event delegation (first step)
+  // -----------------------
+  document.addEventListener('click', (e) => {
+    const el = e.target && e.target.closest ? e.target.closest('[data-action]') : null;
+    if (!el) return;
+    const action = el.getAttribute('data-action');
+    if (action === 'timer_stop') { stopTimer(); return; }
+    if (action === 'timer_add') {
+      const sec = Number(el.getAttribute('data-seconds') || 0);
+      addTime(sec);
+      return;
     }
   });
 
@@ -1407,16 +1587,16 @@
         </button>
 
         <div style="margin-top:16px">
-          <button class="btn btn-secondary" onclick="state.view='history'; render()">
+          <button class="btn btn-secondary" onclick="go('history')">
             <span>📜 Verlauf</span><span style="opacity:0.7">→</span>
           </button>
-          <button class="btn btn-secondary" onclick="state.view='review'; render()">
+          <button class="btn btn-secondary" onclick="go('review')">
             <span>📈 Review</span><span style="opacity:0.7">→</span>
           </button>
           <button class="btn btn-secondary" onclick="openTemplates()">
             <span>🧩 Plan bearbeiten</span><span style="opacity:0.7">→</span>
           </button>
-          <button class="btn btn-secondary" onclick="state.view='exercises'; render()">
+          <button class="btn btn-secondary" onclick="go('exercises')">
             <span>🏷️ Übungen</span><span style="opacity:0.7">→</span>
           </button>
           <button class="btn btn-secondary" onclick="openMuscleGroups()">
@@ -1449,18 +1629,16 @@
 
     const isFreeLike = (w.kind === 'free' || w.kind === 'manual');
 
-    // Optimierte Buttons für die Erreichbarkeit
     const addExerciseBtn = `
-      <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-        <button class="btn btn-secondary" style="flex: 1; font-size: 14px; padding: 12px;" onclick="openExercisePicker('workout_add')">
-          <span>➕ Übung</span>
-        </button>
-        <button class="btn btn-secondary" style="flex: 1; font-size: 14px; padding: 12px;" onclick="openNewExerciseModal('workout_add')">
-          <span>✨ Neu</span>
-        </button>
-      </div>
+      <button class="btn btn-secondary" onclick="openExercisePicker('workout_add')">
+        <span>➕ Übung hinzufügen</span><span style="opacity:0.7">→</span>
+      </button>
+      <button class="btn btn-secondary" onclick="openNewExerciseModal('workout_add')">
+        <span>✨ Neue Übung erstellen</span><span style="opacity:0.7">→</span>
+      </button>
     `;
 
+    // Keep template order for template workouts; for free/manual, group by muscle group
     const list = (w.exercises || []);
     const exList = (w.templateId && w.kind === 'template')
       ? list
@@ -1470,111 +1648,97 @@
         );
 
     return `
-      <div class="sticky-header" style="padding-top: calc(10px + env(safe-area-inset-top)); height: auto; min-height: 70px; align-items: flex-end; padding-bottom: 10px;">
-        <button class="btn-icon" onclick="state.view='select'; render()">←</button>
-        <div style="flex:1; padding-left: 10px;">
-          <div class="sticky-title" style="font-size: 18px;">${escapeHtml(w.nameSnapshot || 'Training')}</div>
-          <div class="muted small">Draft wird automatisch gespeichert</div>
+      <div class="sticky-header">
+        <button class="btn-icon" onclick="go('select')">←</button>
+        <div style="flex:1">
+          <div class="sticky-title">${escapeHtml(w.nameSnapshot || 'Training')}</div>
+          <div class="muted small">⏱ Timer · Draft wird automatisch gespeichert · + Satz möglich</div>
         </div>
-        <button class="btn-icon" style="margin-right: 8px;" onclick="editWorkoutMeta()">🗓️</button>
-        <button class="btn-success" style="padding: 10px 16px; border-radius: 10px; border:none; font-weight:900; cursor:pointer; background: #16a34a; color: white;" onclick="finishWorkout()">Speichern</button>
+        <button class="btn-icon" onclick="editWorkoutMeta()">🗓️</button>
+        <button class="btn-success" style="padding: 10px 14px; border-radius: 12px; border:none; font-weight:900; cursor:pointer" onclick="finishWorkout()">Speichern</button>
       </div>
 
-      <div class="container" style="padding-top: 20px; padding-bottom: calc(120px + env(safe-area-inset-bottom));">
+      <div class="container" style="padding-bottom: calc(120px + env(safe-area-inset-bottom));">
         ${addExerciseBtn}
 
         ${(exList.length ? exList.map(ex => {
           const last = getLastExercisePerformance(ex.exerciseId);
-          
-          // 2. Training-Effektivität: Progressive Overload Badge
-          // Wir machen die letzte Leistung prominenter, damit man weiß, was man schlagen muss
-          const overloadBadge = last
+          const lastLine = last
             ? (() => {
-                const sets = last.sets.slice(0, 4).map(s => `<strong>${s.reps}×${formatDecimalDE(s.weight, 2)}kg</strong>`).join(' · ');
-                const more = last.sets.length > 4 ? ' ...' : '';
-                return `
-                  <div class="last-perf-badge" style="margin-top: 8px; background: rgba(96, 165, 250, 0.1); border-left: 3px solid #60a5fa; padding: 8px 12px; border-radius: 6px; font-size: 13px; color: #60a5fa;">
-                    <div style="margin-bottom: 2px; opacity: 0.8; font-size: 11px; text-transform: uppercase; font-weight: bold;">Letztes Mal (${formatDate(last.date)})</div>
-                    <div>${sets}${more} <span style="margin-left: 5px; opacity: 0.7;">(e1RM: ${formatE1RM(last.topE1RM)})</span></div>
-                  </div>`;
+                const sets = last.sets.slice(0, 4).map(s => `${s.reps}×${formatDecimalDE(s.weight, 2)} kg`).join(' · ');
+                const more = last.sets.length > 4 ? ' · …' : '';
+                return `Letztes Mal (${formatDate(last.date)}): ${sets}${more} · Top e1RM: ${formatE1RM(last.topE1RM)}`;
               })()
-            : `<div class="last-perf-badge" style="margin-top: 8px; border-left: 3px solid #475569; background: #33415511; padding: 8px 12px; border-radius: 6px; font-size: 13px; color: #94a3b8;">Erstes Mal mit dieser Übung</div>`;
+            : 'Letztes Mal: -';
 
           return `
-            <div class="card" style="margin-bottom: 20px; border: 1px solid #334155;">
+            <div class="card">
               <div class="exercise-header">
                 <div style="flex:1">
-                  <div class="row" style="display: flex; justify-content: space-between; align-items: flex-start;">
-                    <div style="flex: 1;">
-                      <div class="exercise-title" style="font-size: 17px; font-weight: bold; margin-bottom: 4px;">${escapeHtml(ex.nameSnapshot)}</div>
-                      <div class="exercise-meta" style="display: flex; flex-wrap: wrap; gap: 6px; align-items: center;">
-                        <span class="pill" style="background: #334155; padding: 2px 8px; border-radius: 4px; font-size: 11px;">${escapeHtml(ex.muscleGroupSnapshot)}</span>
-                        <span class="small muted">Ziel: ${escapeHtml(ex.plannedSets || ex.sets?.length || 0)}×${escapeHtml(ex.targetRepsText || '')}</span>
+                  <div class="row">
+                    <div>
+                      <div class="exercise-title">${escapeHtml(ex.nameSnapshot)}</div>
+                      <div class="exercise-meta">
+                        <span class="pill">${escapeHtml(ex.muscleGroupSnapshot)}</span>
+                        <span>Target: ${escapeHtml(ex.plannedSets || ex.sets?.length || 0)} × ${escapeHtml(ex.targetRepsText || '')}</span>
+                        <button class="timer-btn" onclick="startTimer(${Number(ex.pauseSec)||DEFAULT_PAUSE_SEC})">⏱ ${Number(ex.pauseSec)||DEFAULT_PAUSE_SEC}s</button>
+                        <button class="mini-btn" onclick="editPause('${ex.logId}')">Pause</button>
+                        <button class="mini-btn" onclick="editTarget('${ex.logId}')">Ziel</button>
                       </div>
                     </div>
-                    <div class="list-actions" style="display: flex; gap: 5px;">
-                      <button class="mini-btn" onclick="openExercisePicker('workout_replace', null, '${ex.logId}')">🔄</button>
-                      <button class="btn-icon btn-icon-danger" style="background: rgba(239, 68, 68, 0.1); color: #ef4444; border: none; padding: 6px; border-radius: 6px;" onclick="removeExerciseFromWorkout('${ex.logId}')">🗑️</button>
+                    <div class="list-actions">
+                      <button class="mini-btn" onclick="openExercisePicker('workout_replace', null, '${ex.logId}')">Ersetzen</button>
+                      <button class="btn-icon btn-icon-danger" onclick="removeExerciseFromWorkout('${ex.logId}')">🗑️</button>
                     </div>
                   </div>
-                  
-                  ${overloadBadge}
-
-                  <div style="display: flex; gap: 8px; margin-top: 10px;">
-                    <button class="timer-btn" style="flex: 1; background: #334155; border: none; color: white; padding: 6px; border-radius: 6px; font-size: 12px;" onclick="startTimer(${Number(ex.pauseSec)||DEFAULT_PAUSE_SEC})">⏱ ${Number(ex.pauseSec)||DEFAULT_PAUSE_SEC}s</button>
-                    <button class="mini-btn" style="flex: 1;" onclick="editPause('${ex.logId}')">Pause</button>
-                    <button class="mini-btn" style="flex: 1;" onclick="editTarget('${ex.logId}')">Ziel</button>
-                  </div>
+                  <div class="line">${lastLine}</div>
                 </div>
               </div>
 
-              <div class="sets-list" style="margin-top: 12px;">
-                ${(ex.sets || []).map((set, setIdx) => `
-                  <div class="set-row" style="display: grid; grid-template-columns: 35px 1fr 1fr 40px; gap: 10px; align-items: center; margin-bottom: 8px;">
-                    <span class="set-label" style="font-weight: bold; color: #94a3b8; text-align: center;">${setIdx + 1}</span>
-                    <select class="set-select" style="height: 44px; font-size: 16px; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 8px;" onchange="updateReps('${ex.logId}', ${setIdx}, this.value)">
-                      ${repsOptions(set.reps)}
-                    </select>
-                    <input class="set-input"
-                           style="height: 44px; font-size: 16px; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 8px; text-align: center;"
-                           type="text"
-                           inputmode="decimal"
-                           pattern="[0-9]*[.,]?[0-9]*"
-                           placeholder="kg"
-                           value="${set.weight === null ? '' : formatDecimalDE(set.weight, 2)}"
-                           oninput="updateWeight('${ex.logId}', ${setIdx}, this.value)"
-                           onblur="normalizeWeightInput(this)" />
-                    <button class="btn-icon" style="color: #ef4444; background: none; border: none; font-size: 18px;" onclick="removeSet('${ex.logId}', ${setIdx})">✕</button>
-                  </div>
-                `).join('')}
-              </div>
+              ${(ex.sets || []).map((set, setIdx) => `
+                <div class="set-row">
+                  <span class="set-label">${setIdx + 1}</span>
+                  <select class="set-select" onchange="updateReps('${ex.logId}', ${setIdx}, this.value)">
+                    ${repsOptions(set.reps)}
+                  </select>
+                  <input class="set-input"
+                         type="text"
+                         inputmode="decimal"
+                         pattern="[0-9]*[.,]?[0-9]*"
+                         placeholder="kg"
+                         value="${set.weight === null ? '' : formatDecimalDE(set.weight, 2)}"
+                         oninput="updateWeight('${ex.logId}', ${setIdx}, this.value)"
+                         onblur="normalizeWeightInput(this)" />
+                  <button class="mini-btn" onclick="removeSet('${ex.logId}', ${setIdx})">−</button>
+                </div>
+              `).join('')}
 
               <div style="display:flex; gap:10px; margin-top:10px;">
-                <button class="btn btn-secondary" style="flex:1; padding: 10px; font-size: 14px; background: #334155;" onclick="addSet('${ex.logId}')">+ Satz hinzufügen</button>
+                <button class="mini-btn" style="flex:1" onclick="addSet('${ex.logId}')">+ Satz</button>
               </div>
             </div>
           `;
-        }).join('') : `<div class="muted" style="text-align:center; padding: 40px 10px;">Keine Übungen im Training.</div>` )}
+        }).join('') : `<div class="muted" style="text-align:center; padding: 30px 10px;">Keine Übungen im Training. Füge eine Übung hinzu.</div>` )}
 
-        <button class="btn" style="background: transparent; border: 1px solid #ef4444; color: #ef4444; margin-top: 20px;" onclick="cancelWorkout()">
-          <span>Abbrechen</span><span style="opacity:0.6; font-size: 12px; margin-left: 8px;">Draft bleibt erhalten</span>
+        <button class="btn btn-danger" onclick="cancelWorkout()">
+          <span>Abbrechen</span><span style="opacity:0.7">Draft bleibt</span>
         </button>
       </div>
 
-      <div id="timer-bar" class="timer-bar" style="bottom: calc(10px + env(safe-area-inset-bottom));"></div>
+      <div id="timer-bar" class="timer-bar"></div>
 
       ${renderModal()}
       ${renderPicker()}
     `;
-}
+  }
 
   function renderHistory() {
     const list = state.workouts || [];
     return `
       <div class="sticky-header">
-        <button class="btn-icon" onclick="state.view='select'; render()">←</button>
+        <button class="btn-icon" onclick="go('select')">←</button>
         <div class="sticky-title">Verlauf</div>
-        <button class="btn-icon" onclick="state.view='review'; render()">📈</button>
+        <button class="btn-icon" onclick="go('review')">📈</button>
       </div>
 
       <div class="container">
@@ -1647,9 +1811,9 @@
 
     return `
       <div class="sticky-header">
-        <button class="btn-icon" onclick="state.view='select'; render()">←</button>
+        <button class="btn-icon" onclick="go('select')">←</button>
         <div class="sticky-title">Review</div>
-        <button class="btn-icon" onclick="state.view='history'; render()">📜</button>
+        <button class="btn-icon" onclick="go('history')">📜</button>
       </div>
 
       <div class="container">
@@ -1715,7 +1879,7 @@
 
     return `
       <div class="sticky-header">
-        <button class="btn-icon" onclick="state.view='select'; render()">←</button>
+        <button class="btn-icon" onclick="go('select')">←</button>
         <div class="sticky-title">Übungen</div>
         <button class="btn-icon" onclick="openMergeModal()">⇄</button>
       </div>
@@ -1757,7 +1921,7 @@
     sortMuscleGroups();
     return `
       <div class="sticky-header">
-        <button class="btn-icon" onclick="state.view='select'; render()">←</button>
+        <button class="btn-icon" onclick="go('select')">←</button>
         <div class="sticky-title">Muskelgruppen</div>
         <button class="btn-icon" onclick="openMuscleGroupAddModal()">＋</button>
       </div>
@@ -1789,7 +1953,7 @@
     const list = (state.bodyweightLogs || []).slice().sort((a,b)=>new Date(b.date)-new Date(a.date));
     return `
       <div class="sticky-header">
-        <button class="btn-icon" onclick="state.view='select'; render()">←</button>
+        <button class="btn-icon" onclick="go('select')">←</button>
         <div class="sticky-title">Körpergewicht</div>
         <button class="btn-icon" onclick="openBodyweightAddModal()">＋</button>
       </div>
@@ -1820,7 +1984,7 @@
     const list = state.templates.slice().sort((a,b)=>a.name.localeCompare(b.name,'de'));
     return `
       <div class="sticky-header">
-        <button class="btn-icon" onclick="state.view='select'; render()">←</button>
+        <button class="btn-icon" onclick="go('select')">←</button>
         <div class="sticky-title">Plan bearbeiten</div>
         <button class="btn-icon" onclick="createTemplate()">＋</button>
       </div>
@@ -2176,81 +2340,30 @@
     `;
   }
 
-  function renderTabs() {
-  if (state.view === 'workout') return ''; 
-  const tabs = [
-    { id: 'select', label: 'Training', icon: '🏋️' },
-    { id: 'history', label: 'Verlauf', icon: '📅' },
-    { id: 'templates', label: 'Pläne', icon: '📝' },
-    { id: 'bodyweight', label: 'Gewicht', icon: '⚖️' }
-  ];
-  return `<nav class="tab-bar">${tabs.map(t => `
-    <div class="tab-item ${state.view === t.id ? 'active' : ''}" onclick="window.setView('${t.id}')">
-      <span class="icon">${t.icon}</span><span>${t.label}</span>
-    </div>`).join('')}</nav>`;
-}
-window.setView = (v) => { state.view = v; render(); };
-
-  
   function render() {
-  const app = document.getElementById('app');
-  if (!app) return;
+    const app = document.getElementById('app');
+    if (!app) return;
 
-  let html = ''; // Wir sammeln den Inhalt hier
+    if (state.view === 'select') app.innerHTML = renderSelect();
+    else if (state.view === 'workout') app.innerHTML = renderWorkout();
+    else if (state.view === 'history') app.innerHTML = renderHistory();
+    else if (state.view === 'review') app.innerHTML = renderReview();
+    else if (state.view === 'exercises') app.innerHTML = renderExercises();
+    else if (state.view === 'templates') app.innerHTML = renderTemplates();
+    else if (state.view === 'template_edit') app.innerHTML = renderTemplateEdit();
+    else if (state.view === 'muscle_groups') app.innerHTML = renderMuscleGroups();
+    else if (state.view === 'bodyweight') app.innerHTML = renderBodyweight();
+    else app.innerHTML = renderSelect();
 
-  if (state.view === 'select') html = renderSelect();
-  else if (state.view === 'workout') html = renderWorkout();
-  else if (state.view === 'history') html = renderHistory();
-  else if (state.view === 'review') html = renderReview();
-  else if (state.view === 'exercises') html = renderExercises();
-  else if (state.view === 'templates') html = renderTemplates();
-  else if (state.view === 'template_edit') html = renderTemplateEdit();
-  else if (state.view === 'muscle_groups') html = renderMuscleGroups();
-  else if (state.view === 'bodyweight') html = renderBodyweight();
-  else html = renderSelect();
-
-  // Hier hängen wir die neue Navigation unten an
-  app.innerHTML = html + renderTabs();
-
-  if (state.view === 'workout') renderTimer();
-}
-
-  function renderTabs() {
-  // Während des Trainings blenden wir die Navigation aus, um Platz zu sparen
-  if (state.view === 'workout') return ''; 
-
-  const tabs = [
-    { id: 'select', label: 'Training', icon: '🏋️' },
-    { id: 'history', label: 'Verlauf', icon: '📅' },
-    { id: 'templates', label: 'Pläne', icon: '📝' },
-    { id: 'bodyweight', label: 'Gewicht', icon: '⚖️' }
-  ];
-
-  return `
-    <nav class="tab-bar">
-      ${tabs.map(t => `
-        <div class="tab-item ${state.view === t.id ? 'active' : ''}" onclick="state.view='${t.id}'; render();">
-          <span class="icon">${t.icon}</span>
-          <span>${t.label}</span>
-        </div>
-      `).join('')}
-    </nav>
-  `;
-}
-
-  function getOverloadInfo(exerciseId) {
-  const last = getLastExercisePerformance(exerciseId);
-  if (!last) return null;
-  const dateStr = new Date(last.date).toLocaleDateString('de-DE', {day:'2-digit', month:'2-digit'});
-  const dataStr = last.sets.map(s => `${s.reps}x${s.weight}kg`).join(' | ');
-  return { date: dateStr, data: dataStr };
-}
+    if (state.view === 'workout') renderTimer();
+  }
 
   // -----------------------
   // Expose functions
   // -----------------------
   window.state = state;
   window.render = render;
+  window.go = go;
 
   window.startTemplateWorkout = startTemplateWorkout;
   window.startFreeWorkout = startFreeWorkout;
