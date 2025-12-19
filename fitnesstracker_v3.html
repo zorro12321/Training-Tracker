@@ -41,7 +41,11 @@
     .timer-btn { background: #334155; color: #60a5fa; border: 1px solid #60a5fa; border-radius: 6px; padding: 4px 10px; font-size: 12px; cursor: pointer; }
     .line { margin-top: 8px; color: #94a3b8; font-size: 12px; line-height: 1.35; }
 
-    .set-row {
+    .last-perf { margin-top: 0; color: #94a3b8; font-size: 12px; line-height: 1.35; }
+  .last-label { margin-bottom: 4px; }
+  .last-sets { display: flex; flex-direction: column; gap: 2px; }
+  .last-set { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.set-row {
   background: #0f172a;
   border-radius: 10px;
   padding: 10px;
@@ -1704,13 +1708,25 @@
 
         ${(exList.length ? exList.map(ex => {
           const last = getLastExercisePerformance(ex.exerciseId);
-          const lastLine = last
+          const lastBlock = last
             ? (() => {
-                const sets = last.sets.slice(0, 4).map(s => `${s.reps}×${formatDecimalDE(s.weight, 2)} kg`).join(' · ');
-                const more = last.sets.length > 4 ? ' · …' : '';
-                return `Letztes Mal (${formatDate(last.date)}): ${sets}${more} · Top e1RM: ${formatE1RM(last.topE1RM)}`;
+                const setLines = last.sets.slice(0, 4)
+                  .map(s => `<div class="last-set">${s.reps}×${formatDecimalDE(s.weight, 2)} kg</div>`)
+                  .join('');
+                const more = last.sets.length > 4 ? `<div class="last-set">…</div>` : '';
+                return `
+                  <div class="last-perf">
+                    <div class="last-label">Letztes Mal (${formatDate(last.date)}):</div>
+                    <div class="last-sets">${setLines}${more}</div>
+                  </div>
+                `;
               })()
-            : 'Letztes Mal: -';
+            : `
+              <div class="last-perf">
+                <div class="last-label">Letztes Mal:</div>
+                <div class="last-sets"><div class="last-set">-</div></div>
+              </div>
+            `;
 
           return `
             <div class="card">
@@ -1724,7 +1740,7 @@
                         <span>Target: ${escapeHtml(ex.plannedSets || ex.sets?.length || 0)} × ${escapeHtml(ex.targetRepsText || '')}</span>
                         <button class="timer-btn" onclick="startTimer(${Number(ex.pauseSec)||DEFAULT_PAUSE_SEC})">⏱ ${Number(ex.pauseSec)||DEFAULT_PAUSE_SEC}s</button>
                         <button class="mini-btn" onclick="editPause('${ex.logId}')">Pause</button>
-                        <button class="mini-btn" onclick="editTarget('${ex.logId}')">Ziel</button>
+                        
                       </div>
                     </div>
                     <div class="list-actions">
@@ -1732,7 +1748,7 @@
                       <button class="btn-icon btn-icon-danger" onclick="removeExerciseFromWorkout('${ex.logId}')">🗑️</button>
                     </div>
                   </div>
-                  <div class="line">${lastLine}</div>
+                  <div class="line">${lastBlock}</div>
                 </div>
               </div>
 
