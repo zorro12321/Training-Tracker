@@ -1924,44 +1924,30 @@
   // -----------------------
   // Export / Import (Backup)
   // -----------------------
-  function exportData() {
+  window.exportData = function exportData() {
   const payload = {
     version: 3,
     exportedAt: new Date().toISOString(),
-    muscleGroups: state.muscleGroups,
-    exercises: state.exercises,
-    templates: state.templates,
-    workouts: state.workouts,
-    bodyweightLogs: state.bodyweightLogs
+    muscleGroups: loadJSON(KEY_MUSCLEGROUPS, ensureMuscleGroups()),
+    exercises: loadJSON(KEY_EXERCISES, []),
+    templates: loadJSON(KEY_TEMPLATES, []),
+    workouts: loadJSON(KEY_HISTORY, []),
+    bodyweightLogs: loadJSON(KEY_BODYWEIGHT, [])
   };
 
   const json = JSON.stringify(payload, null, 2);
   const filename = `hypertrophie-tracker-backup-${new Date().toISOString().slice(0,10)}.json`;
   const blob = new Blob([json], { type: 'application/json' });
 
-  const downloadFallback = () => {
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    a.rel = 'noopener';
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 1500);
-  };
-
-  try {
-    const file = new File([blob], filename, { type: 'application/json' });
-    if (navigator.canShare && navigator.canShare({ files: [file] }) && navigator.share) {
-      navigator.share({ files: [file], title: 'Backup', text: 'Training-Tracker Backup' })
-        .catch(() => downloadFallback());   // wichtig: bei Abbruch/Fehler fallback
-      return;
-    }
-  } catch (e) {}
-
-  downloadFallback();
-}
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1500);
+};
 
   function triggerImport() {
     const input = document.getElementById('import-file');
