@@ -2312,6 +2312,22 @@
     return { ctx, cssW, cssH };
   }
 
+
+  function computePadLForYAxis(ctx, labels, minPadL) {
+    const minL = Number.isFinite(minPadL) ? minPadL : 42;
+    ctx.save();
+    ctx.font = '12px -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif';
+    let maxW = 0;
+    (labels || []).forEach(l => {
+      const s = String(l ?? '');
+      const w = ctx.measureText(s).width;
+      if (w > maxW) maxW = w;
+    });
+    ctx.restore();
+    // +16: 8px gap to axis + a little safety for iOS Safari text metrics
+    return Math.max(minL, Math.ceil(maxW) + 16);
+  }
+
   function drawAxes(ctx, padL, padT, w, h, yMin, yMax, yFmt) {
     ctx.save();
     ctx.strokeStyle = 'rgba(148,163,184,0.20)';
@@ -2379,19 +2395,31 @@
     return series;
   }
 
+  
   function drawWeeklyVolumeChart() {
     const canvas = document.getElementById('chartWeeklyVolume');
     if (!canvas) return;
     const { ctx, cssW, cssH } = getCanvasCtx(canvas, 260);
 
-    const padL = 52, padR = 12, padT = 16, padB = 26;
-    const w = cssW - padL - padR;
-    const h = cssH - padT - padB;
+    const padR = 14, padT = 16, padB = 30;
 
     const series = buildWeeklySeries(12);
     const maxV = Math.max(1, ...series.map(s => s.vol));
     const yMin = 0;
     const yMax = maxV * 1.05;
+
+    // Dynamic left padding so y-axis labels never get clipped (iOS Safari)
+    const ticks = 4;
+    const yLabels = [];
+    for (let i = 0; i <= ticks; i++) {
+      const t = i / ticks;
+      const v = yMin + (t * (yMax - yMin));
+      yLabels.push(formatVolume(v));
+    }
+    const padL = computePadLForYAxis(ctx, yLabels, 56);
+
+    const w = cssW - padL - padR;
+    const h = cssH - padT - padB;
 
     drawAxes(ctx, padL, padT, w, h, yMin, yMax, (v)=>formatVolume(v));
 
@@ -2410,19 +2438,32 @@
       ctx.fill();
     });
 
-    // X labels (every 2nd week)
+    // X labels: adaptive skipping to avoid overlaps on small screens
     ctx.fillStyle = '#94a3b8';
     ctx.font = '12px -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'top';
+
+    const minDx = 52; // minimum pixel distance between labels
+    let lastX = -1e9;
+
     series.forEach((s, i) => {
-      if (i % 2 !== 0 && i !== series.length - 1) return;
+      const isLast = i === series.length - 1;
+      // Preferred cadence: every ~2 weeks, but adapt to available width
+      const dx = barW + gap;
+      const step = Math.max(2, Math.ceil(minDx / Math.max(1, dx)));
+      if (!isLast && (i % step !== 0)) return;
+
+      const x = padL + i * (barW + gap) + barW / 2;
+      if (!isLast && (x - lastX) < minDx) return;
+
       const d = new Date(s.weekT);
       const label = `${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.`;
-      const x = padL + i * (barW + gap) + barW / 2;
       ctx.fillText(label, x, padT + h + 6);
+      lastX = x;
     });
   }
+
 
   function drawWeeklyFrequencyChart() {
     const canvas = document.getElementById('chartWeeklyFreq');
@@ -2475,12 +2516,14 @@
     ctx.stroke();
   }
 
+  
   function drawMuscleBalanceChart() {
     const canvas = document.getElementById('chartMuscleBalance');
     if (!canvas) return;
-    const { ctx, cssW, cssH } = getCanvasCtx(canvas, 220);
+    const { ctx, cssW, cssH } = getCanvasCtx(canvas, 240);
 
-    const padL = 110, padR = 14, padT = 18, padB = 14;
+    // More right padding so value labels never clip
+    const padL = 110, padR = 28, padT = 18, padB = 14;
     const w = cssW - padL - padR;
     const h = cssH - padT - padB;
 
@@ -2490,9 +2533,11 @@
       .sort((a,b)=>b.vol-a.vol);
 
     const maxV = Math.max(1, ...rows.map(r => r.vol));
-    const rowH = Math.max(14, Math.floor(h / Math.max(6, rows.length)));
+    const visibleRows = Math.min(8, Math.max(6, rows.length));
+    const rowH = Math.max(14, Math.floor((h - (visibleRows - 1) * 6) / visibleRows));
     const gap = 6;
 
+    // Left labels (muscle group names)
     ctx.fillStyle = '#94a3b8';
     ctx.font = '12px -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif';
     ctx.textAlign = 'right';
@@ -2505,23 +2550,34 @@
       ctx.fillText(label, padL - 8, y);
     });
 
-    // Bars
+    // Bars + value labels
     rows.forEach((r, i) => {
       const yTop = padT + i * (rowH + gap);
       if (yTop > padT + h) return;
+
       const bw = (r.vol / maxV) * w;
       ctx.fillStyle = 'rgba(96,165,250,0.85)';
       ctx.beginPath();
       ctx.roundRect ? ctx.roundRect(padL, yTop, bw, rowH, 8) : ctx.rect(padL, yTop, bw, rowH);
       ctx.fill();
 
+      const value = formatVolume(r.vol);
       ctx.fillStyle = '#e2e8f0';
       ctx.font = '12px -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif';
-      ctx.textAlign = 'left';
       ctx.textBaseline = 'middle';
-      ctx.fillText(formatVolume(r.vol), padL + Math.min(bw + 8, w - 2), yTop + rowH / 2);
+
+      // If the bar is close to the right edge, draw the value inside the bar (right-aligned)
+      const nearRight = bw > (w - 92);
+      if (nearRight) {
+        ctx.textAlign = 'right';
+        ctx.fillText(value, padL + Math.min(bw, w) - 8, yTop + rowH / 2);
+      } else {
+        ctx.textAlign = 'left';
+        ctx.fillText(value, padL + bw + 10, yTop + rowH / 2);
+      }
     });
   }
+
 
   function bestE1RMInWorkoutForExercise(workout, exId) {
     let best = 0;
@@ -2538,6 +2594,7 @@
     return best;
   }
 
+  
   function drawStrengthTrendChart() {
     const canvas = document.getElementById('chartStrengthTrend');
     if (!canvas) return;
@@ -2545,10 +2602,6 @@
     if (!exId) return;
 
     const { ctx, cssW, cssH } = getCanvasCtx(canvas, 260);
-
-    const padL = 46, padR = 12, padT = 16, padB = 28;
-    const w = cssW - padL - padR;
-    const h = cssH - padT - padB;
 
     const pts = (state.workouts || [])
       .map(wk => ({ t: parseISODateLocal(wk?.date), v: bestE1RMInWorkoutForExercise(wk, exId) }))
@@ -2566,8 +2619,24 @@
 
     const vMin = Math.min(...pts.map(p=>p.v));
     const vMax = Math.max(...pts.map(p=>p.v));
-    const yMin = Math.max(0, vMin - (vMax - vMin) * 0.15);
-    const yMax = vMax + (vMax - vMin) * 0.15 + 1;
+    const span = Math.max(1, (vMax - vMin));
+    const yMin = Math.max(0, vMin - span * 0.15);
+    const yMax = vMax + span * 0.15 + 1;
+
+    const padR = 14, padT = 16, padB = 28;
+
+    // Dynamic left padding so y-axis labels never get clipped (iOS Safari)
+    const ticks = 4;
+    const yLabels = [];
+    for (let i = 0; i <= ticks; i++) {
+      const t = i / ticks;
+      const v = yMin + (t * (yMax - yMin));
+      yLabels.push(formatE1RM(v));
+    }
+    const padL = computePadLForYAxis(ctx, yLabels, 56);
+
+    const w = cssW - padL - padR;
+    const h = cssH - padT - padB;
 
     drawAxes(ctx, padL, padT, w, h, yMin, yMax, (v)=>formatE1RM(v));
 
@@ -2614,16 +2683,17 @@
     // X labels (start/end)
     ctx.fillStyle = '#94a3b8';
     ctx.font = '12px -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif';
-    ctx.textAlign = 'left';
     ctx.textBaseline = 'top';
     const d0 = new Date(tMin);
     const d1 = new Date(tMax);
     const l0 = `${String(d0.getDate()).padStart(2,'0')}.${String(d0.getMonth()+1).padStart(2,'0')}.`;
     const l1 = `${String(d1.getDate()).padStart(2,'0')}.${String(d1.getMonth()+1).padStart(2,'0')}.`;
+    ctx.textAlign = 'left';
     ctx.fillText(l0, padL, padT + h + 6);
     ctx.textAlign = 'right';
     ctx.fillText(l1, padL + w, padT + h + 6);
   }
+
 
   function buildPRByDate() {
     // PR = new all-time high e1RM for an exercise (tracked across workouts)
