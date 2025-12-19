@@ -1937,15 +1937,64 @@
       workouts: state.workouts,
       bodyweightLogs: state.bodyweightLogs
     };
-    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `hypertrophie-tracker-backup-${new Date().toISOString().slice(0,10)}.json`;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
+
+    const json = JSON.stringify(payload, null, 2);
+    const filename = `hypertrophie-tracker-backup-${new Date().toISOString().slice(0,10)}.json`;
+
+    // iOS/PWA friendly export:
+    // 1) Prefer the Share Sheet (works reliably in iOS Safari + Add-to-Home-Screen PWAs)
+    // 2) Fallback to Blob download (works on most desktop/mobile browsers)
+    try {
+      if (window.File && navigator && typeof navigator.share === 'function') {
+        const file = new File([json], filename, { type: 'application/json' });
+        const can = (typeof navigator.canShare === 'function') ? navigator.canShare({ files: [file] }) : true;
+        if (can) {
+          navigator.share({
+            files: [file],
+            title: 'Hypertrophie Tracker Backup'
+          }).catch(() => {
+            // user cancelled or share not available -> fall through to download
+            fallbackDownload();
+          });
+          return;
+        }
+      }
+    } catch (_) { /* fall through */ }
+
+    fallbackDownload();
+
+    function fallbackDownload() {
+      try {
+        const blob = new Blob([json], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        a.target = '_blank';
+        a.rel = 'noopener';
+
+        document.body.appendChild(a);
+        a.click();
+
+        // Revoke a bit later (Safari can ignore the download if revoked immediately)
+        setTimeout(() => {
+          try { URL.revokeObjectURL(url); } catch (_) {}
+          try { a.remove(); } catch (_) {}
+        }, 1200);
+
+        showToast('Backup erstellt. Falls kein Download startet, öffnet sich eine Vorschau – dann über „Teilen“ speichern.');
+      } catch (e) {
+        try {
+          // Last resort: open JSON in a new tab for manual saving/sharing
+          const dataUrl = 'data:application/json;charset=utf-8,' + encodeURIComponent(json);
+          window.open(dataUrl, '_blank');
+          showToast('Backup geöffnet. Bitte über „Teilen“ speichern.');
+        } catch (_) {
+          alert('Export nicht möglich in diesem Browser-Kontext.');
+        }
+      }
+    }
   }
 
   function triggerImport() {
