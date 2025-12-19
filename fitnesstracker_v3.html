@@ -43,7 +43,10 @@
       margin:0;
       font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
       color: var(--text);
-      background: linear-gradient(180deg, var(--bg-1), var(--bg-0));
+      background:
+        radial-gradient(900px 520px at 20% -10%, rgba(96,165,250,0.22), transparent 55%),
+        radial-gradient(760px 520px at 100% 10%, rgba(34,197,94,0.10), transparent 55%),
+        linear-gradient(180deg, var(--bg-1), var(--bg-0));
       padding-bottom: calc(86px + env(safe-area-inset-bottom));
       -webkit-font-smoothing: antialiased;
       text-rendering: optimizeLegibility;
@@ -168,7 +171,7 @@
 
     /* Cards */
     .card{
-      background: rgba(255,255,255,0.06);
+      background: linear-gradient(180deg, rgba(255,255,255,0.085), rgba(255,255,255,0.055));
       border: 1px solid rgba(148,163,184,0.18);
       border-radius: var(--radius-lg);
       padding: var(--card-pad);
@@ -308,7 +311,7 @@
     }
     .tile-template{
       border-color: rgba(96,165,250,0.22);
-      background: rgba(96,165,250,0.08);
+      background: linear-gradient(180deg, rgba(96,165,250,0.11), rgba(255,255,255,0.05));
     }
 
     /* Pills / chips */
@@ -660,12 +663,12 @@
   // Seed plan (initial templates)
   const seedPlan = {
     'Push A': [
-      { name: 'Bankdrücken (Kurzhantel/Maschine)', sets: 3, reps: '5-8', pause: 150 },
-      { name: 'Schrägbankdrücken (Kurzhantel)', sets: 3, reps: '8-12', pause: 120 },
+      { name: 'BankdrÃ¼cken (Kurzhantel/Maschine)', sets: 3, reps: '5-8', pause: 150 },
+      { name: 'SchrÃ¤gbankdrÃ¼cken (Kurzhantel)', sets: 3, reps: '8-12', pause: 120 },
       { name: 'Butterfly / Pec Deck', sets: 3, reps: '12-20', pause: 75 },
       { name: 'Seitheben (KH oder Kabel)', sets: 4, reps: '10-20', pause: 75 },
       { name: 'Overhead-Trizeps Kabel', sets: 3, reps: '12-20', pause: 75 },
-      { name: 'Trizepsdrücken Kabel (Seil)', sets: 3, reps: '10-15', pause: 75 }
+      { name: 'TrizepsdrÃ¼cken Kabel (Seil)', sets: 3, reps: '10-15', pause: 75 }
     ],
     'Pull A': [
       { name: 'Latzug (neutral/V-Griff)', sets: 4, reps: '6-10', pause: 150 },
@@ -678,7 +681,7 @@
     ],
     'Beine': [
       { name: 'Hack Squat ODER Kniebeuge', sets: 3, reps: '5-10', pause: 180 },
-      { name: 'Rumänisches Kreuzheben (RDL)', sets: 3, reps: '6-10', pause: 180 },
+      { name: 'RumÃ¤nisches Kreuzheben (RDL)', sets: 3, reps: '6-10', pause: 180 },
       { name: 'Lunges mit Gewicht', sets: 3, reps: '10-15', pause: 150 },
       { name: 'Beinstrecker', sets: 3, reps: '12-15', pause: 90 },
       { name: 'Beinbeuger sitzend', sets: 4, reps: '10-15', pause: 90 },
@@ -686,7 +689,7 @@
       { name: 'Bauch: Cable Crunch / Knee Raise', sets: 3, reps: '10-15', pause: 75 }
     ],
     'Push B': [
-      { name: 'Schrägbank (Maschine/Smith)', sets: 3, reps: '8-12', pause: 120 },
+      { name: 'SchrÃ¤gbank (Maschine/Smith)', sets: 3, reps: '8-12', pause: 120 },
       { name: 'Brustpresse Flach (Maschine)', sets: 3, reps: '8-12', pause: 120 },
       { name: 'Kabel-Flys (low-to-high/klassisch)', sets: 3, reps: '12-20', pause: 75 },
       { name: 'Schulterpresse (Maschine) ODER Landmine', sets: 3, reps: '8-12', pause: 120 },
@@ -694,7 +697,7 @@
       { name: 'Trizeps: Dips-Maschine oder Kabel', sets: 3, reps: '8-12', pause: 90 }
     ],
     'Pull B': [
-      { name: 'Rudern brustgestützt (Maschine/T-Bar)', sets: 4, reps: '8-12', pause: 120 },
+      { name: 'Rudern brustgestÃ¼tzt (Maschine/T-Bar)', sets: 4, reps: '8-12', pause: 120 },
       { name: 'Latzug (anderer Griff als Pull A)', sets: 3, reps: '10-15', pause: 90 },
       { name: 'Rudermaschine (z.B. Hammer Strength)', sets: 3, reps: '10-12', pause: 105 },
       { name: 'Reverse Fly', sets: 4, reps: '12-20', pause: 75 },
@@ -894,7 +897,7 @@
     const n = String(name || '').toLowerCase();
     // keep previous heuristics
     if (/(bank|brust|pec|fly|butterfly|cable[- ]?fly|brustpresse)/.test(n)) return 'Brust';
-    if (/(latzug|rud|pullover|row|pull|hammer strength|t-bar)/.test(n)) return 'Rücken';
+    if (/(latzug|rud|pullover|row|pull|hammer strength|t-bar)/.test(n)) return 'RÃ¼cken';
     if (/(schulter|seitheben|reverse fly|face pull|external rotation|landmine)/.test(n)) return 'Schulter';
     if (/(squat|kniebeuge|hack|r(d|dl)|kreuzheben|lunges|beinstrecker|beinbeuger|waden)/.test(n)) return 'Beine';
     if (/(bauch|crunch|knee raise|ab)/.test(n)) return 'Bauch';
@@ -911,7 +914,7 @@
     if (Array.isArray(existing) && existing.length && existing[0].id && existing[0].name) return existing;
 
     // build from legacy or seed default list
-    const defaults = ['Brust', 'Rücken', 'Schulter', 'Beine', 'Bizeps', 'Trizeps', 'Bauch'];
+    const defaults = ['Brust', 'RÃ¼cken', 'Schulter', 'Beine', 'Bizeps', 'Trizeps', 'Bauch'];
     const groups = defaults.map((name, idx) => ({ id: uid('mg'), name, order: idx }));
     saveJSON(KEY_MUSCLEGROUPS, groups);
     return groups;
@@ -1116,7 +1119,7 @@
     const exById = new Map(state.exercises.map(e => [e.id, e]));
     const exercises = (tpl.items || []).map(item => {
       const e = exById.get(item.exerciseId);
-      const name = e ? e.name : 'Unbekannte Übung';
+      const name = e ? e.name : 'Unbekannte Ãœbung';
       const mgId = e ? e.muscleGroupId : findOrCreateMuscleGroup(state.muscleGroups, guessMuscleGroupName(name));
       const mgName = getMuscleGroupNameById(mgId);
       const plannedSets = Number(item.plannedSets) || DEFAULT_PLANNED_SETS;
@@ -1206,7 +1209,7 @@
   }
 
   function cancelWorkout() {
-    if (!confirm("Training abbrechen? Fortschritt bleibt als Draft gespeichert (Fortsetzen möglich).")) return;
+    if (!confirm("Training abbrechen? Fortschritt bleibt als Draft gespeichert (Fortsetzen mÃ¶glich).")) return;
     stopTimer();
     state.currentWorkout = null;
     state.view = 'select';
@@ -1302,7 +1305,7 @@
 
   function removeExerciseFromWorkout(logId) {
     if (!state.currentWorkout) return;
-    if (!confirm("Übung aus dem Training entfernen?")) return;
+    if (!confirm("Ãœbung aus dem Training entfernen?")) return;
     state.currentWorkout.exercises = (state.currentWorkout.exercises || []).filter(x => x.logId !== logId);
     saveDraft();
     render();
@@ -1318,7 +1321,7 @@
     const ex = state.exercises.find(e => e.id === exerciseId);
     if (!ex) return;
 
-    if (!confirm("Übung ersetzen? Bereits eingetragene Sätze für diese Übung werden zurückgesetzt.")) return;
+    if (!confirm("Ãœbung ersetzen? Bereits eingetragene SÃ¤tze fÃ¼r diese Ãœbung werden zurÃ¼ckgesetzt.")) return;
 
     exLog.exerciseId = ex.id;
     exLog.nameSnapshot = ex.name;
@@ -1379,7 +1382,7 @@
     const val = prompt("Pause in Sekunden:", String(ex.pauseSec || DEFAULT_PAUSE_SEC));
     if (val === null) return;
     const n = clampInt(parseInt(val,10), 0, 9999);
-    if (n === null) { alert("Ungültige Sekunden."); return; }
+    if (n === null) { alert("UngÃ¼ltige Sekunden."); return; }
     ex.pauseSec = n;
     saveDraft();
     render();
@@ -1516,7 +1519,7 @@
   function toggleHistory(id) { state.expandedId = state.expandedId === id ? null : id; render(); }
 
   function deleteWorkout(id) {
-    if (!confirm("Dieses Training wirklich löschen?")) return;
+    if (!confirm("Dieses Training wirklich lÃ¶schen?")) return;
     state.workouts = state.workouts.filter(w => w.id !== id);
     if (state.expandedId === id) state.expandedId = null;
     saveJSON(KEY_HISTORY, state.workouts);
@@ -1565,7 +1568,7 @@
     if (!state.modal || state.modal.type !== 'bodyweight_add') return;
     const iso = parseDateTimeLocal(state.modal.datetimeLocal) || new Date().toISOString();
     const w = parseDecimalDE(state.modal.weight);
-    if (w === null) { alert("Bitte ein gültiges Gewicht eingeben."); return; }
+    if (w === null) { alert("Bitte ein gÃ¼ltiges Gewicht eingeben."); return; }
     const note = String(state.modal.note || '').trim();
 
     state.bodyweightLogs.unshift({ id: uid('bw'), date: iso, weightKg: w, note });
@@ -1576,7 +1579,7 @@
   }
 
   function deleteBodyweight(id) {
-    if (!confirm("Eintrag löschen?")) return;
+    if (!confirm("Eintrag lÃ¶schen?")) return;
     state.bodyweightLogs = state.bodyweightLogs.filter(x => x.id !== id);
     saveJSON(KEY_BODYWEIGHT, state.bodyweightLogs);
     render();
@@ -1645,10 +1648,10 @@
 
   function deleteExercise(exId) {
     if (!canDeleteExercise(exId)) {
-      alert("Diese Übung wird in Templates oder Historie verwendet. Bitte nutze Merge statt Löschen.");
+      alert("Diese Ãœbung wird in Templates oder Historie verwendet. Bitte nutze Merge statt LÃ¶schen.");
       return;
     }
-    if (!confirm("Übung wirklich löschen?")) return;
+    if (!confirm("Ãœbung wirklich lÃ¶schen?")) return;
     state.exercises = state.exercises.filter(e => e.id !== exId);
     saveJSON(KEY_EXERCISES, state.exercises);
     render();
@@ -1669,7 +1672,7 @@
     const target = state.exercises.find(e => e.id === targetId);
     if (!source || !target) return;
 
-    if (!confirm("Merge durchführen? Historie, Templates und Draft werden umgebogen.")) return;
+    if (!confirm("Merge durchfÃ¼hren? Historie, Templates und Draft werden umgebogen.")) return;
 
     // templates
     state.templates.forEach(t => (t.items||[]).forEach(it => { if (it.exerciseId === sourceId) it.exerciseId = targetId; }));
@@ -1779,10 +1782,10 @@
 
   function deleteMuscleGroup(id) {
     if (!canDeleteMuscleGroup(id)) {
-      alert("Diese Muskelgruppe wird von Übungen verwendet. Ändere zuerst die betroffenen Übungen.");
+      alert("Diese Muskelgruppe wird von Ãœbungen verwendet. Ã„ndere zuerst die betroffenen Ãœbungen.");
       return;
     }
-    if (!confirm("Muskelgruppe wirklich löschen?")) return;
+    if (!confirm("Muskelgruppe wirklich lÃ¶schen?")) return;
     state.muscleGroups = state.muscleGroups.filter(g => g.id !== id);
     saveJSON(KEY_MUSCLEGROUPS, state.muscleGroups);
     render();
@@ -1797,7 +1800,7 @@
   function renameTemplate(templateId) {
     const tpl = state.templates.find(t => t.templateId === templateId);
     if (!tpl) return;
-    const val = prompt("Neuer Name für den Tag:", tpl.name);
+    const val = prompt("Neuer Name fÃ¼r den Tag:", tpl.name);
     if (val === null) return;
     const n = String(val).trim();
     if (!n) return;
@@ -1817,7 +1820,7 @@
   }
 
   function deleteTemplate(templateId) {
-    if (!confirm("Template wirklich löschen? Historie bleibt erhalten.")) return;
+    if (!confirm("Template wirklich lÃ¶schen? Historie bleibt erhalten.")) return;
     state.templates = state.templates.filter(t => t.templateId !== templateId);
     if (state.editTemplateId === templateId) state.editTemplateId = null;
     saveJSON(KEY_TEMPLATES, state.templates);
@@ -1853,7 +1856,7 @@
   function removeTemplateItem(templateId, itemId) {
     const tpl = state.templates.find(t => t.templateId === templateId);
     if (!tpl) return;
-    if (!confirm("Übung aus dem Template entfernen?")) return;
+    if (!confirm("Ãœbung aus dem Template entfernen?")) return;
     tpl.items = (tpl.items||[]).filter(x => x.itemId !== itemId);
     saveJSON(KEY_TEMPLATES, state.templates);
     render();
@@ -1925,7 +1928,6 @@
   // Export / Import (Backup)
   // -----------------------
   function exportData() {
-  try {
     const payload = {
       version: 3,
       exportedAt: new Date().toISOString(),
@@ -1935,47 +1937,17 @@
       workouts: state.workouts,
       bodyweightLogs: state.bodyweightLogs
     };
-    const jsonStr = JSON.stringify(payload, null, 2);
-    const fileName = `hypertrophie-tracker-backup-${new Date().toISOString().slice(0,10)}.json`;
-    
-    // iOS Share API bevorzugen
-    if (navigator.share && navigator.canShare) {
-      const file = new File([jsonStr], fileName, { type: 'application/json' });
-      if (navigator.canShare({ files: [file] })) {
-        navigator.share({ files: [file], title: 'Fitness Tracker Backup' })
-          .then(() => showToast('Export erfolgreich', 2000))
-          .catch(e => {
-            if (e.name !== 'AbortError') fallbackDownload(jsonStr, fileName);
-          });
-        return;
-      }
-    }
-    
-    // Fallback
-    fallbackDownload(jsonStr, fileName);
-  } catch (e) {
-    alert('Export fehlgeschlagen: ' + e.message);
-  }
-}
-
-function fallbackDownload(content, fileName) {
-  const blob = new Blob([content], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = fileName;
-  a.style.display = 'none';
-  document.body.appendChild(a);
-  setTimeout(() => {
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `hypertrophie-tracker-backup-${new Date().toISOString().slice(0,10)}.json`;
+    document.body.appendChild(a);
     a.click();
-    setTimeout(() => {
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    }, 100);
-  }, 0);
-  showToast('Download startet...', 2000);
-}
-  
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
+
   function triggerImport() {
     const input = document.getElementById('import-file');
     if (input) input.click();
@@ -2003,7 +1975,7 @@ function fallbackDownload(content, fileName) {
       // convert exercises
       const exercises = data.exercises.map(ex => ({
         id: ex.id || uid('ex'),
-        name: ex.name || 'Übung',
+        name: ex.name || 'Ãœbung',
         muscleGroupId: findOrCreateMuscleGroup(groups, ex.muscleGroup || guessMuscleGroupName(ex.name)),
         aliases: Array.isArray(ex.aliases)?ex.aliases:[]
       }));
@@ -2061,7 +2033,7 @@ function fallbackDownload(content, fileName) {
         clearDraft();
         render();
       } catch (e) {
-        alert("Import fehlgeschlagen. Datei ist kein gültiges Backup.");
+        alert("Import fehlgeschlagen. Datei ist kein gÃ¼ltiges Backup.");
       } finally {
         ev.target.value = '';
       }
@@ -2074,7 +2046,7 @@ function fallbackDownload(content, fileName) {
   // -----------------------
   function renderSelect() {
     const bw = lastBodyweight();
-    const bwLine = bw ? `Letztes Körpergewicht: ${formatDecimalDE(bw.weightKg, 1)} kg (${formatDate(bw.date)})` : 'Körpergewicht: -';
+    const bwLine = bw ? `Letztes KÃ¶rpergewicht: ${formatDecimalDE(bw.weightKg, 1)} kg (${formatDate(bw.date)})` : 'KÃ¶rpergewicht: -';
 
     const templatesSorted = state.templates
       .slice()
@@ -2084,16 +2056,16 @@ function fallbackDownload(content, fileName) {
       <button class="tile tile-template" onclick="startTemplateWorkout('${t.templateId}')">
         <div class="tile-top">
           <div class="tile-title">${escapeHtml(t.name)}</div>
-          <div class="tile-meta muted small">${t.exercises?.length ? `${t.exercises.length} Übung${t.exercises.length===1?'':'en'}` : 'Template'}</div>
+          <div class="tile-meta muted small">${t.exercises?.length ? `${t.exercises.length} Ãœbung${t.exercises.length===1?'':'en'}` : 'Template'}</div>
         </div>
         <div class="tile-cta">Start</div>
       </button>
-    `).join('') : `<div class="muted small" style="padding:8px 2px">Keine Templates vorhanden. Erstelle eins über Templates.</div>`;
+    `).join('') : `<div class="muted small" style="padding:8px 2px">Keine Templates vorhanden. Erstelle eins Ã¼ber Templates.</div>`;
 
     return `
       <div class="container">
         <div class="hero">
-          <div class="hero-badge">Offline • iPhone-first • lokal</div>
+          <div class="hero-badge">Offline â€¢ iPhone-first â€¢ lokal</div>
           <div class="hero-title">Kraft- und Gewichtstracker</div>
           <div class="hero-sub">${bwLine}</div>
         </div>
@@ -2106,7 +2078,7 @@ function fallbackDownload(content, fileName) {
 
           ${state.hasDraft ? `
             <button class="btn btn-success" onclick="resumeDraft()">
-              <span>Training fortsetzen</span><span style="opacity:0.8">→</span>
+              <span>Training fortsetzen</span><span style="opacity:0.8">â†’</span>
             </button>
           ` : ''}
 
@@ -2115,13 +2087,13 @@ function fallbackDownload(content, fileName) {
           </div>
 
           <button class="btn btn-secondary" onclick="startFreeWorkout()">
-            <span>Freies Training</span><span style="opacity:0.7">→</span>
+            <span>Freies Training</span><span style="opacity:0.7">â†’</span>
           </button>
         </div>
 
         <div class="section">
           <div class="section-head">
-            <div class="section-title">Übersicht</div>
+            <div class="section-title">Ãœbersicht</div>
             <div class="section-note">History, Review, Bodyweight</div>
           </div>
 
@@ -2131,7 +2103,7 @@ function fallbackDownload(content, fileName) {
                 <div class="tile-title">Historie</div>
                 <div class="tile-meta muted small">Workouts ansehen & bearbeiten</div>
               </div>
-              <div class="tile-cta">→</div>
+              <div class="tile-cta">â†’</div>
             </button>
 
             <button class="tile" onclick="go('review')">
@@ -2139,15 +2111,15 @@ function fallbackDownload(content, fileName) {
                 <div class="tile-title">Review</div>
                 <div class="tile-meta muted small">Volumen, Frequenz, Krafttrend, PRs</div>
               </div>
-              <div class="tile-cta">→</div>
+              <div class="tile-cta">â†’</div>
             </button>
 
             <button class="tile" onclick="go('bodyweight')">
               <div class="tile-top">
-                <div class="tile-title">Körpergewicht</div>
+                <div class="tile-title">KÃ¶rpergewicht</div>
                 <div class="tile-meta muted small">Logs & Verlauf</div>
               </div>
-              <div class="tile-cta">→</div>
+              <div class="tile-cta">â†’</div>
             </button>
 
             <button class="tile" onclick="go('templates')">
@@ -2155,15 +2127,15 @@ function fallbackDownload(content, fileName) {
                 <div class="tile-title">Templates</div>
                 <div class="tile-meta muted small">Vorlagen verwalten</div>
               </div>
-              <div class="tile-cta">→</div>
+              <div class="tile-cta">â†’</div>
             </button>
 
             <button class="tile" onclick="go('exercises')">
               <div class="tile-top">
-                <div class="tile-title">Übungen</div>
+                <div class="tile-title">Ãœbungen</div>
                 <div class="tile-meta muted small">Bibliothek, Merge, Aliases</div>
               </div>
-              <div class="tile-cta">→</div>
+              <div class="tile-cta">â†’</div>
             </button>
           </div>
         </div>
@@ -2176,15 +2148,15 @@ function fallbackDownload(content, fileName) {
 
           <div class="grid2">
             <button class="btn btn-secondary" onclick="openExport()">
-              <span>Export</span><span style="opacity:0.7">⤓</span>
+              <span>Export</span><span style="opacity:0.7">â¤“</span>
             </button>
             <button class="btn btn-secondary" onclick="openImport()">
-              <span>Import</span><span style="opacity:0.7">⤒</span>
+              <span>Import</span><span style="opacity:0.7">â¤’</span>
             </button>
           </div>
 
           <div class="small muted" style="margin-top:6px">
-            Export enthält: muscleGroups, exercises, templates, workouts, bodyweightLogs. Draft wird nicht exportiert.
+            Export enthÃ¤lt: muscleGroups, exercises, templates, workouts, bodyweightLogs. Draft wird nicht exportiert.
           </div>
         </div>
 
@@ -2201,10 +2173,10 @@ function fallbackDownload(content, fileName) {
 
     const addExerciseBtn = `
       <button class="btn btn-secondary" onclick="openExercisePicker('workout_add')">
-        <span>➕ Übung hinzufügen</span><span style="opacity:0.7">→</span>
+        <span>âž• Ãœbung hinzufÃ¼gen</span><span style="opacity:0.7">â†’</span>
       </button>
       <button class="btn btn-secondary" onclick="openNewExerciseModal('workout_add')">
-        <span>✨ Neue Übung erstellen</span><span style="opacity:0.7">→</span>
+        <span>âœ¨ Neue Ãœbung erstellen</span><span style="opacity:0.7">â†’</span>
       </button>
     `;
 
@@ -2219,12 +2191,12 @@ function fallbackDownload(content, fileName) {
 
     return `
       <div class="sticky-header">
-        <button class="btn-icon" onclick="go('select')">←</button>
+        <button class="btn-icon" onclick="go('select')">â†</button>
         <div style="flex:1">
           <div class="sticky-title">${escapeHtml(w.nameSnapshot || 'Training')}</div>
-          <div class="muted small">⏱ Timer · Draft wird automatisch gespeichert · + Satz möglich</div>
+          <div class="muted small">â± Timer Â· Draft wird automatisch gespeichert Â· + Satz mÃ¶glich</div>
         </div>
-        <button class="btn-icon" onclick="editWorkoutMeta()">🗓️</button>
+        <button class="btn-icon" onclick="editWorkoutMeta()">ðŸ—“ï¸</button>
         <button class="btn-success" style="padding: 10px 14px; border-radius: 12px; border:none; font-weight:900; cursor:pointer" onclick="finishWorkout()">Speichern</button>
       </div>
 
@@ -2236,9 +2208,9 @@ function fallbackDownload(content, fileName) {
           const lastBlock = last
             ? (() => {
                 const setLines = last.sets.slice(0, 4)
-                  .map(s => `<div class="last-set">${s.reps}×${formatDecimalDE(s.weight, 2)} kg</div>`)
+                  .map(s => `<div class="last-set">${s.reps}Ã—${formatDecimalDE(s.weight, 2)} kg</div>`)
                   .join('');
-                const more = last.sets.length > 4 ? `<div class="last-set">…</div>` : '';
+                const more = last.sets.length > 4 ? `<div class="last-set">â€¦</div>` : '';
                 return `
                   <div class="last-perf">
                     <div class="last-label">Letztes Mal (${formatDate(last.date)}):</div>
@@ -2262,15 +2234,15 @@ function fallbackDownload(content, fileName) {
                       <div class="exercise-title">${escapeHtml(ex.nameSnapshot)}</div>
                       <div class="exercise-meta">
                         <span class="pill">${escapeHtml(ex.muscleGroupSnapshot)}</span>
-                        <span>Target: ${escapeHtml(ex.plannedSets || ex.sets?.length || 0)} × ${escapeHtml(ex.targetRepsText || '')}</span>
-                        <button class="timer-btn" onclick="startTimer(${Number(ex.pauseSec)||DEFAULT_PAUSE_SEC})">⏱ ${Number(ex.pauseSec)||DEFAULT_PAUSE_SEC}s</button>
+                        <span>Target: ${escapeHtml(ex.plannedSets || ex.sets?.length || 0)} Ã— ${escapeHtml(ex.targetRepsText || '')}</span>
+                        <button class="timer-btn" onclick="startTimer(${Number(ex.pauseSec)||DEFAULT_PAUSE_SEC})">â± ${Number(ex.pauseSec)||DEFAULT_PAUSE_SEC}s</button>
                         <button class="mini-btn" onclick="editPause('${ex.logId}')">Pause</button>
                         
                       </div>
                     </div>
                     <div class="list-actions">
                       <button class="mini-btn" onclick="openExercisePicker('workout_replace', null, '${ex.logId}')">Ersetzen</button>
-                      <button class="btn-icon btn-icon-danger" onclick="removeExerciseFromWorkout('${ex.logId}')">🗑️</button>
+                      <button class="btn-icon btn-icon-danger" onclick="removeExerciseFromWorkout('${ex.logId}')">ðŸ—‘ï¸</button>
                     </div>
                   </div>
                   <div class="line">${lastBlock}</div>
@@ -2291,7 +2263,7 @@ function fallbackDownload(content, fileName) {
                          value="${set.weight === null ? '' : formatDecimalDE(set.weight, 2)}"
                          oninput="updateWeight('${ex.logId}', ${setIdx}, this.value)"
                          onblur="normalizeWeightInput(this)" />
-                  <button class="mini-btn" onclick="removeSet('${ex.logId}', ${setIdx})">−</button>
+                  <button class="mini-btn" onclick="removeSet('${ex.logId}', ${setIdx})">âˆ’</button>
                 </div>
               `).join('')}
 
@@ -2300,7 +2272,7 @@ function fallbackDownload(content, fileName) {
               </div>
             </div>
           `;
-        }).join('') : `<div class="muted" style="text-align:center; padding: 30px 10px;">Keine Übungen im Training. Füge eine Übung hinzu.</div>` )}
+        }).join('') : `<div class="muted" style="text-align:center; padding: 30px 10px;">Keine Ãœbungen im Training. FÃ¼ge eine Ãœbung hinzu.</div>` )}
 
         <button class="btn btn-danger" onclick="cancelWorkout()">
           <span>Abbrechen</span><span style="opacity:0.7">Draft bleibt</span>
@@ -2318,17 +2290,17 @@ function fallbackDownload(content, fileName) {
     const list = state.workouts || [];
     return `
       <div class="sticky-header">
-        <button class="btn-icon" onclick="go('select')">←</button>
+        <button class="btn-icon" onclick="go('select')">â†</button>
         <div class="sticky-title">Verlauf</div>
-        <button class="btn-icon" onclick="go('review')">📈</button>
+        <button class="btn-icon" onclick="go('review')">ðŸ“ˆ</button>
       </div>
 
       <div class="container">
         <div style="margin:10px 0 18px 0">
-          <button class="btn btn-secondary" onclick="openManualAddModal()"><span>➕ Manuell hinzufügen</span><span style="opacity:0.7">→</span></button>
+          <button class="btn btn-secondary" onclick="openManualAddModal()"><span>âž• Manuell hinzufÃ¼gen</span><span style="opacity:0.7">â†’</span></button>
 
-          <button class="btn btn-secondary" onclick="exportData()"><span>⬇️ Export / Backup</span><span style="opacity:0.7">JSON</span></button>
-          <button class="btn btn-secondary" onclick="triggerImport()"><span>⬆️ Import / Restore</span><span style="opacity:0.7">JSON</span></button>
+          <button class="btn btn-secondary" onclick="exportData()"><span>â¬‡ï¸ Export / Backup</span><span style="opacity:0.7">JSON</span></button>
+          <button class="btn btn-secondary" onclick="triggerImport()"><span>â¬†ï¸ Import / Restore</span><span style="opacity:0.7">JSON</span></button>
           <input id="import-file" type="file" accept="application/json" style="display:none" onchange="handleImportFile(event)" />
         </div>
 
@@ -2342,23 +2314,23 @@ function fallbackDownload(content, fileName) {
               <div class="history-header" onclick="toggleHistory(${w.id})">
                 <div style="flex:1">
                   <div style="color:#e2e8f0; font-size: 16px; font-weight:900;">${escapeHtml(w.nameSnapshot)}</div>
-                  <div class="muted small">${formatDate(w.date)} · Volumen: ${formatVolume(vol)}</div>
+                  <div class="muted small">${formatDate(w.date)} Â· Volumen: ${formatVolume(vol)}</div>
                 </div>
-                <button class="btn-icon btn-icon-danger" onclick="(function(e){e.stopPropagation();})(event); deleteWorkout(${w.id});">🗑️</button>
-                <span style="color:#60a5fa; font-size:18px">${state.expandedId === w.id ? '−' : '+'}</span>
+                <button class="btn-icon btn-icon-danger" onclick="(function(e){e.stopPropagation();})(event); deleteWorkout(${w.id});">ðŸ—‘ï¸</button>
+                <span style="color:#60a5fa; font-size:18px">${state.expandedId === w.id ? 'âˆ’' : '+'}</span>
               </div>
 
               <div class="history-details ${state.expandedId === w.id ? 'open' : ''}">
                 ${doneExercises.length === 0 ? `
-                  <div class="muted small">Keine geloggten Übungen.</div>
+                  <div class="muted small">Keine geloggten Ãœbungen.</div>
                 ` : doneExercises.map(ex => {
                   const setsDone = (ex.sets||[]).filter(isSetDone);
                   return `
                     <div style="margin-bottom: 14px; border-bottom: 1px solid #1e293b; padding-bottom:10px;">
                       <div style="color:#e2e8f0; font-size:14px; font-weight:900; margin-bottom:4px;">${escapeHtml(ex.nameSnapshot)}</div>
-                      <div class="muted small">Muskelgruppe: ${escapeHtml(ex.muscleGroupSnapshot)} · Top e1RM: ${formatE1RM(exerciseTopE1RM(ex))}</div>
+                      <div class="muted small">Muskelgruppe: ${escapeHtml(ex.muscleGroupSnapshot)} Â· Top e1RM: ${formatE1RM(exerciseTopE1RM(ex))}</div>
                       <div class="chips">
-                        ${setsDone.map(s => `<span class="chip2">${s.reps} × ${formatDecimalDE(s.weight, 2)} kg</span>`).join('')}
+                        ${setsDone.map(s => `<span class="chip2">${s.reps} Ã— ${formatDecimalDE(s.weight, 2)} kg</span>`).join('')}
                       </div>
                     </div>
                   `;
@@ -2403,31 +2375,31 @@ function fallbackDownload(content, fileName) {
 
     return `
       <div class="sticky-header">
-        <button class="btn-icon" onclick="go('select')">←</button>
+        <button class="btn-icon" onclick="go('select')">â†</button>
         <div class="sticky-title">Review</div>
-        <button class="btn-icon" onclick="go('history')">📜</button>
+        <button class="btn-icon" onclick="go('history')">ðŸ“œ</button>
       </div>
 
       <div class="container">
         <div class="card">
-          <div class="card-title">Übersicht</div>
+          <div class="card-title">Ãœbersicht</div>
           <div class="row"><div class="muted">Workouts gesamt</div><div style="font-weight:900">${state.workouts.length}</div></div>
           <div style="height:8px"></div>
           <div class="row"><div class="muted">Volumen 7 Tage</div><div style="font-weight:900">${formatVolume(vol7)}</div></div>
           <div class="row"><div class="muted">Volumen 30 Tage</div><div style="font-weight:900">${formatVolume(vol30)}</div></div>
           <div style="height:10px"></div>
-          <div class="row"><div class="muted">Körpergewicht</div><div style="font-weight:900">${bw ? (formatDecimalDE(bw.weightKg, 1) + ' kg') : '-'}</div></div>
+          <div class="row"><div class="muted">KÃ¶rpergewicht</div><div style="font-weight:900">${bw ? (formatDecimalDE(bw.weightKg, 1) + ' kg') : '-'}</div></div>
           <div class="muted small" style="margin-top:6px">
-            ${bw ? ('Letzter Eintrag: ' + formatDate(bw.date)) : 'Noch keine Einträge.'}
-            ${Number.isFinite(bwDelta) ? (' · 7T Ø vs. 14T Ø: ' + (bwDelta>0?'+':'') + formatDecimalDE(bwDelta, 1) + ' kg') : ''}
+            ${bw ? ('Letzter Eintrag: ' + formatDate(bw.date)) : 'Noch keine EintrÃ¤ge.'}
+            ${Number.isFinite(bwDelta) ? (' Â· 7T Ã˜ vs. 14T Ã˜: ' + (bwDelta>0?'+':'') + formatDecimalDE(bwDelta, 1) + ' kg') : ''}
           </div>
-          <button class="btn btn-secondary" style="margin-top:12px" onclick="openBodyweight()">⚖️ Körpergewicht öffnen</button>
+          <button class="btn btn-secondary" style="margin-top:12px" onclick="openBodyweight()">âš–ï¸ KÃ¶rpergewicht Ã¶ffnen</button>
         </div>
 
         <div class="card">
           <div class="card-title">Wochenvolumen (letzte 12 Wochen)</div>
           <canvas id="chartWeeklyVolume" class="chart-canvas tall" aria-label="Wochenvolumen"></canvas>
-          <div class="card-sub">Summe aus kg × Wdh pro Woche. Gut für Hypertrophie-Progress.</div>
+          <div class="card-sub">Summe aus kg Ã— Wdh pro Woche. Gut fÃ¼r Hypertrophie-Progress.</div>
         </div>
 
         <div class="card">
@@ -2439,13 +2411,13 @@ function fallbackDownload(content, fileName) {
         <div class="card">
           <div class="card-title">Muskelgruppen-Balance (Volumen 30 Tage)</div>
           <canvas id="chartMuscleBalance" class="chart-canvas" aria-label="Volumen nach Muskelgruppe"></canvas>
-          <div class="card-sub">Zeigt, ob einzelne Muskelgruppen deutlich unter- oder überrepräsentiert sind.</div>
+          <div class="card-sub">Zeigt, ob einzelne Muskelgruppen deutlich unter- oder Ã¼berreprÃ¤sentiert sind.</div>
         </div>
 
         <div class="card">
-          <div class="card-title">Krafttrend (e1RM) pro Übung</div>
+          <div class="card-title">Krafttrend (e1RM) pro Ãœbung</div>
           <div class="inline-control">
-            <label for="reviewExerciseSelect">Übung</label>
+            <label for="reviewExerciseSelect">Ãœbung</label>
             <select id="reviewExerciseSelect" class="inline-select" onchange="setReviewExercise(this.value)">
               ${exOptions}
             </select>
@@ -2462,7 +2434,7 @@ function fallbackDownload(content, fileName) {
           <div class="card-sub">Markiert Tage, an denen du einen neuen e1RM-Rekord gesetzt hast (je dunkler, desto mehr PRs).</div>
         </div>
 
-        <button class="btn btn-secondary" onclick="exportData()"><span>⬇️ Backup exportieren</span><span style="opacity:0.7">JSON</span></button>
+        <button class="btn btn-secondary" onclick="exportData()"><span>â¬‡ï¸ Backup exportieren</span><span style="opacity:0.7">JSON</span></button>
       </div>
     `;
   }
@@ -2481,16 +2453,16 @@ function fallbackDownload(content, fileName) {
 
     return `
       <div class="sticky-header">
-        <button class="btn-icon" onclick="go('select')">←</button>
-        <div class="sticky-title">Übungen</div>
-        <button class="btn-icon" onclick="openMergeModal()">⇄</button>
+        <button class="btn-icon" onclick="go('select')">â†</button>
+        <div class="sticky-title">Ãœbungen</div>
+        <button class="btn-icon" onclick="openMergeModal()">â‡„</button>
       </div>
 
       <div class="container">
         <input class="input" placeholder="Suchen..." value="${escapeHtml(state.exSearch||'')}" oninput="state.exSearch=this.value; render()" />
 
         <button class="btn btn-secondary" onclick="openNewExerciseModal('workout_add')">
-          <span>✨ Neue Übung erstellen</span><span style="opacity:0.7">→</span>
+          <span>âœ¨ Neue Ãœbung erstellen</span><span style="opacity:0.7">â†’</span>
         </button>
 
         ${state.muscleGroups.map(g => {
@@ -2502,12 +2474,12 @@ function fallbackDownload(content, fileName) {
               <div class="list-item">
                 <div style="flex:1">
                   <div class="name">${escapeHtml(ex.name)}</div>
-                  <div class="sub">Muskelgruppe: ${escapeHtml(getMuscleGroupNameById(ex.muscleGroupId))}${(ex.aliases||[]).length ? ` · Aliases: ${escapeHtml(ex.aliases.slice(0,3).join(', '))}${ex.aliases.length>3?' …':''}` : ''}</div>
+                  <div class="sub">Muskelgruppe: ${escapeHtml(getMuscleGroupNameById(ex.muscleGroupId))}${(ex.aliases||[]).length ? ` Â· Aliases: ${escapeHtml(ex.aliases.slice(0,3).join(', '))}${ex.aliases.length>3?' â€¦':''}` : ''}</div>
                 </div>
                 <div class="list-actions">
                   <button class="mini-btn" onclick="openExerciseEditModal('${ex.id}')">Edit</button>
                   <button class="mini-btn" onclick="openMergeModal('${ex.id}')">Merge</button>
-                  <button class="btn-icon btn-icon-danger" onclick="deleteExercise('${ex.id}')">🗑️</button>
+                  <button class="btn-icon btn-icon-danger" onclick="deleteExercise('${ex.id}')">ðŸ—‘ï¸</button>
                 </div>
               </div>
             `).join('')}
@@ -2523,25 +2495,25 @@ function fallbackDownload(content, fileName) {
     sortMuscleGroups();
     return `
       <div class="sticky-header">
-        <button class="btn-icon" onclick="go('select')">←</button>
+        <button class="btn-icon" onclick="go('select')">â†</button>
         <div class="sticky-title">Muskelgruppen</div>
-        <button class="btn-icon" onclick="openMuscleGroupAddModal()">＋</button>
+        <button class="btn-icon" onclick="openMuscleGroupAddModal()">ï¼‹</button>
       </div>
 
       <div class="container">
-        <div class="muted small" style="margin-bottom:10px">Muskelgruppen steuern Sortierung und Reporting. Löschen ist nur möglich, wenn keine Übung die Gruppe nutzt.</div>
+        <div class="muted small" style="margin-bottom:10px">Muskelgruppen steuern Sortierung und Reporting. LÃ¶schen ist nur mÃ¶glich, wenn keine Ãœbung die Gruppe nutzt.</div>
 
         ${state.muscleGroups.map(g => `
           <div class="list-item">
             <div style="flex:1">
               <div class="name">${escapeHtml(g.name)}</div>
-              <div class="sub">Übungen: ${state.exercises.filter(e=>e.muscleGroupId===g.id).length}</div>
+              <div class="sub">Ãœbungen: ${state.exercises.filter(e=>e.muscleGroupId===g.id).length}</div>
             </div>
             <div class="list-actions">
-              <button class="mini-btn" onclick="moveMuscleGroup('${g.id}',-1)">↑</button>
-              <button class="mini-btn" onclick="moveMuscleGroup('${g.id}',1)">↓</button>
+              <button class="mini-btn" onclick="moveMuscleGroup('${g.id}',-1)">â†‘</button>
+              <button class="mini-btn" onclick="moveMuscleGroup('${g.id}',1)">â†“</button>
               <button class="mini-btn" onclick="openMuscleGroupEditModal('${g.id}')">Edit</button>
-              <button class="btn-icon btn-icon-danger" onclick="deleteMuscleGroup('${g.id}')">🗑️</button>
+              <button class="btn-icon btn-icon-danger" onclick="deleteMuscleGroup('${g.id}')">ðŸ—‘ï¸</button>
             </div>
           </div>
         `).join('')}
@@ -2559,21 +2531,21 @@ function fallbackDownload(content, fileName) {
         <div class="card-title">Gewichtsverlauf</div>
         ${listAsc.length >= 2
           ? `<canvas id="bodyweightChart" class="chart-canvas" aria-label="Gewichtsverlauf"></canvas>`
-          : `<div class="muted" style="padding: 10px 0;">Mindestens 2 Einträge nötig, um eine Grafik anzuzeigen.</div>`
+          : `<div class="muted" style="padding: 10px 0;">Mindestens 2 EintrÃ¤ge nÃ¶tig, um eine Grafik anzuzeigen.</div>`
         }
       </div>
     `;
 
     return `
       <div class="sticky-header">
-        <button class="btn-icon" onclick="go('select')">←</button>
-        <div class="sticky-title">Körpergewicht</div>
-        <button class="btn-icon" onclick="openBodyweightAddModal()">＋</button>
+        <button class="btn-icon" onclick="go('select')">â†</button>
+        <div class="sticky-title">KÃ¶rpergewicht</div>
+        <button class="btn-icon" onclick="openBodyweightAddModal()">ï¼‹</button>
       </div>
 
       <div class="container">
         <button class="btn btn-secondary" onclick="openBodyweightAddModal()">
-          <span>➕ Gewicht eintragen</span><span style="opacity:0.7">→</span>
+          <span>âž• Gewicht eintragen</span><span style="opacity:0.7">â†’</span>
         </button>
 
         ${chartBlock}
@@ -2582,13 +2554,13 @@ function fallbackDownload(content, fileName) {
           <div class="list-item">
             <div style="flex:1">
               <div class="name">${formatDecimalDE(x.weightKg, 1)} kg</div>
-              <div class="sub">${formatDate(x.date)}${x.note ? ' · ' + escapeHtml(x.note) : ''}</div>
+              <div class="sub">${formatDate(x.date)}${x.note ? ' Â· ' + escapeHtml(x.note) : ''}</div>
             </div>
             <div class="list-actions">
-              <button class="btn-icon btn-icon-danger" onclick="deleteBodyweight('${x.id}')">🗑️</button>
+              <button class="btn-icon btn-icon-danger" onclick="deleteBodyweight('${x.id}')">ðŸ—‘ï¸</button>
             </div>
           </div>
-        `).join('') : `<div class="muted" style="text-align:center; padding: 30px 10px;">Keine Einträge.</div>`}
+        `).join('') : `<div class="muted" style="text-align:center; padding: 30px 10px;">Keine EintrÃ¤ge.</div>`}
 
         ${renderModal()}
       </div>
@@ -2740,7 +2712,7 @@ function fallbackDownload(content, fileName) {
       });
       ctx.stroke();
 
-      const label = '7T Ø ' + formatDecimalDE(lastAvg7, 1) + ' kg';
+      const label = '7T Ã˜ ' + formatDecimalDE(lastAvg7, 1) + ' kg';
       ctx.fillStyle = '#94a3b8';
       ctx.font = '12px -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif';
       ctx.textAlign = 'right';
@@ -3123,7 +3095,7 @@ function fallbackDownload(content, fileName) {
       ctx.font = '13px -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillText('Zu wenig Daten für diese Übung.', cssW/2, cssH/2);
+      ctx.fillText('Zu wenig Daten fÃ¼r diese Ãœbung.', cssW/2, cssH/2);
       return;
     }
 
@@ -3347,9 +3319,9 @@ function fallbackDownload(content, fileName) {
     const list = state.templates.slice().sort((a,b)=>a.name.localeCompare(b.name,'de'));
     return `
       <div class="sticky-header">
-        <button class="btn-icon" onclick="go('select')">←</button>
+        <button class="btn-icon" onclick="go('select')">â†</button>
         <div class="sticky-title">Plan bearbeiten</div>
-        <button class="btn-icon" onclick="createTemplate()">＋</button>
+        <button class="btn-icon" onclick="createTemplate()">ï¼‹</button>
       </div>
 
       <div class="container">
@@ -3357,19 +3329,19 @@ function fallbackDownload(content, fileName) {
           <div class="list-item">
             <div style="flex:1">
               <div class="name">${escapeHtml(t.name)}</div>
-              <div class="sub">${(t.items||[]).length} Übungen</div>
+              <div class="sub">${(t.items||[]).length} Ãœbungen</div>
             </div>
             <div class="list-actions">
               <button class="mini-btn" onclick="openTemplateEdit('${t.templateId}')">Bearbeiten</button>
               <button class="mini-btn" onclick="renameTemplate('${t.templateId}')">Name</button>
               <button class="mini-btn" onclick="duplicateTemplate('${t.templateId}')">Dupl.</button>
-              <button class="btn-icon btn-icon-danger" onclick="deleteTemplate('${t.templateId}')">🗑️</button>
+              <button class="btn-icon btn-icon-danger" onclick="deleteTemplate('${t.templateId}')">ðŸ—‘ï¸</button>
             </div>
           </div>
         `).join('')}
 
         <div style="margin-top:16px">
-          <button class="btn btn-secondary" onclick="exportData()"><span>⬇️ Export / Backup</span><span style="opacity:0.7">JSON</span></button>
+          <button class="btn btn-secondary" onclick="exportData()"><span>â¬‡ï¸ Export / Backup</span><span style="opacity:0.7">JSON</span></button>
         </div>
       </div>
     `;
@@ -3388,20 +3360,20 @@ function fallbackDownload(content, fileName) {
 
     return `
       <div class="sticky-header">
-        <button class="btn-icon" onclick="state.view='templates'; render()">←</button>
+        <button class="btn-icon" onclick="state.view='templates'; render()">â†</button>
         <div style="flex:1">
           <div class="sticky-title">${escapeHtml(tpl.name)}</div>
-          <div class="muted small">Template bearbeiten · Name lässt sich über "Name" ändern</div>
+          <div class="muted small">Template bearbeiten Â· Name lÃ¤sst sich Ã¼ber "Name" Ã¤ndern</div>
         </div>
         <button class="btn-icon" onclick="renameTemplate('${tpl.templateId}')">Name</button>
       </div>
 
       <div class="container">
         <button class="btn btn-secondary" onclick="openExercisePicker('template_add','${tpl.templateId}')">
-          <span>➕ Übung hinzufügen</span><span style="opacity:0.7">→</span>
+          <span>âž• Ãœbung hinzufÃ¼gen</span><span style="opacity:0.7">â†’</span>
         </button>
         <button class="btn btn-secondary" onclick="openNewExerciseModal('template_add','${tpl.templateId}')">
-          <span>✨ Neue Übung erstellen</span><span style="opacity:0.7">→</span>
+          <span>âœ¨ Neue Ãœbung erstellen</span><span style="opacity:0.7">â†’</span>
         </button>
 
         ${items.length ? items.map(it => `
@@ -3414,15 +3386,15 @@ function fallbackDownload(content, fileName) {
                 </div>
               </div>
               <div class="list-actions">
-                <button class="mini-btn" onclick="moveTemplateItem('${tpl.templateId}','${it.itemId}',-1)">↑</button>
-                <button class="mini-btn" onclick="moveTemplateItem('${tpl.templateId}','${it.itemId}',1)">↓</button>
-                <button class="btn-icon btn-icon-danger" onclick="removeTemplateItem('${tpl.templateId}','${it.itemId}')">🗑️</button>
+                <button class="mini-btn" onclick="moveTemplateItem('${tpl.templateId}','${it.itemId}',-1)">â†‘</button>
+                <button class="mini-btn" onclick="moveTemplateItem('${tpl.templateId}','${it.itemId}',1)">â†“</button>
+                <button class="btn-icon btn-icon-danger" onclick="removeTemplateItem('${tpl.templateId}','${it.itemId}')">ðŸ—‘ï¸</button>
               </div>
             </div>
 
             <div class="grid2" style="margin-top:10px">
               <div>
-                <div class="muted small">Sätze</div>
+                <div class="muted small">SÃ¤tze</div>
                 <input class="input" inputmode="numeric" pattern="[0-9]*" value="${it.plannedSets}" oninput="updateTemplateItem('${tpl.templateId}','${it.itemId}','plannedSets',this.value)" />
               </div>
               <div>
@@ -3435,7 +3407,7 @@ function fallbackDownload(content, fileName) {
               <input class="input" value="${escapeHtml(it.targetRepsText||'')}" oninput="updateTemplateItem('${tpl.templateId}','${it.itemId}','targetRepsText',this.value)" />
             </div>
           </div>
-        `).join('') : `<div class="muted" style="text-align:center; padding: 28px 10px;">Keine Übungen im Template. Füge eine Übung hinzu.</div>`}
+        `).join('') : `<div class="muted" style="text-align:center; padding: 28px 10px;">Keine Ãœbungen im Template. FÃ¼ge eine Ãœbung hinzu.</div>`}
 
         ${renderPicker()}
         ${renderModal()}
@@ -3451,8 +3423,8 @@ function fallbackDownload(content, fileName) {
       return `
         <div class="modal-backdrop" onclick="(function(e){closeModal();})(event)">
           <div class="modal" onclick="(function(e){e.stopPropagation();})(event)">
-            <h3>Neue Übung erstellen</h3>
-            <p>Die Übung wird in die Datenbank aufgenommen und steht künftig überall zur Verfügung. Standard-Pause: ${DEFAULT_PAUSE_SEC}s.</p>
+            <h3>Neue Ãœbung erstellen</h3>
+            <p>Die Ãœbung wird in die Datenbank aufgenommen und steht kÃ¼nftig Ã¼berall zur VerfÃ¼gung. Standard-Pause: ${DEFAULT_PAUSE_SEC}s.</p>
 
             <div class="muted small">Name</div>
             <input class="input" value="${escapeHtml(m.name||'')}" oninput="updateModalField('name',this.value)" placeholder="z.B. Kabelrudern breit" />
@@ -3475,7 +3447,7 @@ function fallbackDownload(content, fileName) {
       return `
         <div class="modal-backdrop" onclick="(function(e){closeModal();})(event)">
           <div class="modal" onclick="(function(e){e.stopPropagation();})(event)">
-            <h3>Übung bearbeiten</h3>
+            <h3>Ãœbung bearbeiten</h3>
             <p>Name und Muskelgruppe wirken sich auf Sortierung und Reporting aus.</p>
 
             <div class="muted small">Name</div>
@@ -3498,23 +3470,23 @@ function fallbackDownload(content, fileName) {
     if (m.type === 'merge_exercise') {
       const options = state.exercises.map(e => {
         const g = getMuscleGroupNameById(e.muscleGroupId);
-        return `<option value="${e.id}">${escapeHtml(g)} · ${escapeHtml(e.name)}</option>`;
+        return `<option value="${e.id}">${escapeHtml(g)} Â· ${escapeHtml(e.name)}</option>`;
       }).join('');
       return `
         <div class="modal-backdrop" onclick="(function(e){closeModal();})(event)">
           <div class="modal" onclick="(function(e){e.stopPropagation();})(event)">
-            <h3>Übungen zusammenführen (Merge)</h3>
-            <p>Quelle wird in Ziel überführt. Templates, Historie und Draft werden angepasst. Die Quelle wird danach entfernt.</p>
+            <h3>Ãœbungen zusammenfÃ¼hren (Merge)</h3>
+            <p>Quelle wird in Ziel Ã¼berfÃ¼hrt. Templates, Historie und Draft werden angepasst. Die Quelle wird danach entfernt.</p>
 
             <div class="muted small">Quelle</div>
             <select class="select" onchange="updateModalField('sourceId',this.value)">
-              <option value="">Bitte wählen</option>
+              <option value="">Bitte wÃ¤hlen</option>
               ${options}
             </select>
 
             <div class="muted small">Ziel</div>
             <select class="select" onchange="updateModalField('targetId',this.value)">
-              <option value="">Bitte wählen</option>
+              <option value="">Bitte wÃ¤hlen</option>
               ${options}
             </select>
 
@@ -3531,13 +3503,13 @@ function fallbackDownload(content, fileName) {
       return `
         <div class="modal-backdrop" onclick="(function(e){closeModal();})(event)">
           <div class="modal" onclick="(function(e){e.stopPropagation();})(event)">
-            <h3>Muskelgruppe hinzufügen</h3>
+            <h3>Muskelgruppe hinzufÃ¼gen</h3>
             <p>Beispiele: Bauch, hintere Schulter, obere Brust.</p>
             <div class="muted small">Name</div>
             <input class="input" value="${escapeHtml(m.name||'')}" oninput="updateModalField('name',this.value)" placeholder="z.B. Bauch" />
             <div class="modal-actions">
               <button class="btn btn-secondary" style="margin:0; padding:14px" onclick="closeModal()">Abbrechen</button>
-              <button class="btn btn-success" style="margin:0; padding:14px" onclick="addMuscleGroup()">Hinzufügen</button>
+              <button class="btn btn-success" style="margin:0; padding:14px" onclick="addMuscleGroup()">HinzufÃ¼gen</button>
             </div>
           </div>
         </div>
@@ -3564,8 +3536,8 @@ function fallbackDownload(content, fileName) {
       return `
         <div class="modal-backdrop" onclick="(function(e){closeModal();})(event)">
           <div class="modal" onclick="(function(e){e.stopPropagation();})(event)">
-            <h3>Training manuell hinzufügen</h3>
-            <p>Wähle Datum/Uhrzeit und ob du von einem Template starten willst.</p>
+            <h3>Training manuell hinzufÃ¼gen</h3>
+            <p>WÃ¤hle Datum/Uhrzeit und ob du von einem Template starten willst.</p>
 
             <div class="muted small">Name</div>
             <input class="input" value="${escapeHtml(m.name||'Manuell')}" oninput="updateModalField('name',this.value)" />
@@ -3599,7 +3571,7 @@ function fallbackDownload(content, fileName) {
       return `
         <div class="modal-backdrop" onclick="(function(e){closeModal();})(event)">
           <div class="modal" onclick="(function(e){e.stopPropagation();})(event)">
-            <h3>Körpergewicht eintragen</h3>
+            <h3>KÃ¶rpergewicht eintragen</h3>
             <div class="muted small">Datum/Uhrzeit</div>
             <input class="input" type="datetime-local" value="${escapeHtml(m.datetimeLocal||'')}" oninput="updateModalField('datetimeLocal',this.value)" />
 
@@ -3607,7 +3579,7 @@ function fallbackDownload(content, fileName) {
             <input class="input" type="text" inputmode="decimal" pattern="[0-9]*[.,]?[0-9]*" value="${escapeHtml(m.weight||'')}" oninput="updateModalField('weight',this.value)" placeholder="z.B. 82,5" />
 
             <div class="muted small">Notiz (optional)</div>
-            <input class="input" value="${escapeHtml(m.note||'')}" oninput="updateModalField('note',this.value)" placeholder="z.B. morgens nüchtern" />
+            <input class="input" value="${escapeHtml(m.note||'')}" oninput="updateModalField('note',this.value)" placeholder="z.B. morgens nÃ¼chtern" />
 
             <div class="modal-actions">
               <button class="btn btn-secondary" style="margin:0; padding:14px" onclick="closeModal()">Abbrechen</button>
@@ -3623,7 +3595,7 @@ function fallbackDownload(content, fileName) {
         <div class="modal-backdrop" onclick="(function(e){closeModal();})(event)">
           <div class="modal" onclick="(function(e){e.stopPropagation();})(event)">
             <h3>Training bearbeiten</h3>
-            <p>Praktisch für manuelles Nachtragen oder freie Sessions.</p>
+            <p>Praktisch fÃ¼r manuelles Nachtragen oder freie Sessions.</p>
 
             <div class="muted small">Name</div>
             <input class="input" value="${escapeHtml(m.name||'')}" oninput="updateModalField('name',this.value)" />
@@ -3665,7 +3637,7 @@ function fallbackDownload(content, fileName) {
     return `
       <div class="modal-backdrop" onclick="closeExercisePicker()">
         <div class="modal" onclick="(function(e){e.stopPropagation();})(event)">
-          <h3>Übung auswählen</h3>
+          <h3>Ãœbung auswÃ¤hlen</h3>
           <p>Sortiert nach Muskelgruppe. Du kannst suchen oder filtern.</p>
 
           <input class="input" placeholder="Suchen..." value="${escapeHtml(p.search||'')}" oninput="setPickerSearch(this.value)" />
@@ -3687,7 +3659,7 @@ function fallbackDownload(content, fileName) {
                       <div class="name">${escapeHtml(ex.name)}</div>
                       <div class="sub">${escapeHtml(getMuscleGroupNameById(ex.muscleGroupId))}</div>
                     </div>
-                    <div style="opacity:0.7">→</div>
+                    <div style="opacity:0.7">â†’</div>
                   </div>
                 `).join('')}
               `;
@@ -3695,8 +3667,8 @@ function fallbackDownload(content, fileName) {
           </div>
 
           <div class="modal-actions" style="margin-top:10px">
-            <button class="btn btn-secondary" style="margin:0; padding:14px" onclick="closeExercisePicker()">Schließen</button>
-            <button class="btn btn-success" style="margin:0; padding:14px" onclick="openNewExerciseModal('${p.context}','${p.templateId || ''}','${p.replaceLogId || ''}')">Neue Übung</button>
+            <button class="btn btn-secondary" style="margin:0; padding:14px" onclick="closeExercisePicker()">SchlieÃŸen</button>
+            <button class="btn btn-success" style="margin:0; padding:14px" onclick="openNewExerciseModal('${p.context}','${p.templateId || ''}','${p.replaceLogId || ''}')">Neue Ãœbung</button>
           </div>
         </div>
       </div>
