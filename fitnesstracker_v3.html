@@ -1943,31 +1943,47 @@
         workouts: state.workouts,
         bodyweightLogs: state.bodyweightLogs
       };
+      
       const jsonStr = JSON.stringify(payload, null, 2);
-      const blob = new Blob([jsonStr], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `hypertrophie-tracker-backup-${new Date().toISOString().slice(0,10)}.json`;
-      a.style.display = 'none';
-      document.body.appendChild(a);
+      const fileName = `hypertrophie-tracker-backup-${new Date().toISOString().slice(0,10)}.json`;
       
-      // iOS Safari braucht einen kurzen Delay
-      setTimeout(() => {
-        a.click();
-        setTimeout(() => {
-          document.body.removeChild(a);
-          URL.revokeObjectURL(url);
-        }, 100);
-      }, 0);
-      
-      showToast('Export wird vorbereitet...', 2000);
+      // iOS Share API (funktioniert besser als Download)
+      if (navigator.share) {
+        const file = new File([jsonStr], fileName, { type: 'application/json' });
+        navigator.share({
+          files: [file],
+          title: 'Fitness Tracker Backup'
+        })
+        .then(() => showToast('Export erfolgreich', 2000))
+        .catch(err => {
+          if (err.name !== 'AbortError') {
+            console.error('Share error:', err);
+            fallbackExport(jsonStr, fileName);
+          }
+        });
+      } else {
+        fallbackExport(jsonStr, fileName);
+      }
     } catch (e) {
       console.error('Export error:', e);
       alert('Export fehlgeschlagen: ' + e.message);
     }
   }
-
+  
+  function fallbackExport(content, fileName) {
+    const blob = new Blob([content], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => {
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }, 100);
+    showToast('Download gestartet', 2000);
+  }
   function triggerImport() {
     const input = document.getElementById('import-file');
     if (input) input.click();
