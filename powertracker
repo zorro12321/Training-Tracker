@@ -1,0 +1,2321 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <title>Hypertrophie Tracker</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0f172a; color: white; padding-bottom: 84px; }
+    .container { max-width: 680px; margin: 0 auto; padding: 20px; }
+
+    .header { text-align: center; padding: 36px 20px 22px; }
+    .header h1 { font-size: 28px; margin-bottom: 8px; color: #60a5fa; }
+    .muted { color: #94a3b8; }
+    .small { font-size: 13px; }
+
+    .btn { width: 100%; padding: 18px; margin: 8px 0; background: linear-gradient(135deg, #2563eb, #3b82f6); border: none; border-radius: 12px; color: white; font-size: 18px; font-weight: 700; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+    .btn:active { transform: scale(0.98); }
+    .btn-secondary { background: #334155; }
+    .btn-success { background: #16a34a; }
+    .btn-danger { background: #ef4444; }
+
+    .btn-icon { background: transparent; border: none; color: #94a3b8; padding: 6px; font-size: 18px; cursor: pointer; }
+    .btn-icon-danger { color: #ef4444; }
+
+    .sticky-header { position: sticky; top: 0; background: #0f172a; padding: 14px 18px; z-index: 60; border-bottom: 1px solid #334155; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+    .sticky-title { font-size: 18px; font-weight: 800; }
+    .pill { background: #1e293b; border: 1px solid #334155; color: #e2e8f0; padding: 6px 10px; border-radius: 999px; font-size: 12px; }
+
+    .card { background: #1e293b; border-radius: 12px; padding: 14px; margin: 14px 0; border: 1px solid #334155; }
+    .row { display:flex; justify-content:space-between; align-items:center; gap:10px; }
+    .exercise-header { display:flex; justify-content:space-between; align-items:flex-start; gap:10px; }
+    .exercise-title { font-size: 16px; font-weight: 800; color: #e2e8f0; }
+    .exercise-meta { font-size: 13px; color: #94a3b8; display:flex; gap:10px; align-items:center; flex-wrap: wrap; margin-top: 4px; }
+    .timer-btn { background: #334155; color: #60a5fa; border: 1px solid #60a5fa; border-radius: 6px; padding: 4px 10px; font-size: 12px; cursor: pointer; }
+    .line { margin-top: 8px; color: #94a3b8; font-size: 12px; line-height: 1.35; }
+
+    .set-row { background: #0f172a; border-radius: 10px; padding: 10px; margin: 7px 0; display:flex; gap:10px; align-items:center; }
+    .set-label { color:#64748b; width: 44px; font-size: 14px; font-weight: 800; text-align:center; }
+
+    .set-select, .set-input {
+      flex: 1;
+      padding: 12px;
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 10px;
+      color: white;
+      font-size: 16px;
+      text-align: center;
+    }
+    .set-select:focus, .set-input:focus { border-color:#60a5fa; outline: none; }
+
+    .mini-btn {
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid #334155;
+      background: #1e293b;
+      color: #e2e8f0;
+      font-weight: 800;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .mini-btn:active { transform: scale(0.98); }
+
+    .timer-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #1e293b; padding: 14px 16px; border-top: 1px solid #334155; display:flex; justify-content:space-between; align-items:center; z-index: 100; }
+    .timer-display { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size: 22px; font-weight: 900; color:#60a5fa; }
+    .timer-controls { display:flex; gap:10px; align-items:center; }
+    .btn-small { padding: 8px 14px; border-radius: 10px; border: none; font-weight: 900; cursor: pointer; }
+
+    .history-item { background:#1e293b; border-radius: 12px; margin: 10px 0; overflow:hidden; border:1px solid #334155; }
+    .history-header { padding: 14px; display:flex; justify-content:space-between; align-items:center; cursor:pointer; gap:10px; }
+    .history-details { padding: 14px; border-top:1px solid #334155; display:none; background:#0f172a; }
+    .history-details.open { display:block; }
+    .chips { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
+    .chip2 { background:#1e293b; border:1px solid #334155; color:#e2e8f0; padding:2px 8px; border-radius:999px; font-size:13px; }
+
+    .section-title { font-size: 14px; font-weight: 900; color:#e2e8f0; margin: 10px 0 6px; }
+    .list-item { padding: 12px; border:1px solid #334155; border-radius: 12px; background:#1e293b; margin: 8px 0; display:flex; justify-content:space-between; align-items:center; gap:10px; }
+    .list-item .name { font-weight: 900; color:#e2e8f0; }
+    .list-item .sub { font-size: 12px; color:#94a3b8; margin-top: 2px; }
+    .list-actions { display:flex; gap:8px; align-items:center; }
+
+    .input { width: 100%; padding: 14px; border-radius: 12px; border: 1px solid #334155; background:#1e293b; color:white; font-size: 16px; margin: 8px 0; }
+    .select { width: 100%; padding: 14px; border-radius: 12px; border: 1px solid #334155; background:#1e293b; color:white; font-size: 16px; margin: 8px 0; }
+
+    .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display:flex; align-items:center; justify-content:center; z-index: 200; padding: 18px; }
+    .modal { width: 100%; max-width: 560px; background:#0f172a; border:1px solid #334155; border-radius: 16px; padding: 16px; box-shadow: 0 30px 90px rgba(0,0,0,0.65); }
+    .modal h3 { font-size: 16px; font-weight: 900; color:#e2e8f0; margin-bottom: 8px; }
+    .modal p { color:#94a3b8; font-size: 13px; line-height:1.4; margin-bottom: 10px; }
+    .modal-actions { display:flex; gap:10px; }
+
+    .grid2 { display:grid; grid-template-columns: 1fr 1fr; gap:10px; }
+    @media (max-width: 520px){ .grid2 { grid-template-columns: 1fr; } }
+
+    #fatal {
+      position: fixed; inset: 0; z-index: 9999; display: none;
+      background: rgba(0,0,0,0.92); padding: 16px; overflow: auto;
+      color: #e2e8f0; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+  <div id="fatal"></div>
+  <audio id="timer-beep" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"></audio>
+
+
+<script>
+(function () {
+  function showFatal(err) {
+    const box = document.getElementById('fatal');
+    if (!box) return;
+    box.style.display = 'block';
+    box.textContent = String(err && err.stack ? err.stack : err);
+  }
+  window.addEventListener('error', (e) => showFatal(e.error || (e.message + " @ " + e.filename + ":" + e.lineno)));
+  window.addEventListener('unhandledrejection', (e) => showFatal(e.reason || "Unhandled Promise Rejection"));
+
+  // -----------------------
+  // Storage Keys (v3)
+  // -----------------------
+  const KEY_MUSCLEGROUPS = 'muscleGroupsV3';
+  const KEY_EXERCISES = 'exerciseLibraryV3';
+  const KEY_TEMPLATES = 'workoutTemplatesV3';
+  const KEY_HISTORY = 'workoutHistoryV3';
+  const KEY_DRAFT = 'workoutDraftV3';
+  const KEY_BODYWEIGHT = 'bodyweightLogsV3';
+
+  // Legacy keys (v2)
+  const LEG_EXERCISES = 'exerciseLibraryV2';
+  const LEG_TEMPLATES = 'workoutTemplatesV2';
+  const LEG_HISTORY = 'workoutHistoryV2';
+  const LEG_DRAFT = 'workoutDraftV2';
+
+  // Defaults
+  const DEFAULT_PAUSE_SEC = 150;
+  const DEFAULT_PLANNED_SETS = 3;
+  const DEFAULT_TARGET = '8-12';
+
+  // Seed plan (initial templates)
+  const seedPlan = {
+    'Push A': [
+      { name: 'Bankdrücken (Kurzhantel/Maschine)', sets: 3, reps: '5-8', pause: 150 },
+      { name: 'Schrägbankdrücken (Kurzhantel)', sets: 3, reps: '8-12', pause: 120 },
+      { name: 'Butterfly / Pec Deck', sets: 3, reps: '12-20', pause: 75 },
+      { name: 'Seitheben (KH oder Kabel)', sets: 4, reps: '10-20', pause: 75 },
+      { name: 'Overhead-Trizeps Kabel', sets: 3, reps: '12-20', pause: 75 },
+      { name: 'Trizepsdrücken Kabel (Seil)', sets: 3, reps: '10-15', pause: 75 }
+    ],
+    'Pull A': [
+      { name: 'Latzug (neutral/V-Griff)', sets: 4, reps: '6-10', pause: 150 },
+      { name: 'Pullover (Maschine/Kabel)', sets: 4, reps: '8-12', pause: 120 },
+      { name: 'Kabelrudern eng', sets: 3, reps: '10-12', pause: 105 },
+      { name: 'Reverse Fly (Maschine)', sets: 4, reps: '12-20', pause: 75 },
+      { name: 'Face Pull (Seil)', sets: 2, reps: '15-20', pause: 75 },
+      { name: 'Bizepscurl (SZ oder Kabel)', sets: 3, reps: '8-12', pause: 75 },
+      { name: 'Incline Curl / High Cable Curl', sets: 3, reps: '10-15', pause: 75 }
+    ],
+    'Beine': [
+      { name: 'Hack Squat ODER Kniebeuge', sets: 3, reps: '5-10', pause: 180 },
+      { name: 'Rumänisches Kreuzheben (RDL)', sets: 3, reps: '6-10', pause: 180 },
+      { name: 'Lunges mit Gewicht', sets: 3, reps: '10-15', pause: 150 },
+      { name: 'Beinstrecker', sets: 3, reps: '12-15', pause: 90 },
+      { name: 'Beinbeuger sitzend', sets: 4, reps: '10-15', pause: 90 },
+      { name: 'Wadenheben (stehend/sitzend)', sets: 4, reps: '8-15', pause: 90 },
+      { name: 'Bauch: Cable Crunch / Knee Raise', sets: 3, reps: '10-15', pause: 75 }
+    ],
+    'Push B': [
+      { name: 'Schrägbank (Maschine/Smith)', sets: 3, reps: '8-12', pause: 120 },
+      { name: 'Brustpresse Flach (Maschine)', sets: 3, reps: '8-12', pause: 120 },
+      { name: 'Kabel-Flys (low-to-high/klassisch)', sets: 3, reps: '12-20', pause: 75 },
+      { name: 'Schulterpresse (Maschine) ODER Landmine', sets: 3, reps: '8-12', pause: 120 },
+      { name: 'Seitheben (Kabel, Variante)', sets: 4, reps: '12-20', pause: 75 },
+      { name: 'Trizeps: Dips-Maschine oder Kabel', sets: 3, reps: '8-12', pause: 90 }
+    ],
+    'Pull B': [
+      { name: 'Rudern brustgestützt (Maschine/T-Bar)', sets: 4, reps: '8-12', pause: 120 },
+      { name: 'Latzug (anderer Griff als Pull A)', sets: 3, reps: '10-15', pause: 90 },
+      { name: 'Rudermaschine (z.B. Hammer Strength)', sets: 3, reps: '10-12', pause: 105 },
+      { name: 'Reverse Fly', sets: 4, reps: '12-20', pause: 75 },
+      { name: 'External Rotation (Kabel)', sets: 2, reps: '15-20', pause: 75 },
+      { name: 'Bizeps Kabelcurl', sets: 3, reps: '10-15', pause: 75 },
+      { name: 'Hammer Curls', sets: 2, reps: '10-15', pause: 75 }
+    ]
+  };
+
+  // -----------------------
+  // Helpers
+  // -----------------------
+  function uid(prefix='id') {
+    return prefix + '_' + Math.random().toString(16).slice(2) + '_' + Date.now().toString(16);
+  }
+
+  function loadJSON(key, fallback) {
+    try { return JSON.parse(localStorage.getItem(key) || JSON.stringify(fallback)); }
+    catch { return fallback; }
+  }
+
+  function saveJSON(key, value) {
+    localStorage.setItem(key, JSON.stringify(value));
+  }
+
+  function escapeHtml(s) {
+    return String(s || '')
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;')
+      .replaceAll('"', '&quot;');
+  }
+
+  function clampInt(n, min, max) {
+    if (!Number.isFinite(n)) return null;
+    const x = Math.trunc(n);
+    if (x < min || x > max) return null;
+    return x;
+  }
+
+  function parseDecimalDE(input) {
+    if (input === null || input === undefined) return null;
+    const s = String(input).trim();
+    if (s === '') return null;
+    const normalized = s.replace(',', '.');
+    const n = Number(normalized);
+    if (!Number.isFinite(n)) return null;
+    if (n < 0) return null;
+    return n;
+  }
+
+  function formatDecimalDE(n, maxFrac = 2) {
+    if (!Number.isFinite(n)) return '';
+    return n.toLocaleString('de-DE', { maximumFractionDigits: maxFrac });
+  }
+
+  function formatDate(isoString) {
+    return new Date(isoString).toLocaleDateString('de-DE', {
+      weekday: 'short', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit'
+    });
+  }
+
+  function formatDateTimeLocal(isoString) {
+    const d = new Date(isoString);
+    const pad = (x) => String(x).padStart(2,'0');
+    const yyyy = d.getFullYear();
+    const mm = pad(d.getMonth()+1);
+    const dd = pad(d.getDate());
+    const hh = pad(d.getHours());
+    const mi = pad(d.getMinutes());
+    return `${yyyy}-${mm}-${dd}T${hh}:${mi}`;
+  }
+
+  function parseDateTimeLocal(value) {
+    // value: "YYYY-MM-DDTHH:MM"
+    if (!value) return null;
+    const d = new Date(value);
+    if (isNaN(d.getTime())) return null;
+    return d.toISOString();
+  }
+
+  function isSetDone(s) {
+    return Number.isFinite(s.reps) && Number.isFinite(s.weight) && s.reps > 0 && s.weight > 0;
+  }
+
+  function calcE1RM(weight, reps) {
+    if (!Number.isFinite(weight) || !Number.isFinite(reps) || reps <= 0) return null;
+    return weight * (1 + reps / 30);
+  }
+
+  function exerciseTopE1RM(exLog) {
+    let best = null;
+    (exLog.sets || []).forEach(s => {
+      const e = calcE1RM(s.weight, s.reps);
+      if (Number.isFinite(e)) best = best === null ? e : Math.max(best, e);
+    });
+    return best;
+  }
+
+  function workoutVolume(w) {
+    let sum = 0;
+    (w.exercises || []).forEach(ex => (ex.sets || []).forEach(s => { if (isSetDone(s)) sum += s.weight * s.reps; }));
+    return sum;
+  }
+
+  function formatE1RM(n) {
+    if (!Number.isFinite(n)) return '-';
+    return formatDecimalDE(n, 1) + ' kg';
+  }
+
+  function formatVolume(n) {
+    if (!Number.isFinite(n)) return '-';
+    return formatDecimalDE(n, 0) + ' kg';
+  }
+
+  function repsOptions(selected) {
+    let out = `<option value="">Wdh</option>`;
+    for (let i = 1; i <= 25; i++) out += `<option value="${i}" ${selected === i ? 'selected' : ''}>${i}</option>`;
+    return out;
+  }
+
+  function guessMuscleGroupName(name) {
+    const n = String(name || '').toLowerCase();
+    // keep previous heuristics
+    if (/(bank|brust|pec|fly|butterfly|cable[- ]?fly|brustpresse)/.test(n)) return 'Brust';
+    if (/(latzug|rud|pullover|row|pull|hammer strength|t-bar)/.test(n)) return 'Rücken';
+    if (/(schulter|seitheben|reverse fly|face pull|external rotation|landmine)/.test(n)) return 'Schulter';
+    if (/(squat|kniebeuge|hack|r(d|dl)|kreuzheben|lunges|beinstrecker|beinbeuger|waden)/.test(n)) return 'Beine';
+    if (/(bauch|crunch|knee raise|ab)/.test(n)) return 'Bauch';
+    if (/(bizeps|curl)/.test(n)) return 'Bizeps';
+    if (/(trizeps|dips|overhead)/.test(n)) return 'Trizeps';
+    return 'Brust';
+  }
+
+  // -----------------------
+  // Migration v2 -> v3
+  // -----------------------
+  function ensureMuscleGroups() {
+    const existing = loadJSON(KEY_MUSCLEGROUPS, null);
+    if (Array.isArray(existing) && existing.length && existing[0].id && existing[0].name) return existing;
+
+    // build from legacy or seed default list
+    const defaults = ['Brust', 'Rücken', 'Schulter', 'Beine', 'Bizeps', 'Trizeps', 'Bauch'];
+    const groups = defaults.map((name, idx) => ({ id: uid('mg'), name, order: idx }));
+    saveJSON(KEY_MUSCLEGROUPS, groups);
+    return groups;
+  }
+
+  function findOrCreateMuscleGroup(groups, name) {
+    const n = String(name || '').trim();
+    if (!n) return groups[0]?.id;
+    const hit = groups.find(g => g.name.toLowerCase() === n.toLowerCase());
+    if (hit) return hit.id;
+    const maxOrder = groups.reduce((m,g)=>Math.max(m, Number(g.order)||0), 0);
+    const ng = { id: uid('mg'), name: n, order: maxOrder + 1 };
+    groups.push(ng);
+    groups.sort((a,b)=>(a.order??0)-(b.order??0) || a.name.localeCompare(b.name,'de'));
+    return ng.id;
+  }
+
+  function ensureV3Data() {
+    // if v3 exercises exist, assume v3 initialized
+    const exV3 = loadJSON(KEY_EXERCISES, null);
+    const tplV3 = loadJSON(KEY_TEMPLATES, null);
+    const histV3 = loadJSON(KEY_HISTORY, null);
+
+    const hasV3 = Array.isArray(exV3) && Array.isArray(tplV3) && Array.isArray(histV3);
+    if (hasV3) return;
+
+    // migrate from v2 if present, otherwise seed from plan
+    let groups = ensureMuscleGroups();
+
+    // exercises
+    let exercises = loadJSON(LEG_EXERCISES, null);
+    if (!Array.isArray(exercises) || !exercises.length || !exercises[0].id) {
+      // seed from plan names
+      const names = [];
+      Object.keys(seedPlan).forEach(t => seedPlan[t].forEach(ex => names.push(ex.name)));
+      const unique = Array.from(new Set(names.map(x => String(x||'').trim()).filter(Boolean)));
+      exercises = unique.map(nm => {
+        const mgName = guessMuscleGroupName(nm);
+        const mgId = findOrCreateMuscleGroup(groups, mgName);
+        return { id: uid('ex'), name: nm, muscleGroupId: mgId, aliases: [] };
+      }).sort((a,b)=>a.name.localeCompare(b.name,'de'));
+    } else {
+      // convert muscleGroup string to id
+      exercises = exercises.map(ex => {
+        const mgName = ex.muscleGroup || ex.muscleGroupSnapshot || guessMuscleGroupName(ex.name);
+        const mgId = findOrCreateMuscleGroup(groups, mgName);
+        return { id: ex.id, name: ex.name, muscleGroupId: mgId, aliases: Array.isArray(ex.aliases)?ex.aliases:[] };
+      });
+    }
+
+    // templates
+    let templates = loadJSON(LEG_TEMPLATES, null);
+    if (!Array.isArray(templates) || !templates.length || !templates[0].templateId) {
+      // seed templates from plan with lookup by name
+      const byName = new Map(exercises.map(e => [e.name.toLowerCase(), e]));
+      templates = Object.keys(seedPlan).map(dayName => {
+        const items = seedPlan[dayName].map(ex => {
+          const e = byName.get(String(ex.name).toLowerCase());
+          const exerciseId = e ? e.id : uid('ex');
+          return { itemId: uid('it'), exerciseId, plannedSets: ex.sets, targetRepsText: ex.reps, pauseSec: ex.pause };
+        });
+        return { templateId: uid('tpl'), name: dayName, items };
+      });
+    }
+
+    // history
+    let workouts = loadJSON(LEG_HISTORY, []);
+    if (!Array.isArray(workouts)) workouts = [];
+
+    // draft
+    let draft = loadJSON(LEG_DRAFT, null);
+
+    // store v3
+    saveJSON(KEY_MUSCLEGROUPS, groups);
+    saveJSON(KEY_EXERCISES, exercises);
+    saveJSON(KEY_TEMPLATES, templates);
+    saveJSON(KEY_HISTORY, workouts);
+    if (draft) saveJSON(KEY_DRAFT, draft);
+  }
+
+  ensureV3Data();
+
+  // -----------------------
+  // State initialization
+  // -----------------------
+  let state = {
+    view: 'select',
+    muscleGroups: ensureMuscleGroups(),
+    exercises: loadJSON(KEY_EXERCISES, []),
+    templates: loadJSON(KEY_TEMPLATES, []),
+    workouts: loadJSON(KEY_HISTORY, []),
+    bodyweightLogs: loadJSON(KEY_BODYWEIGHT, []),
+    currentWorkout: null,
+    expandedId: null,
+    timer: { active: false, endAt: 0, interval: null, notified: false },
+    modal: null,
+    picker: null,
+    hasDraft: !!localStorage.getItem(KEY_DRAFT),
+    editTemplateId: null,
+    exSearch: '',
+    mgSearch: ''
+  };
+
+  function persistAll() {
+    saveJSON(KEY_MUSCLEGROUPS, state.muscleGroups);
+    saveJSON(KEY_EXERCISES, state.exercises);
+    saveJSON(KEY_TEMPLATES, state.templates);
+    saveJSON(KEY_HISTORY, state.workouts);
+    saveJSON(KEY_BODYWEIGHT, state.bodyweightLogs);
+  }
+
+  function saveDraft() {
+    if (!state.currentWorkout) return;
+    saveJSON(KEY_DRAFT, state.currentWorkout);
+    state.hasDraft = true;
+  }
+
+  function clearDraft() {
+    localStorage.removeItem(KEY_DRAFT);
+    state.hasDraft = false;
+  }
+
+  function getMuscleGroupNameById(id) {
+    const g = state.muscleGroups.find(x => x.id === id);
+    return g ? g.name : 'Unbekannt';
+  }
+
+  function getMuscleGroupIdByName(name) {
+    const hit = state.muscleGroups.find(g => g.name.toLowerCase() === String(name||'').toLowerCase());
+    return hit ? hit.id : null;
+  }
+
+  function sortMuscleGroups() {
+    state.muscleGroups.sort((a,b)=>(a.order??0)-(b.order??0) || a.name.localeCompare(b.name,'de'));
+  }
+
+  function normalizeWorkout(w) {
+    // accept v2/v3 shape
+    if (!w || typeof w !== 'object') return null;
+    const out = {
+      id: Number(w.id) || Date.now(),
+      date: String(w.date || new Date().toISOString()),
+      templateId: w.templateId || null,
+      kind: w.kind || (w.templateId ? 'template' : 'free'),
+      nameSnapshot: String(w.nameSnapshot || w.type || 'Training'),
+      exercises: Array.isArray(w.exercises) ? w.exercises.map(normalizeExerciseLog).filter(Boolean) : []
+    };
+    return out;
+  }
+
+  function normalizeExerciseLog(ex) {
+    if (!ex || typeof ex !== 'object') return null;
+    const exId = String(ex.exerciseId || ex.id || '');
+    const lib = state.exercises.find(e => e.id === exId);
+    const nameSnapshot = String(ex.nameSnapshot || ex.name || (lib ? lib.name : '')).trim();
+    if (!nameSnapshot) return null;
+
+    const mgId = ex.muscleGroupIdSnapshot || ex.muscleGroupId || (lib ? lib.muscleGroupId : null) || findOrCreateMuscleGroup(state.muscleGroups, guessMuscleGroupName(nameSnapshot));
+    const mgNameSnapshot = String(ex.muscleGroupSnapshot || (mgId ? getMuscleGroupNameById(mgId) : guessMuscleGroupName(nameSnapshot)));
+
+    const pause = Number(ex.pauseSec ?? ex.pause ?? DEFAULT_PAUSE_SEC) || DEFAULT_PAUSE_SEC;
+    const plannedSets = Number(ex.plannedSets ?? ex.setsPlanned ?? ex.planned ?? ex.plannedSetsSnapshot ?? ex.sets ?? DEFAULT_PLANNED_SETS) || DEFAULT_PLANNED_SETS;
+    const targetRepsText = String(ex.targetRepsText || ex.repsTargetSnapshot || ex.reps || DEFAULT_TARGET);
+
+    const rawSets = Array.isArray(ex.sets) ? ex.sets : (Array.isArray(ex.completed) ? ex.completed : []);
+    const sets = rawSets.map(s => ({
+      reps: s.reps === null || s.reps === '' ? null : clampInt(parseInt(s.reps,10), 1, 25),
+      weight: parseDecimalDE(s.weight)
+    }));
+    while (sets.length < plannedSets) sets.push({ reps: null, weight: null });
+
+    return {
+      logId: String(ex.logId || uid('log')),
+      exerciseId: exId || (lib ? lib.id : uid('ex')),
+      nameSnapshot,
+      muscleGroupIdSnapshot: mgId,
+      muscleGroupSnapshot: mgNameSnapshot,
+      plannedSets,
+      targetRepsText,
+      pauseSec: pause,
+      sets
+    };
+  }
+
+  function normalizeAllWorkouts() {
+    state.workouts = (state.workouts || []).map(normalizeWorkout).filter(Boolean);
+    saveJSON(KEY_HISTORY, state.workouts);
+  }
+
+  normalizeAllWorkouts();
+
+  // -----------------------
+  // Start / resume workouts
+  // -----------------------
+  function startTemplateWorkout(templateId, opts={}) {
+    const tpl = state.templates.find(t => t.templateId === templateId);
+    if (!tpl) return;
+
+    const exById = new Map(state.exercises.map(e => [e.id, e]));
+    const exercises = (tpl.items || []).map(item => {
+      const e = exById.get(item.exerciseId);
+      const name = e ? e.name : 'Unbekannte Übung';
+      const mgId = e ? e.muscleGroupId : findOrCreateMuscleGroup(state.muscleGroups, guessMuscleGroupName(name));
+      const mgName = getMuscleGroupNameById(mgId);
+      const plannedSets = Number(item.plannedSets) || DEFAULT_PLANNED_SETS;
+      const sets = Array(plannedSets).fill(null).map(() => ({ reps: null, weight: null }));
+      return {
+        logId: uid('log'),
+        exerciseId: item.exerciseId,
+        nameSnapshot: name,
+        muscleGroupIdSnapshot: mgId,
+        muscleGroupSnapshot: mgName,
+        plannedSets,
+        targetRepsText: String(item.targetRepsText || DEFAULT_TARGET),
+        pauseSec: Number(item.pauseSec) || DEFAULT_PAUSE_SEC,
+        sets
+      };
+    });
+
+    state.currentWorkout = {
+      id: Date.now(),
+      date: opts.date || new Date().toISOString(),
+      templateId: tpl.templateId,
+      kind: opts.kind || 'template',
+      nameSnapshot: opts.nameSnapshot || tpl.name,
+      exercises
+    };
+    state.view = 'workout';
+    saveDraft();
+    render();
+  }
+
+  function startFreeWorkout(opts={}) {
+    state.currentWorkout = {
+      id: Date.now(),
+      date: opts.date || new Date().toISOString(),
+      templateId: null,
+      kind: opts.kind || 'free',
+      nameSnapshot: opts.nameSnapshot || 'Freies Training',
+      exercises: []
+    };
+    state.view = 'workout';
+    saveDraft();
+    render();
+  }
+
+  function resumeDraft() {
+    const d = loadJSON(KEY_DRAFT, null);
+    if (!d) { state.hasDraft = false; return render(); }
+    state.currentWorkout = normalizeWorkout(d);
+    state.view = 'workout';
+    render();
+  }
+
+  function editWorkoutMeta() {
+    if (!state.currentWorkout) return;
+    state.modal = {
+      type: 'edit_workout_meta',
+      name: state.currentWorkout.nameSnapshot || 'Training',
+      datetimeLocal: formatDateTimeLocal(state.currentWorkout.date || new Date().toISOString())
+    };
+    render();
+  }
+
+  function saveWorkoutMeta() {
+    if (!state.modal || state.modal.type !== 'edit_workout_meta') return;
+    const name = String(state.modal.name || '').trim();
+    const iso = parseDateTimeLocal(state.modal.datetimeLocal);
+    if (name) state.currentWorkout.nameSnapshot = name;
+    if (iso) state.currentWorkout.date = iso;
+    saveDraft();
+    state.modal = null;
+    render();
+  }
+
+  function finishWorkout() {
+    if (!confirm("Training wirklich speichern?")) return;
+
+    const w = normalizeWorkout(state.currentWorkout);
+    if (!w) { alert("Training konnte nicht gespeichert werden."); return; }
+
+    state.workouts.unshift(w);
+    saveJSON(KEY_HISTORY, state.workouts);
+    clearDraft();
+    stopTimer();
+    state.currentWorkout = null;
+    state.view = 'history';
+    render();
+  }
+
+  function cancelWorkout() {
+    if (!confirm("Training abbrechen? Fortschritt bleibt als Draft gespeichert (Fortsetzen möglich).")) return;
+    stopTimer();
+    state.currentWorkout = null;
+    state.view = 'select';
+    render();
+  }
+
+  // -----------------------
+  // Exercise picker / add / replace
+  // -----------------------
+  function openExercisePicker(context, templateId=null, replaceLogId=null) {
+    state.picker = { context, templateId, replaceLogId, search: '', groupId: null };
+    render();
+  }
+  function closeExercisePicker() { state.picker = null; render(); }
+  function setPickerSearch(v) { if (!state.picker) return; state.picker.search = v; render(); }
+  function setPickerGroup(gid) { if (!state.picker) return; state.picker.groupId = gid; render(); }
+
+  function pickExercise(exerciseId) {
+    if (!state.picker) return;
+    if (state.picker.context === 'workout_add') addExerciseToCurrentWorkout(exerciseId);
+    else if (state.picker.context === 'workout_replace') replaceExerciseInCurrentWorkout(state.picker.replaceLogId, exerciseId);
+    else if (state.picker.context === 'template_add') addExerciseToTemplate(state.picker.templateId, exerciseId);
+    closeExercisePicker();
+  }
+
+  function openNewExerciseModal(context, templateId=null, replaceLogId=null) {
+    state.modal = { type: 'new_exercise', context, templateId, replaceLogId, name: '', muscleGroupId: state.muscleGroups[0]?.id || null };
+    render();
+  }
+
+  function updateModalField(field, value) {
+    if (!state.modal) return;
+    state.modal[field] = value;
+  }
+
+  function createExerciseFromModal() {
+    if (!state.modal || state.modal.type !== 'new_exercise') return;
+    const name = String(state.modal.name || '').trim();
+    const mgId = String(state.modal.muscleGroupId || '');
+    if (!name || !mgId) return;
+
+    const existing = state.exercises.find(e => e.name.toLowerCase() === name.toLowerCase() && e.muscleGroupId === mgId);
+    const exId = existing ? existing.id : uid('ex');
+
+    if (!existing) {
+      state.exercises.push({ id: exId, name, muscleGroupId: mgId, aliases: [] });
+      saveJSON(KEY_EXERCISES, state.exercises);
+    }
+
+    const ctx = state.modal.context;
+    const tplId = state.modal.templateId;
+    const replaceLogId = state.modal.replaceLogId;
+    state.modal = null;
+
+    if (ctx === 'workout_add') addExerciseToCurrentWorkout(exId);
+    if (ctx === 'workout_replace') replaceExerciseInCurrentWorkout(replaceLogId, exId);
+    if (ctx === 'template_add') addExerciseToTemplate(tplId, exId);
+
+    render();
+  }
+
+  function addExerciseToCurrentWorkout(exerciseId) {
+    if (!state.currentWorkout) return;
+    const ex = state.exercises.find(e => e.id === exerciseId);
+    if (!ex) return;
+
+    const plannedSets = DEFAULT_PLANNED_SETS;
+    const sets = Array(plannedSets).fill(null).map(() => ({ reps: null, weight: null }));
+    state.currentWorkout.exercises.push({
+      logId: uid('log'),
+      exerciseId: ex.id,
+      nameSnapshot: ex.name,
+      muscleGroupIdSnapshot: ex.muscleGroupId,
+      muscleGroupSnapshot: getMuscleGroupNameById(ex.muscleGroupId),
+      plannedSets,
+      targetRepsText: DEFAULT_TARGET,
+      pauseSec: DEFAULT_PAUSE_SEC,
+      sets
+    });
+
+    saveDraft();
+    render();
+  }
+
+  function addExerciseToTemplate(templateId, exerciseId) {
+    const tpl = state.templates.find(t => t.templateId === templateId);
+    if (!tpl) return;
+    tpl.items = tpl.items || [];
+    tpl.items.push({ itemId: uid('it'), exerciseId, plannedSets: DEFAULT_PLANNED_SETS, targetRepsText: DEFAULT_TARGET, pauseSec: DEFAULT_PAUSE_SEC });
+    saveJSON(KEY_TEMPLATES, state.templates);
+    render();
+  }
+
+  function removeExerciseFromWorkout(logId) {
+    if (!state.currentWorkout) return;
+    if (!confirm("Übung aus dem Training entfernen?")) return;
+    state.currentWorkout.exercises = (state.currentWorkout.exercises || []).filter(x => x.logId !== logId);
+    saveDraft();
+    render();
+  }
+
+  function replaceExerciseInCurrentWorkout(logId, exerciseId) {
+    if (!state.currentWorkout) return;
+    const lid = String(logId || '');
+    if (!lid) return;
+    const exLog = (state.currentWorkout.exercises || []).find(x => x.logId === lid);
+    if (!exLog) return;
+
+    const ex = state.exercises.find(e => e.id === exerciseId);
+    if (!ex) return;
+
+    if (!confirm("Übung ersetzen? Bereits eingetragene Sätze für diese Übung werden zurückgesetzt.")) return;
+
+    exLog.exerciseId = ex.id;
+    exLog.nameSnapshot = ex.name;
+    exLog.muscleGroupIdSnapshot = ex.muscleGroupId;
+    exLog.muscleGroupSnapshot = getMuscleGroupNameById(ex.muscleGroupId);
+
+    const planned = Number(exLog.plannedSets) || DEFAULT_PLANNED_SETS;
+    exLog.plannedSets = planned;
+    exLog.pauseSec = Number(exLog.pauseSec) || DEFAULT_PAUSE_SEC;
+    exLog.targetRepsText = exLog.targetRepsText || DEFAULT_TARGET;
+    exLog.sets = Array(planned).fill(null).map(() => ({ reps: null, weight: null }));
+
+    saveDraft();
+    render();
+  }
+
+  function addSet(logId) {
+    const ex = state.currentWorkout.exercises.find(x => x.logId === logId);
+    if (!ex) return;
+    ex.sets.push({ reps: null, weight: null });
+    saveDraft();
+    render();
+  }
+
+  function removeSet(logId, setIdx) {
+    const ex = state.currentWorkout.exercises.find(x => x.logId === logId);
+    if (!ex) return;
+    if (ex.sets.length <= 1) return;
+    ex.sets.splice(setIdx, 1);
+    saveDraft();
+    render();
+  }
+
+  function updateReps(logId, setIdx, value) {
+    const ex = state.currentWorkout.exercises.find(x => x.logId === logId);
+    if (!ex) return;
+    const v = value === '' ? null : clampInt(parseInt(value, 10), 1, 25);
+    ex.sets[setIdx].reps = v;
+    saveDraft();
+  }
+
+  function updateWeight(logId, setIdx, value) {
+    const ex = state.currentWorkout.exercises.find(x => x.logId === logId);
+    if (!ex) return;
+    const n = parseDecimalDE(value);
+    ex.sets[setIdx].weight = n;
+    saveDraft();
+  }
+
+  function normalizeWeightInput(el) {
+    const n = parseDecimalDE(el.value);
+    el.value = n === null ? '' : formatDecimalDE(n, 2);
+  }
+
+  function editPause(logId) {
+    const ex = state.currentWorkout.exercises.find(x => x.logId === logId);
+    if (!ex) return;
+    const val = prompt("Pause in Sekunden:", String(ex.pauseSec || DEFAULT_PAUSE_SEC));
+    if (val === null) return;
+    const n = clampInt(parseInt(val,10), 0, 9999);
+    if (n === null) { alert("Ungültige Sekunden."); return; }
+    ex.pauseSec = n;
+    saveDraft();
+    render();
+  }
+
+  function editTarget(logId) {
+    const ex = state.currentWorkout.exercises.find(x => x.logId === logId);
+    if (!ex) return;
+    const val = prompt("Wdh-Ziel (z.B. 8-12):", String(ex.targetRepsText || DEFAULT_TARGET));
+    if (val === null) return;
+    ex.targetRepsText = String(val).trim();
+    saveDraft();
+    render();
+  }
+
+  function getLastExercisePerformance(exerciseId) {
+    for (const w of state.workouts) {
+      const ex = (w.exercises || []).find(e => e.exerciseId === exerciseId);
+      if (!ex) continue;
+      const done = (ex.sets || []).filter(isSetDone);
+      if (!done.length) continue;
+      return { date: w.date, sets: done.map(s => ({ reps: s.reps, weight: s.weight })), topE1RM: exerciseTopE1RM(ex) };
+    }
+    return null;
+  }
+
+  // -----------------------
+  // Timer (endAt based)
+  // -----------------------
+  function tickTimer() {
+    if (!state.timer.active) return;
+    const now = Date.now();
+    if (now >= state.timer.endAt) {
+      if (!state.timer.notified) {
+        state.timer.notified = true;
+        const a = document.getElementById('timer-beep');
+        if (a) a.play().catch(() => {});
+        stopTimer(false);
+        alert("Pause vorbei! Weiter geht's!");
+      } else {
+        stopTimer(false);
+      }
+    }
+    renderTimer();
+  }
+
+  function startTimer(seconds) {
+    const sec = Number(seconds) || 0;
+    stopTimer(false);
+    if (sec <= 0) { renderTimer(); return; }
+    state.timer.active = true;
+    state.timer.notified = false;
+    state.timer.endAt = Date.now() + sec * 1000;
+    renderTimer();
+    state.timer.interval = setInterval(tickTimer, 250);
+  }
+
+  function stopTimer(renderNow=true) {
+    if (state.timer.interval) clearInterval(state.timer.interval);
+    state.timer.active = false;
+    state.timer.endAt = 0;
+    state.timer.interval = null;
+    state.timer.notified = false;
+    if (renderNow) renderTimer();
+  }
+
+  function addTime(seconds) {
+    const add = Number(seconds) || 0;
+    if (!state.timer.active) {
+      if (add > 0) startTimer(add);
+      return;
+    }
+    state.timer.endAt += add * 1000;
+    renderTimer();
+  }
+
+  function getTimeLeftSec() {
+    if (!state.timer.active) return 0;
+    const ms = state.timer.endAt - Date.now();
+    return Math.max(0, Math.ceil(ms / 1000));
+  }
+
+  function formatTime(seconds) {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m}:${s < 10 ? '0' : ''}${s}`;
+  }
+
+  function renderTimer() {
+    const timerEl = document.getElementById('timer-bar');
+    if (!timerEl) return;
+    const left = getTimeLeftSec();
+    timerEl.style.display = 'flex';
+    timerEl.innerHTML = `
+      <div class="timer-display">${state.timer.active ? formatTime(left) : '--:--'}</div>
+      <div class="timer-controls">
+        ${state.timer.active
+          ? `<button class="btn-small" style="background:#ef4444; color:white" onclick="stopTimer()">Stop</button>
+             <button class="btn-small" style="background:#334155; color:white" onclick="addTime(30)">+30s</button>`
+          : `<span class="muted small">Pausentimer inaktiv</span>`
+        }
+      </div>
+    `;
+  }
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') {
+      if (state.currentWorkout) saveDraft();
+    } else {
+      // re-evaluate timer after coming back
+      if (state.timer.active) tickTimer();
+    }
+  });
+
+  // -----------------------
+  // History
+  // -----------------------
+  function toggleHistory(id) { state.expandedId = state.expandedId === id ? null : id; render(); }
+
+  function deleteWorkout(id) {
+    if (!confirm("Dieses Training wirklich löschen?")) return;
+    state.workouts = state.workouts.filter(w => w.id !== id);
+    if (state.expandedId === id) state.expandedId = null;
+    saveJSON(KEY_HISTORY, state.workouts);
+    render();
+  }
+
+  function openManualAddModal() {
+    state.modal = {
+      type: 'manual_add',
+      datetimeLocal: formatDateTimeLocal(new Date().toISOString()),
+      mode: 'free', // free | template
+      templateId: state.templates[0]?.templateId || '',
+      name: 'Manuell'
+    };
+    render();
+  }
+
+  function startManualFromModal() {
+    if (!state.modal || state.modal.type !== 'manual_add') return;
+    const iso = parseDateTimeLocal(state.modal.datetimeLocal) || new Date().toISOString();
+    const mode = state.modal.mode;
+    const name = String(state.modal.name || 'Manuell').trim() || 'Manuell';
+    const tplId = String(state.modal.templateId || '');
+    state.modal = null;
+
+    if (mode === 'template' && tplId) startTemplateWorkout(tplId, { kind: 'manual', date: iso, nameSnapshot: name });
+    else startFreeWorkout({ kind: 'manual', date: iso, nameSnapshot: name });
+  }
+
+  // -----------------------
+  // Bodyweight
+  // -----------------------
+  function openBodyweight() { state.view = 'bodyweight'; render(); }
+
+  function openBodyweightAddModal() {
+    state.modal = {
+      type: 'bodyweight_add',
+      datetimeLocal: formatDateTimeLocal(new Date().toISOString()),
+      weight: '',
+      note: ''
+    };
+    render();
+  }
+
+  function saveBodyweight() {
+    if (!state.modal || state.modal.type !== 'bodyweight_add') return;
+    const iso = parseDateTimeLocal(state.modal.datetimeLocal) || new Date().toISOString();
+    const w = parseDecimalDE(state.modal.weight);
+    if (w === null) { alert("Bitte ein gültiges Gewicht eingeben."); return; }
+    const note = String(state.modal.note || '').trim();
+
+    state.bodyweightLogs.unshift({ id: uid('bw'), date: iso, weightKg: w, note });
+    state.bodyweightLogs.sort((a,b)=>new Date(b.date)-new Date(a.date));
+    saveJSON(KEY_BODYWEIGHT, state.bodyweightLogs);
+    state.modal = null;
+    render();
+  }
+
+  function deleteBodyweight(id) {
+    if (!confirm("Eintrag löschen?")) return;
+    state.bodyweightLogs = state.bodyweightLogs.filter(x => x.id !== id);
+    saveJSON(KEY_BODYWEIGHT, state.bodyweightLogs);
+    render();
+  }
+
+  // -----------------------
+  // Exercises management
+  // -----------------------
+  function openExerciseEditModal(exId) {
+    const ex = state.exercises.find(e => e.id === exId);
+    if (!ex) return;
+    state.modal = { type: 'edit_exercise', exId, name: ex.name, muscleGroupId: ex.muscleGroupId };
+    render();
+  }
+
+  function saveExerciseEdits() {
+    if (!state.modal || state.modal.type !== 'edit_exercise') return;
+    const ex = state.exercises.find(e => e.id === state.modal.exId);
+    if (!ex) return;
+
+    const newName = String(state.modal.name || '').trim();
+    const newMgId = String(state.modal.muscleGroupId || '');
+    if (!newName || !newMgId) return;
+
+    if (newName !== ex.name) {
+      ex.aliases = Array.isArray(ex.aliases) ? ex.aliases : [];
+      ex.aliases.push(ex.name);
+      ex.aliases = Array.from(new Set(ex.aliases.map(x => String(x).trim()).filter(Boolean)));
+    }
+
+    ex.name = newName;
+    ex.muscleGroupId = newMgId;
+
+    // update snapshots for readability
+    const mgName = getMuscleGroupNameById(newMgId);
+    state.workouts.forEach(w => (w.exercises||[]).forEach(log => {
+      if (log.exerciseId === ex.id) {
+        log.nameSnapshot = ex.name;
+        log.muscleGroupIdSnapshot = newMgId;
+        log.muscleGroupSnapshot = mgName;
+      }
+    }));
+    if (state.currentWorkout) {
+      state.currentWorkout.exercises.forEach(log => {
+        if (log.exerciseId === ex.id) {
+          log.nameSnapshot = ex.name;
+          log.muscleGroupIdSnapshot = newMgId;
+          log.muscleGroupSnapshot = mgName;
+        }
+      });
+      saveDraft();
+    }
+
+    saveJSON(KEY_EXERCISES, state.exercises);
+    saveJSON(KEY_HISTORY, state.workouts);
+    state.modal = null;
+    render();
+  }
+
+  function canDeleteExercise(exId) {
+    const inTemplates = state.templates.some(t => (t.items||[]).some(it => it.exerciseId === exId));
+    const inHistory = state.workouts.some(w => (w.exercises||[]).some(log => log.exerciseId === exId));
+    const inDraft = state.currentWorkout && state.currentWorkout.exercises.some(log => log.exerciseId === exId);
+    return !(inTemplates || inHistory || inDraft);
+  }
+
+  function deleteExercise(exId) {
+    if (!canDeleteExercise(exId)) {
+      alert("Diese Übung wird in Templates oder Historie verwendet. Bitte nutze Merge statt Löschen.");
+      return;
+    }
+    if (!confirm("Übung wirklich löschen?")) return;
+    state.exercises = state.exercises.filter(e => e.id !== exId);
+    saveJSON(KEY_EXERCISES, state.exercises);
+    render();
+  }
+
+  function openMergeModal(sourceId=null) {
+    state.modal = { type: 'merge_exercise', sourceId: sourceId || '', targetId: '' };
+    render();
+  }
+
+  function doMerge() {
+    if (!state.modal || state.modal.type !== 'merge_exercise') return;
+    const sourceId = String(state.modal.sourceId || '');
+    const targetId = String(state.modal.targetId || '');
+    if (!sourceId || !targetId || sourceId === targetId) return;
+
+    const source = state.exercises.find(e => e.id === sourceId);
+    const target = state.exercises.find(e => e.id === targetId);
+    if (!source || !target) return;
+
+    if (!confirm("Merge durchführen? Historie, Templates und Draft werden umgebogen.")) return;
+
+    // templates
+    state.templates.forEach(t => (t.items||[]).forEach(it => { if (it.exerciseId === sourceId) it.exerciseId = targetId; }));
+    // history
+    const mgName = getMuscleGroupNameById(target.muscleGroupId);
+    state.workouts.forEach(w => (w.exercises||[]).forEach(log => {
+      if (log.exerciseId === sourceId) {
+        log.exerciseId = targetId;
+        log.nameSnapshot = target.name;
+        log.muscleGroupIdSnapshot = target.muscleGroupId;
+        log.muscleGroupSnapshot = mgName;
+      }
+    }));
+    // draft
+    if (state.currentWorkout) {
+      state.currentWorkout.exercises.forEach(log => {
+        if (log.exerciseId === sourceId) {
+          log.exerciseId = targetId;
+          log.nameSnapshot = target.name;
+          log.muscleGroupIdSnapshot = target.muscleGroupId;
+          log.muscleGroupSnapshot = mgName;
+        }
+      });
+      saveDraft();
+    }
+    // aliases
+    target.aliases = Array.isArray(target.aliases) ? target.aliases : [];
+    target.aliases.push(source.name);
+    (source.aliases || []).forEach(a => target.aliases.push(a));
+    target.aliases = Array.from(new Set(target.aliases.map(x => String(x).trim()).filter(Boolean)));
+
+    // remove source
+    state.exercises = state.exercises.filter(e => e.id !== sourceId);
+
+    saveJSON(KEY_EXERCISES, state.exercises);
+    saveJSON(KEY_TEMPLATES, state.templates);
+    saveJSON(KEY_HISTORY, state.workouts);
+
+    state.modal = null;
+    render();
+  }
+
+  // -----------------------
+  // Muscle Groups management
+  // -----------------------
+  function openMuscleGroups() { state.view = 'muscle_groups'; render(); }
+
+  function openMuscleGroupAddModal() {
+    state.modal = { type: 'mg_add', name: '' };
+    render();
+  }
+
+  function addMuscleGroup() {
+    if (!state.modal || state.modal.type !== 'mg_add') return;
+    const name = String(state.modal.name || '').trim();
+    if (!name) return;
+    if (state.muscleGroups.some(g => g.name.toLowerCase() === name.toLowerCase())) {
+      alert("Diese Muskelgruppe existiert bereits.");
+      return;
+    }
+    const maxOrder = state.muscleGroups.reduce((m,g)=>Math.max(m, Number(g.order)||0), 0);
+    state.muscleGroups.push({ id: uid('mg'), name, order: maxOrder + 1 });
+    sortMuscleGroups();
+    saveJSON(KEY_MUSCLEGROUPS, state.muscleGroups);
+    state.modal = null;
+    render();
+  }
+
+  function openMuscleGroupEditModal(id) {
+    const g = state.muscleGroups.find(x => x.id === id);
+    if (!g) return;
+    state.modal = { type: 'mg_edit', id, name: g.name };
+    render();
+  }
+
+  function saveMuscleGroupEdit() {
+    if (!state.modal || state.modal.type !== 'mg_edit') return;
+    const g = state.muscleGroups.find(x => x.id === state.modal.id);
+    if (!g) return;
+    const name = String(state.modal.name || '').trim();
+    if (!name) return;
+    if (state.muscleGroups.some(x => x.id !== g.id && x.name.toLowerCase() === name.toLowerCase())) {
+      alert("Name bereits vergeben.");
+      return;
+    }
+    g.name = name;
+    saveJSON(KEY_MUSCLEGROUPS, state.muscleGroups);
+    state.modal = null;
+    render();
+  }
+
+  function moveMuscleGroup(id, dir) {
+    const idx = state.muscleGroups.findIndex(x => x.id === id);
+    if (idx < 0) return;
+    const j = idx + dir;
+    if (j < 0 || j >= state.muscleGroups.length) return;
+    const a = state.muscleGroups[idx], b = state.muscleGroups[j];
+    const tmp = a.order; a.order = b.order; b.order = tmp;
+    sortMuscleGroups();
+    saveJSON(KEY_MUSCLEGROUPS, state.muscleGroups);
+    render();
+  }
+
+  function canDeleteMuscleGroup(id) {
+    return !state.exercises.some(e => e.muscleGroupId === id);
+  }
+
+  function deleteMuscleGroup(id) {
+    if (!canDeleteMuscleGroup(id)) {
+      alert("Diese Muskelgruppe wird von Übungen verwendet. Ändere zuerst die betroffenen Übungen.");
+      return;
+    }
+    if (!confirm("Muskelgruppe wirklich löschen?")) return;
+    state.muscleGroups = state.muscleGroups.filter(g => g.id !== id);
+    saveJSON(KEY_MUSCLEGROUPS, state.muscleGroups);
+    render();
+  }
+
+  // -----------------------
+  // Templates management
+  // -----------------------
+  function openTemplates() { state.view = 'templates'; state.editTemplateId = null; render(); }
+  function openTemplateEdit(templateId) { state.view = 'template_edit'; state.editTemplateId = templateId; render(); }
+
+  function renameTemplate(templateId) {
+    const tpl = state.templates.find(t => t.templateId === templateId);
+    if (!tpl) return;
+    const val = prompt("Neuer Name für den Tag:", tpl.name);
+    if (val === null) return;
+    const n = String(val).trim();
+    if (!n) return;
+    tpl.name = n;
+    saveJSON(KEY_TEMPLATES, state.templates);
+    render();
+  }
+
+  function createTemplate() {
+    const name = prompt("Name des neuen Tags (Template):", "Neuer Tag");
+    if (name === null) return;
+    const n = String(name).trim();
+    if (!n) return;
+    state.templates.push({ templateId: uid('tpl'), name: n, items: [] });
+    saveJSON(KEY_TEMPLATES, state.templates);
+    render();
+  }
+
+  function deleteTemplate(templateId) {
+    if (!confirm("Template wirklich löschen? Historie bleibt erhalten.")) return;
+    state.templates = state.templates.filter(t => t.templateId !== templateId);
+    if (state.editTemplateId === templateId) state.editTemplateId = null;
+    saveJSON(KEY_TEMPLATES, state.templates);
+    render();
+  }
+
+  function duplicateTemplate(templateId) {
+    const tpl = state.templates.find(t => t.templateId === templateId);
+    if (!tpl) return;
+    const newName = prompt("Name der Kopie:", tpl.name + " (Kopie)");
+    if (newName === null) return;
+    const n = String(newName).trim();
+    if (!n) return;
+    const copy = { templateId: uid('tpl'), name: n, items: (tpl.items||[]).map(it => ({...it, itemId: uid('it')})) };
+    state.templates.push(copy);
+    saveJSON(KEY_TEMPLATES, state.templates);
+    render();
+  }
+
+  function moveTemplateItem(templateId, itemId, dir) {
+    const tpl = state.templates.find(t => t.templateId === templateId);
+    if (!tpl) return;
+    const idx = (tpl.items||[]).findIndex(x => x.itemId === itemId);
+    if (idx < 0) return;
+    const j = idx + dir;
+    if (j < 0 || j >= tpl.items.length) return;
+    const arr = tpl.items;
+    const tmp = arr[idx]; arr[idx] = arr[j]; arr[j] = tmp;
+    saveJSON(KEY_TEMPLATES, state.templates);
+    render();
+  }
+
+  function removeTemplateItem(templateId, itemId) {
+    const tpl = state.templates.find(t => t.templateId === templateId);
+    if (!tpl) return;
+    if (!confirm("Übung aus dem Template entfernen?")) return;
+    tpl.items = (tpl.items||[]).filter(x => x.itemId !== itemId);
+    saveJSON(KEY_TEMPLATES, state.templates);
+    render();
+  }
+
+  function updateTemplateItem(templateId, itemId, field, value) {
+    const tpl = state.templates.find(t => t.templateId === templateId);
+    if (!tpl) return;
+    const it = (tpl.items||[]).find(x => x.itemId === itemId);
+    if (!it) return;
+
+    if (field === 'plannedSets') {
+      const n = clampInt(parseInt(value,10), 0, 50);
+      it.plannedSets = n === null ? it.plannedSets : n;
+    } else if (field === 'pauseSec') {
+      const n = clampInt(parseInt(value,10), 0, 9999);
+      it.pauseSec = n === null ? it.pauseSec : n;
+    } else if (field === 'targetRepsText') {
+      it.targetRepsText = String(value || '').trim();
+    }
+    saveJSON(KEY_TEMPLATES, state.templates);
+  }
+
+  // -----------------------
+  // Review
+  // -----------------------
+  function workoutsWithinDays(days) {
+    const cutoff = new Date(Date.now() - days*24*60*60*1000);
+    return state.workouts.filter(w => new Date(w.date) >= cutoff);
+  }
+
+  function buildPRIndex() {
+    const pr = new Map();
+    for (const w of state.workouts) {
+      for (const ex of (w.exercises||[])) {
+        const done = (ex.sets||[]).filter(isSetDone);
+        if (!done.length) continue;
+        const top = exerciseTopE1RM(ex);
+        if (!Number.isFinite(top)) continue;
+        const prev = pr.get(ex.exerciseId);
+        if (!Number.isFinite(prev) || top > prev) pr.set(ex.exerciseId, top);
+      }
+    }
+    return pr;
+  }
+
+  function volumeByMuscle(days) {
+    const ws = workoutsWithinDays(days);
+    const map = new Map(state.muscleGroups.map(g => [g.id, 0]));
+    for (const w of ws) {
+      for (const ex of (w.exercises||[])) {
+        const gid = ex.muscleGroupIdSnapshot || getMuscleGroupIdByName(ex.muscleGroupSnapshot);
+        if (!gid) continue;
+        let v = 0;
+        (ex.sets||[]).forEach(s => { if (isSetDone(s)) v += s.weight * s.reps; });
+        map.set(gid, (map.get(gid) || 0) + v);
+      }
+    }
+    return map;
+  }
+
+  function lastBodyweight() {
+    if (!Array.isArray(state.bodyweightLogs) || !state.bodyweightLogs.length) return null;
+    const sorted = state.bodyweightLogs.slice().sort((a,b)=>new Date(b.date)-new Date(a.date));
+    return sorted[0];
+  }
+
+  // -----------------------
+  // Export / Import (Backup)
+  // -----------------------
+  function exportData() {
+    const payload = {
+      version: 3,
+      exportedAt: new Date().toISOString(),
+      muscleGroups: state.muscleGroups,
+      exercises: state.exercises,
+      templates: state.templates,
+      workouts: state.workouts,
+      bodyweightLogs: state.bodyweightLogs
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `hypertrophie-tracker-backup-${new Date().toISOString().slice(0,10)}.json`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  function triggerImport() {
+    const input = document.getElementById('import-file');
+    if (input) input.click();
+  }
+
+  function migrateImportedToV3(data) {
+    if (!data || typeof data !== 'object') return null;
+    // If already v3
+    if (data.version === 3 && Array.isArray(data.exercises) && Array.isArray(data.templates) && Array.isArray(data.workouts)) {
+      return {
+        muscleGroups: Array.isArray(data.muscleGroups) ? data.muscleGroups : ensureMuscleGroups(),
+        exercises: data.exercises,
+        templates: data.templates,
+        workouts: data.workouts,
+        bodyweightLogs: Array.isArray(data.bodyweightLogs) ? data.bodyweightLogs : []
+      };
+    }
+
+    // v2: exercises have muscleGroup string
+    if ((data.version === 2 || !data.version) && Array.isArray(data.exercises) && Array.isArray(data.templates) && Array.isArray(data.workouts)) {
+      const groups = ensureMuscleGroups().slice();
+      // create additional groups from v2 content
+      data.exercises.forEach(ex => { findOrCreateMuscleGroup(groups, ex.muscleGroup || guessMuscleGroupName(ex.name)); });
+      data.workouts.forEach(w => (w.exercises||[]).forEach(ex => { findOrCreateMuscleGroup(groups, ex.muscleGroupSnapshot || ex.muscleGroup || guessMuscleGroupName(ex.nameSnapshot||ex.name)); }));
+      // convert exercises
+      const exercises = data.exercises.map(ex => ({
+        id: ex.id || uid('ex'),
+        name: ex.name || 'Übung',
+        muscleGroupId: findOrCreateMuscleGroup(groups, ex.muscleGroup || guessMuscleGroupName(ex.name)),
+        aliases: Array.isArray(ex.aliases)?ex.aliases:[]
+      }));
+      // templates stay
+      const templates = data.templates.map(t => ({
+        templateId: t.templateId || uid('tpl'),
+        name: t.name || t.displayName || 'Tag',
+        items: (t.items||[]).map(it => ({
+          itemId: it.itemId || uid('it'),
+          exerciseId: it.exerciseId,
+          plannedSets: Number(it.plannedSets) || DEFAULT_PLANNED_SETS,
+          targetRepsText: String(it.targetRepsText || DEFAULT_TARGET),
+          pauseSec: Number(it.pauseSec) || DEFAULT_PAUSE_SEC
+        }))
+      }));
+      // workouts keep, normalize later
+      const workouts = data.workouts.map(w => w);
+
+      return { muscleGroups: groups, exercises, templates, workouts, bodyweightLogs: [] };
+    }
+    return null;
+  }
+
+  function handleImportFile(ev) {
+    const file = ev.target.files && ev.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const data = JSON.parse(reader.result);
+        const migrated = migrateImportedToV3(data);
+        if (!migrated) throw new Error('invalid');
+
+        if (!confirm("Import ersetzt deine aktuellen Daten. Fortfahren?")) return;
+
+        state.muscleGroups = migrated.muscleGroups;
+        state.exercises = migrated.exercises;
+        state.templates = migrated.templates;
+        state.workouts = migrated.workouts;
+        state.bodyweightLogs = migrated.bodyweightLogs;
+
+        saveJSON(KEY_MUSCLEGROUPS, state.muscleGroups);
+        saveJSON(KEY_EXERCISES, state.exercises);
+        saveJSON(KEY_TEMPLATES, state.templates);
+        saveJSON(KEY_HISTORY, state.workouts);
+        saveJSON(KEY_BODYWEIGHT, state.bodyweightLogs);
+
+        normalizeAllWorkouts();
+
+        alert("Import erfolgreich.");
+        state.view = 'select';
+        state.currentWorkout = null;
+        state.modal = null;
+        state.picker = null;
+        clearDraft();
+        render();
+      } catch (e) {
+        alert("Import fehlgeschlagen. Datei ist kein gültiges Backup.");
+      } finally {
+        ev.target.value = '';
+      }
+    };
+    reader.readAsText(file);
+  }
+
+  // -----------------------
+  // Rendering
+  // -----------------------
+  function renderSelect() {
+    const templateButtons = state.templates
+      .slice()
+      .sort((a,b)=>a.name.localeCompare(b.name,'de'))
+      .map(t => `
+        <button class="btn" onclick="startTemplateWorkout('${t.templateId}')">
+          <span>${escapeHtml(t.name)}</span><span style="opacity:0.6">→</span>
+        </button>
+      `).join('');
+
+    const bw = lastBodyweight();
+    const bwLine = bw ? `Letztes Körpergewicht: ${formatDecimalDE(bw.weightKg, 1)} kg (${formatDate(bw.date)})` : 'Körpergewicht: -';
+
+    return `
+      <div class="container">
+        <div class="header">
+          <h1>🔥 Dein Tracker</h1>
+          <div class="muted">Wähle deine heutige Session</div>
+        </div>
+
+        ${state.hasDraft ? `
+          <button class="btn btn-success" onclick="resumeDraft()">
+            <span>▶️ Training fortsetzen (Draft)</span><span style="opacity:0.7">→</span>
+          </button>
+        ` : ''}
+
+        ${templateButtons}
+
+        <button class="btn btn-secondary" onclick="startFreeWorkout()">
+          <span>🆓 Freies Training</span><span style="opacity:0.7">→</span>
+        </button>
+
+        <div style="margin-top:16px">
+          <button class="btn btn-secondary" onclick="state.view='history'; render()">
+            <span>📜 Verlauf</span><span style="opacity:0.7">→</span>
+          </button>
+          <button class="btn btn-secondary" onclick="state.view='review'; render()">
+            <span>📈 Review</span><span style="opacity:0.7">→</span>
+          </button>
+          <button class="btn btn-secondary" onclick="openTemplates()">
+            <span>🧩 Plan bearbeiten</span><span style="opacity:0.7">→</span>
+          </button>
+          <button class="btn btn-secondary" onclick="state.view='exercises'; render()">
+            <span>🏷️ Übungen</span><span style="opacity:0.7">→</span>
+          </button>
+          <button class="btn btn-secondary" onclick="openMuscleGroups()">
+            <span>🧠 Muskelgruppen</span><span style="opacity:0.7">→</span>
+          </button>
+          <button class="btn btn-secondary" onclick="openBodyweight()">
+            <span>⚖️ Körpergewicht</span><span style="opacity:0.7">→</span>
+          </button>
+          <div class="muted small" style="margin-top:8px">${bwLine}</div>
+        </div>
+
+        <div style="margin-top:16px">
+          <button class="btn btn-secondary" onclick="exportData()">
+            <span>⬇️ Export / Backup</span><span style="opacity:0.7">JSON</span>
+          </button>
+          <button class="btn btn-secondary" onclick="triggerImport()">
+            <span>⬆️ Import / Restore</span><span style="opacity:0.7">JSON</span>
+          </button>
+          <input id="import-file" type="file" accept="application/json" style="display:none" onchange="handleImportFile(event)" />
+        </div>
+
+        ${renderModal()}
+      </div>
+    `;
+  }
+
+  function renderWorkout() {
+    const w = state.currentWorkout;
+    if (!w) { state.view = 'select'; return renderSelect(); }
+
+    const isFreeLike = (w.kind === 'free' || w.kind === 'manual');
+
+    const addExerciseBtn = `
+      <button class="btn btn-secondary" onclick="openExercisePicker('workout_add')">
+        <span>➕ Übung hinzufügen</span><span style="opacity:0.7">→</span>
+      </button>
+      <button class="btn btn-secondary" onclick="openNewExerciseModal('workout_add')">
+        <span>✨ Neue Übung erstellen</span><span style="opacity:0.7">→</span>
+      </button>
+    `;
+
+    // Keep template order for template workouts; for free/manual, group by muscle group
+    const list = (w.exercises || []);
+    const exList = (w.templateId && w.kind === 'template')
+      ? list
+      : list.slice().sort((a,b) =>
+          String(a.muscleGroupSnapshot||'').localeCompare(String(b.muscleGroupSnapshot||''),'de') ||
+          String(a.nameSnapshot||'').localeCompare(String(b.nameSnapshot||''),'de')
+        );
+
+    return `
+      <div class="sticky-header">
+        <button class="btn-icon" onclick="state.view='select'; render()">←</button>
+        <div style="flex:1">
+          <div class="sticky-title">${escapeHtml(w.nameSnapshot || 'Training')}</div>
+          <div class="muted small">⏱ Timer · Draft wird automatisch gespeichert · + Satz möglich</div>
+        </div>
+        <button class="btn-icon" onclick="editWorkoutMeta()">🗓️</button>
+        <button class="btn-success" style="padding: 10px 14px; border-radius: 12px; border:none; font-weight:900; cursor:pointer" onclick="finishWorkout()">Speichern</button>
+      </div>
+
+      <div class="container" style="padding-bottom: 120px;">
+        ${addExerciseBtn}
+
+        ${(exList.length ? exList.map(ex => {
+          const last = getLastExercisePerformance(ex.exerciseId);
+          const lastLine = last
+            ? (() => {
+                const sets = last.sets.slice(0, 4).map(s => `${s.reps}×${formatDecimalDE(s.weight, 2)} kg`).join(' · ');
+                const more = last.sets.length > 4 ? ' · …' : '';
+                return `Letztes Mal (${formatDate(last.date)}): ${sets}${more} · Top e1RM: ${formatE1RM(last.topE1RM)}`;
+              })()
+            : 'Letztes Mal: -';
+
+          return `
+            <div class="card">
+              <div class="exercise-header">
+                <div style="flex:1">
+                  <div class="row">
+                    <div>
+                      <div class="exercise-title">${escapeHtml(ex.nameSnapshot)}</div>
+                      <div class="exercise-meta">
+                        <span class="pill">${escapeHtml(ex.muscleGroupSnapshot)}</span>
+                        <span>Target: ${escapeHtml(ex.plannedSets || ex.sets?.length || 0)} × ${escapeHtml(ex.targetRepsText || '')}</span>
+                        <button class="timer-btn" onclick="startTimer(${Number(ex.pauseSec)||DEFAULT_PAUSE_SEC})">⏱ ${Number(ex.pauseSec)||DEFAULT_PAUSE_SEC}s</button>
+                        <button class="mini-btn" onclick="editPause('${ex.logId}')">Pause</button>
+                        <button class="mini-btn" onclick="editTarget('${ex.logId}')">Ziel</button>
+                      </div>
+                    </div>
+                    <div class="list-actions">
+                      <button class="mini-btn" onclick="openExercisePicker('workout_replace', null, '${ex.logId}')">Ersetzen</button>
+                      <button class="btn-icon btn-icon-danger" onclick="removeExerciseFromWorkout('${ex.logId}')">🗑️</button>
+                    </div>
+                  </div>
+                  <div class="line">${lastLine}</div>
+                </div>
+              </div>
+
+              ${(ex.sets || []).map((set, setIdx) => `
+                <div class="set-row">
+                  <span class="set-label">${setIdx + 1}</span>
+                  <select class="set-select" onchange="updateReps('${ex.logId}', ${setIdx}, this.value)">
+                    ${repsOptions(set.reps)}
+                  </select>
+                  <input class="set-input"
+                         type="text"
+                         inputmode="decimal"
+                         pattern="[0-9]*[.,]?[0-9]*"
+                         placeholder="kg"
+                         value="${set.weight === null ? '' : formatDecimalDE(set.weight, 2)}"
+                         oninput="updateWeight('${ex.logId}', ${setIdx}, this.value)"
+                         onblur="normalizeWeightInput(this)" />
+                  <button class="mini-btn" onclick="removeSet('${ex.logId}', ${setIdx})">−</button>
+                </div>
+              `).join('')}
+
+              <div style="display:flex; gap:10px; margin-top:10px;">
+                <button class="mini-btn" style="flex:1" onclick="addSet('${ex.logId}')">+ Satz</button>
+              </div>
+            </div>
+          `;
+        }).join('') : `<div class="muted" style="text-align:center; padding: 30px 10px;">Keine Übungen im Training. Füge eine Übung hinzu.</div>` )}
+
+        <button class="btn btn-danger" onclick="cancelWorkout()">
+          <span>Abbrechen</span><span style="opacity:0.7">Draft bleibt</span>
+        </button>
+      </div>
+
+      <div id="timer-bar" class="timer-bar"></div>
+
+      ${renderModal()}
+      ${renderPicker()}
+    `;
+  }
+
+  function renderHistory() {
+    const list = state.workouts || [];
+    return `
+      <div class="sticky-header">
+        <button class="btn-icon" onclick="state.view='select'; render()">←</button>
+        <div class="sticky-title">Verlauf</div>
+        <button class="btn-icon" onclick="state.view='review'; render()">📈</button>
+      </div>
+
+      <div class="container">
+        <div style="margin:10px 0 18px 0">
+          <button class="btn btn-secondary" onclick="openManualAddModal()"><span>➕ Manuell hinzufügen</span><span style="opacity:0.7">→</span></button>
+
+          <button class="btn btn-secondary" onclick="exportData()"><span>⬇️ Export / Backup</span><span style="opacity:0.7">JSON</span></button>
+          <button class="btn btn-secondary" onclick="triggerImport()"><span>⬆️ Import / Restore</span><span style="opacity:0.7">JSON</span></button>
+          <input id="import-file" type="file" accept="application/json" style="display:none" onchange="handleImportFile(event)" />
+        </div>
+
+        ${list.length === 0 ? `
+          <div style="text-align:center; padding: 40px; color:#64748b;">Keine Trainings gefunden.</div>
+        ` : list.map(w => {
+          const vol = workoutVolume(w);
+          const doneExercises = (w.exercises||[]).filter(ex => (ex.sets||[]).some(isSetDone));
+          return `
+            <div class="history-item">
+              <div class="history-header" onclick="toggleHistory(${w.id})">
+                <div style="flex:1">
+                  <div style="color:#e2e8f0; font-size: 16px; font-weight:900;">${escapeHtml(w.nameSnapshot)}</div>
+                  <div class="muted small">${formatDate(w.date)} · Volumen: ${formatVolume(vol)}</div>
+                </div>
+                <button class="btn-icon btn-icon-danger" onclick="(function(e){e.stopPropagation();})(event); deleteWorkout(${w.id});">🗑️</button>
+                <span style="color:#60a5fa; font-size:18px">${state.expandedId === w.id ? '−' : '+'}</span>
+              </div>
+
+              <div class="history-details ${state.expandedId === w.id ? 'open' : ''}">
+                ${doneExercises.length === 0 ? `
+                  <div class="muted small">Keine geloggten Übungen.</div>
+                ` : doneExercises.map(ex => {
+                  const setsDone = (ex.sets||[]).filter(isSetDone);
+                  return `
+                    <div style="margin-bottom: 14px; border-bottom: 1px solid #1e293b; padding-bottom:10px;">
+                      <div style="color:#e2e8f0; font-size:14px; font-weight:900; margin-bottom:4px;">${escapeHtml(ex.nameSnapshot)}</div>
+                      <div class="muted small">Muskelgruppe: ${escapeHtml(ex.muscleGroupSnapshot)} · Top e1RM: ${formatE1RM(exerciseTopE1RM(ex))}</div>
+                      <div class="chips">
+                        ${setsDone.map(s => `<span class="chip2">${s.reps} × ${formatDecimalDE(s.weight, 2)} kg</span>`).join('')}
+                      </div>
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+            </div>
+          `;
+        }).join('')}
+        ${renderModal()}
+      </div>
+    `;
+  }
+
+  function renderReview() {
+    const vol7 = workoutsWithinDays(7).reduce((sum,w)=>sum+workoutVolume(w),0);
+    const vol30 = workoutsWithinDays(30).reduce((sum,w)=>sum+workoutVolume(w),0);
+
+    const pr = buildPRIndex();
+    const exById = new Map(state.exercises.map(e => [e.id, e]));
+    const prRows = Array.from(pr.entries())
+      .map(([id,val]) => ({ id, val, name: (exById.get(id)?.name || 'Unbekannt') }))
+      .sort((a,b)=>b.val-a.val)
+      .slice(0, 25);
+
+    const volByMg7 = volumeByMuscle(7);
+    const bw = lastBodyweight();
+
+    // last trained per template
+    const lastPerTemplate = new Map();
+    state.workouts.forEach(w => { if (w.templateId && !lastPerTemplate.has(w.templateId)) lastPerTemplate.set(w.templateId, w.date); });
+    const tplRows = state.templates.slice().sort((a,b)=>a.name.localeCompare(b.name,'de')).map(t => ({ name: t.name, date: lastPerTemplate.get(t.templateId) || null }));
+
+    return `
+      <div class="sticky-header">
+        <button class="btn-icon" onclick="state.view='select'; render()">←</button>
+        <div class="sticky-title">Review</div>
+        <button class="btn-icon" onclick="state.view='history'; render()">📜</button>
+      </div>
+
+      <div class="container">
+        <div class="card">
+          <div class="section-title">Übersicht</div>
+          <div class="row"><div class="muted">Workouts gesamt</div><div style="font-weight:900">${state.workouts.length}</div></div>
+          <div style="height:8px"></div>
+          <div class="row"><div class="muted">Volumen 7 Tage</div><div style="font-weight:900">${formatVolume(vol7)}</div></div>
+          <div class="row"><div class="muted">Volumen 30 Tage</div><div style="font-weight:900">${formatVolume(vol30)}</div></div>
+          <div style="height:10px"></div>
+          <div class="row"><div class="muted">Körpergewicht</div><div style="font-weight:900">${bw ? (formatDecimalDE(bw.weightKg, 1) + ' kg') : '-'}</div></div>
+          <div class="muted small" style="margin-top:8px">${bw ? ('Letzter Eintrag: ' + formatDate(bw.date)) : 'Noch keine Einträge.'}</div>
+          <button class="btn btn-secondary" style="margin-top:12px" onclick="openBodyweight()">⚖️ Körpergewicht öffnen</button>
+        </div>
+
+        <div class="card">
+          <div class="section-title">Volumen 7 Tage nach Muskelgruppe</div>
+          ${state.muscleGroups.map(g => `
+            <div class="row" style="padding:6px 0; border-bottom:1px solid #334155">
+              <div class="muted">${escapeHtml(g.name)}</div>
+              <div style="font-weight:900">${formatVolume(volByMg7.get(g.id) || 0)}</div>
+            </div>
+          `).join('')}
+        </div>
+
+        <div class="card">
+          <div class="section-title">Zuletzt trainiert (Templates)</div>
+          ${tplRows.length ? tplRows.map(r => `
+            <div class="row" style="padding:6px 0; border-bottom:1px solid #334155">
+              <div>${escapeHtml(r.name)}</div>
+              <div class="muted small">${r.date ? formatDate(r.date) : '-'}</div>
+            </div>
+          `).join('') : `<div class="muted small">Keine Templates vorhanden.</div>`}
+        </div>
+
+        <div class="card">
+          <div class="section-title">Top PRs (e1RM)</div>
+          ${prRows.length ? prRows.map(r => `
+            <div class="row" style="padding:6px 0; border-bottom:1px solid #334155">
+              <div>${escapeHtml(r.name)}</div>
+              <div style="font-weight:900">${formatE1RM(r.val)}</div>
+            </div>
+          `).join('') : `<div class="muted small">Noch keine PRs. Trage Sätze mit kg + Wdh ein.</div>`}
+          <div class="muted small" style="margin-top:10px">e1RM ist eine Schätzung (Epley). Für Trends gedacht.</div>
+        </div>
+
+        <button class="btn btn-secondary" onclick="exportData()"><span>⬇️ Backup exportieren</span><span style="opacity:0.7">JSON</span></button>
+      </div>
+    `;
+  }
+
+  function renderExercises() {
+    const q = (state.exSearch || '').trim().toLowerCase();
+    const list = state.exercises.filter(ex => !q || ex.name.toLowerCase().includes(q) || (ex.aliases||[]).some(a => String(a).toLowerCase().includes(q)));
+
+    const grouped = new Map(state.muscleGroups.map(g => [g.id, []]));
+    list.forEach(ex => {
+      if (!grouped.has(ex.muscleGroupId)) grouped.set(ex.muscleGroupId, []);
+      grouped.get(ex.muscleGroupId).push(ex);
+    });
+
+    state.muscleGroups.forEach(g => grouped.get(g.id)?.sort((a,b)=>a.name.localeCompare(b.name,'de')));
+
+    return `
+      <div class="sticky-header">
+        <button class="btn-icon" onclick="state.view='select'; render()">←</button>
+        <div class="sticky-title">Übungen</div>
+        <button class="btn-icon" onclick="openMergeModal()">⇄</button>
+      </div>
+
+      <div class="container">
+        <input class="input" placeholder="Suchen..." value="${escapeHtml(state.exSearch||'')}" oninput="state.exSearch=this.value; render()" />
+
+        <button class="btn btn-secondary" onclick="openNewExerciseModal('workout_add')">
+          <span>✨ Neue Übung erstellen</span><span style="opacity:0.7">→</span>
+        </button>
+
+        ${state.muscleGroups.map(g => {
+          const arr = grouped.get(g.id) || [];
+          if (!arr.length) return '';
+          return `
+            <div class="section-title">${escapeHtml(g.name)}</div>
+            ${arr.map(ex => `
+              <div class="list-item">
+                <div style="flex:1">
+                  <div class="name">${escapeHtml(ex.name)}</div>
+                  <div class="sub">Muskelgruppe: ${escapeHtml(getMuscleGroupNameById(ex.muscleGroupId))}${(ex.aliases||[]).length ? ` · Aliases: ${escapeHtml(ex.aliases.slice(0,3).join(', '))}${ex.aliases.length>3?' …':''}` : ''}</div>
+                </div>
+                <div class="list-actions">
+                  <button class="mini-btn" onclick="openExerciseEditModal('${ex.id}')">Edit</button>
+                  <button class="mini-btn" onclick="openMergeModal('${ex.id}')">Merge</button>
+                  <button class="btn-icon btn-icon-danger" onclick="deleteExercise('${ex.id}')">🗑️</button>
+                </div>
+              </div>
+            `).join('')}
+          `;
+        }).join('')}
+
+        ${renderModal()}
+      </div>
+    `;
+  }
+
+  function renderMuscleGroups() {
+    sortMuscleGroups();
+    return `
+      <div class="sticky-header">
+        <button class="btn-icon" onclick="state.view='select'; render()">←</button>
+        <div class="sticky-title">Muskelgruppen</div>
+        <button class="btn-icon" onclick="openMuscleGroupAddModal()">＋</button>
+      </div>
+
+      <div class="container">
+        <div class="muted small" style="margin-bottom:10px">Muskelgruppen steuern Sortierung und Reporting. Löschen ist nur möglich, wenn keine Übung die Gruppe nutzt.</div>
+
+        ${state.muscleGroups.map(g => `
+          <div class="list-item">
+            <div style="flex:1">
+              <div class="name">${escapeHtml(g.name)}</div>
+              <div class="sub">Übungen: ${state.exercises.filter(e=>e.muscleGroupId===g.id).length}</div>
+            </div>
+            <div class="list-actions">
+              <button class="mini-btn" onclick="moveMuscleGroup('${g.id}',-1)">↑</button>
+              <button class="mini-btn" onclick="moveMuscleGroup('${g.id}',1)">↓</button>
+              <button class="mini-btn" onclick="openMuscleGroupEditModal('${g.id}')">Edit</button>
+              <button class="btn-icon btn-icon-danger" onclick="deleteMuscleGroup('${g.id}')">🗑️</button>
+            </div>
+          </div>
+        `).join('')}
+
+        ${renderModal()}
+      </div>
+    `;
+  }
+
+  function renderBodyweight() {
+    const list = (state.bodyweightLogs || []).slice().sort((a,b)=>new Date(b.date)-new Date(a.date));
+    return `
+      <div class="sticky-header">
+        <button class="btn-icon" onclick="state.view='select'; render()">←</button>
+        <div class="sticky-title">Körpergewicht</div>
+        <button class="btn-icon" onclick="openBodyweightAddModal()">＋</button>
+      </div>
+
+      <div class="container">
+        <button class="btn btn-secondary" onclick="openBodyweightAddModal()">
+          <span>➕ Gewicht eintragen</span><span style="opacity:0.7">→</span>
+        </button>
+
+        ${list.length ? list.map(x => `
+          <div class="list-item">
+            <div style="flex:1">
+              <div class="name">${formatDecimalDE(x.weightKg, 1)} kg</div>
+              <div class="sub">${formatDate(x.date)}${x.note ? ' · ' + escapeHtml(x.note) : ''}</div>
+            </div>
+            <div class="list-actions">
+              <button class="btn-icon btn-icon-danger" onclick="deleteBodyweight('${x.id}')">🗑️</button>
+            </div>
+          </div>
+        `).join('') : `<div class="muted" style="text-align:center; padding: 30px 10px;">Keine Einträge.</div>`}
+
+        ${renderModal()}
+      </div>
+    `;
+  }
+
+  function renderTemplates() {
+    const list = state.templates.slice().sort((a,b)=>a.name.localeCompare(b.name,'de'));
+    return `
+      <div class="sticky-header">
+        <button class="btn-icon" onclick="state.view='select'; render()">←</button>
+        <div class="sticky-title">Plan bearbeiten</div>
+        <button class="btn-icon" onclick="createTemplate()">＋</button>
+      </div>
+
+      <div class="container">
+        ${list.map(t => `
+          <div class="list-item">
+            <div style="flex:1">
+              <div class="name">${escapeHtml(t.name)}</div>
+              <div class="sub">${(t.items||[]).length} Übungen</div>
+            </div>
+            <div class="list-actions">
+              <button class="mini-btn" onclick="openTemplateEdit('${t.templateId}')">Bearbeiten</button>
+              <button class="mini-btn" onclick="renameTemplate('${t.templateId}')">Name</button>
+              <button class="mini-btn" onclick="duplicateTemplate('${t.templateId}')">Dupl.</button>
+              <button class="btn-icon btn-icon-danger" onclick="deleteTemplate('${t.templateId}')">🗑️</button>
+            </div>
+          </div>
+        `).join('')}
+
+        <div style="margin-top:16px">
+          <button class="btn btn-secondary" onclick="exportData()"><span>⬇️ Export / Backup</span><span style="opacity:0.7">JSON</span></button>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderTemplateEdit() {
+    const tpl = state.templates.find(t => t.templateId === state.editTemplateId);
+    if (!tpl) { state.view = 'templates'; return renderTemplates(); }
+    const exById = new Map(state.exercises.map(e => [e.id, e]));
+    const items = (tpl.items||[]).map(it => {
+      const ex = exById.get(it.exerciseId);
+      const exName = ex ? ex.name : 'Unbekannt';
+      const exMg = ex ? getMuscleGroupNameById(ex.muscleGroupId) : 'Unbekannt';
+      return { ...it, exName, exMg };
+    });
+
+    return `
+      <div class="sticky-header">
+        <button class="btn-icon" onclick="state.view='templates'; render()">←</button>
+        <div style="flex:1">
+          <div class="sticky-title">${escapeHtml(tpl.name)}</div>
+          <div class="muted small">Template bearbeiten · Name lässt sich über "Name" ändern</div>
+        </div>
+        <button class="btn-icon" onclick="renameTemplate('${tpl.templateId}')">Name</button>
+      </div>
+
+      <div class="container">
+        <button class="btn btn-secondary" onclick="openExercisePicker('template_add','${tpl.templateId}')">
+          <span>➕ Übung hinzufügen</span><span style="opacity:0.7">→</span>
+        </button>
+        <button class="btn btn-secondary" onclick="openNewExerciseModal('template_add','${tpl.templateId}')">
+          <span>✨ Neue Übung erstellen</span><span style="opacity:0.7">→</span>
+        </button>
+
+        ${items.length ? items.map(it => `
+          <div class="card">
+            <div class="row">
+              <div style="flex:1">
+                <div class="exercise-title">${escapeHtml(it.exName)}</div>
+                <div class="exercise-meta">
+                  <span class="pill">${escapeHtml(it.exMg)}</span>
+                </div>
+              </div>
+              <div class="list-actions">
+                <button class="mini-btn" onclick="moveTemplateItem('${tpl.templateId}','${it.itemId}',-1)">↑</button>
+                <button class="mini-btn" onclick="moveTemplateItem('${tpl.templateId}','${it.itemId}',1)">↓</button>
+                <button class="btn-icon btn-icon-danger" onclick="removeTemplateItem('${tpl.templateId}','${it.itemId}')">🗑️</button>
+              </div>
+            </div>
+
+            <div class="grid2" style="margin-top:10px">
+              <div>
+                <div class="muted small">Sätze</div>
+                <input class="input" inputmode="numeric" pattern="[0-9]*" value="${it.plannedSets}" oninput="updateTemplateItem('${tpl.templateId}','${it.itemId}','plannedSets',this.value)" />
+              </div>
+              <div>
+                <div class="muted small">Pause (s)</div>
+                <input class="input" inputmode="numeric" pattern="[0-9]*" value="${it.pauseSec}" oninput="updateTemplateItem('${tpl.templateId}','${it.itemId}','pauseSec',this.value)" />
+              </div>
+            </div>
+            <div>
+              <div class="muted small">Wdh-Ziel</div>
+              <input class="input" value="${escapeHtml(it.targetRepsText||'')}" oninput="updateTemplateItem('${tpl.templateId}','${it.itemId}','targetRepsText',this.value)" />
+            </div>
+          </div>
+        `).join('') : `<div class="muted" style="text-align:center; padding: 28px 10px;">Keine Übungen im Template. Füge eine Übung hinzu.</div>`}
+
+        ${renderPicker()}
+        ${renderModal()}
+      </div>
+    `;
+  }
+
+  function renderModal() {
+    if (!state.modal) return '';
+    const m = state.modal;
+
+    if (m.type === 'new_exercise') {
+      return `
+        <div class="modal-backdrop" onclick="(function(e){closeModal();})(event)">
+          <div class="modal" onclick="(function(e){e.stopPropagation();})(event)">
+            <h3>Neue Übung erstellen</h3>
+            <p>Die Übung wird in die Datenbank aufgenommen und steht künftig überall zur Verfügung. Standard-Pause: ${DEFAULT_PAUSE_SEC}s.</p>
+
+            <div class="muted small">Name</div>
+            <input class="input" value="${escapeHtml(m.name||'')}" oninput="updateModalField('name',this.value)" placeholder="z.B. Kabelrudern breit" />
+
+            <div class="muted small">Muskelgruppe</div>
+            <select class="select" onchange="updateModalField('muscleGroupId',this.value)">
+              ${state.muscleGroups.map(g => `<option value="${g.id}" ${m.muscleGroupId===g.id?'selected':''}>${escapeHtml(g.name)}</option>`).join('')}
+            </select>
+
+            <div class="modal-actions">
+              <button class="btn btn-secondary" style="margin:0; padding:14px" onclick="closeModal()">Abbrechen</button>
+              <button class="btn btn-success" style="margin:0; padding:14px" onclick="createExerciseFromModal()">Erstellen</button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    if (m.type === 'edit_exercise') {
+      return `
+        <div class="modal-backdrop" onclick="(function(e){closeModal();})(event)">
+          <div class="modal" onclick="(function(e){e.stopPropagation();})(event)">
+            <h3>Übung bearbeiten</h3>
+            <p>Name und Muskelgruppe wirken sich auf Sortierung und Reporting aus.</p>
+
+            <div class="muted small">Name</div>
+            <input class="input" value="${escapeHtml(m.name||'')}" oninput="updateModalField('name',this.value)" />
+
+            <div class="muted small">Muskelgruppe</div>
+            <select class="select" onchange="updateModalField('muscleGroupId',this.value)">
+              ${state.muscleGroups.map(g => `<option value="${g.id}" ${m.muscleGroupId===g.id?'selected':''}>${escapeHtml(g.name)}</option>`).join('')}
+            </select>
+
+            <div class="modal-actions">
+              <button class="btn btn-secondary" style="margin:0; padding:14px" onclick="closeModal()">Abbrechen</button>
+              <button class="btn btn-success" style="margin:0; padding:14px" onclick="saveExerciseEdits()">Speichern</button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    if (m.type === 'merge_exercise') {
+      const options = state.exercises.map(e => {
+        const g = getMuscleGroupNameById(e.muscleGroupId);
+        return `<option value="${e.id}">${escapeHtml(g)} · ${escapeHtml(e.name)}</option>`;
+      }).join('');
+      return `
+        <div class="modal-backdrop" onclick="(function(e){closeModal();})(event)">
+          <div class="modal" onclick="(function(e){e.stopPropagation();})(event)">
+            <h3>Übungen zusammenführen (Merge)</h3>
+            <p>Quelle wird in Ziel überführt. Templates, Historie und Draft werden angepasst. Die Quelle wird danach entfernt.</p>
+
+            <div class="muted small">Quelle</div>
+            <select class="select" onchange="updateModalField('sourceId',this.value)">
+              <option value="">Bitte wählen</option>
+              ${options}
+            </select>
+
+            <div class="muted small">Ziel</div>
+            <select class="select" onchange="updateModalField('targetId',this.value)">
+              <option value="">Bitte wählen</option>
+              ${options}
+            </select>
+
+            <div class="modal-actions">
+              <button class="btn btn-secondary" style="margin:0; padding:14px" onclick="closeModal()">Abbrechen</button>
+              <button class="btn btn-success" style="margin:0; padding:14px" onclick="doMerge()">Merge</button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    if (m.type === 'mg_add') {
+      return `
+        <div class="modal-backdrop" onclick="(function(e){closeModal();})(event)">
+          <div class="modal" onclick="(function(e){e.stopPropagation();})(event)">
+            <h3>Muskelgruppe hinzufügen</h3>
+            <p>Beispiele: Bauch, hintere Schulter, obere Brust.</p>
+            <div class="muted small">Name</div>
+            <input class="input" value="${escapeHtml(m.name||'')}" oninput="updateModalField('name',this.value)" placeholder="z.B. Bauch" />
+            <div class="modal-actions">
+              <button class="btn btn-secondary" style="margin:0; padding:14px" onclick="closeModal()">Abbrechen</button>
+              <button class="btn btn-success" style="margin:0; padding:14px" onclick="addMuscleGroup()">Hinzufügen</button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    if (m.type === 'mg_edit') {
+      return `
+        <div class="modal-backdrop" onclick="(function(e){closeModal();})(event)">
+          <div class="modal" onclick="(function(e){e.stopPropagation();})(event)">
+            <h3>Muskelgruppe bearbeiten</h3>
+            <div class="muted small">Name</div>
+            <input class="input" value="${escapeHtml(m.name||'')}" oninput="updateModalField('name',this.value)" />
+            <div class="modal-actions">
+              <button class="btn btn-secondary" style="margin:0; padding:14px" onclick="closeModal()">Abbrechen</button>
+              <button class="btn btn-success" style="margin:0; padding:14px" onclick="saveMuscleGroupEdit()">Speichern</button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    if (m.type === 'manual_add') {
+      return `
+        <div class="modal-backdrop" onclick="(function(e){closeModal();})(event)">
+          <div class="modal" onclick="(function(e){e.stopPropagation();})(event)">
+            <h3>Training manuell hinzufügen</h3>
+            <p>Wähle Datum/Uhrzeit und ob du von einem Template starten willst.</p>
+
+            <div class="muted small">Name</div>
+            <input class="input" value="${escapeHtml(m.name||'Manuell')}" oninput="updateModalField('name',this.value)" />
+
+            <div class="muted small">Datum/Uhrzeit</div>
+            <input class="input" type="datetime-local" value="${escapeHtml(m.datetimeLocal||'')}" oninput="updateModalField('datetimeLocal',this.value)" />
+
+            <div class="muted small">Modus</div>
+            <select class="select" onchange="updateModalField('mode',this.value)">
+              <option value="free" ${m.mode==='free'?'selected':''}>Freies Training</option>
+              <option value="template" ${m.mode==='template'?'selected':''}>Template</option>
+            </select>
+
+            ${m.mode === 'template' ? `
+              <div class="muted small">Template</div>
+              <select class="select" onchange="updateModalField('templateId',this.value)">
+                ${state.templates.map(t => `<option value="${t.templateId}" ${m.templateId===t.templateId?'selected':''}>${escapeHtml(t.name)}</option>`).join('')}
+              </select>
+            ` : ''}
+
+            <div class="modal-actions">
+              <button class="btn btn-secondary" style="margin:0; padding:14px" onclick="closeModal()">Abbrechen</button>
+              <button class="btn btn-success" style="margin:0; padding:14px" onclick="startManualFromModal()">Starten</button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    if (m.type === 'bodyweight_add') {
+      return `
+        <div class="modal-backdrop" onclick="(function(e){closeModal();})(event)">
+          <div class="modal" onclick="(function(e){e.stopPropagation();})(event)">
+            <h3>Körpergewicht eintragen</h3>
+            <div class="muted small">Datum/Uhrzeit</div>
+            <input class="input" type="datetime-local" value="${escapeHtml(m.datetimeLocal||'')}" oninput="updateModalField('datetimeLocal',this.value)" />
+
+            <div class="muted small">Gewicht (kg)</div>
+            <input class="input" type="text" inputmode="decimal" pattern="[0-9]*[.,]?[0-9]*" value="${escapeHtml(m.weight||'')}" oninput="updateModalField('weight',this.value)" placeholder="z.B. 82,5" />
+
+            <div class="muted small">Notiz (optional)</div>
+            <input class="input" value="${escapeHtml(m.note||'')}" oninput="updateModalField('note',this.value)" placeholder="z.B. morgens nüchtern" />
+
+            <div class="modal-actions">
+              <button class="btn btn-secondary" style="margin:0; padding:14px" onclick="closeModal()">Abbrechen</button>
+              <button class="btn btn-success" style="margin:0; padding:14px" onclick="saveBodyweight()">Speichern</button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    if (m.type === 'edit_workout_meta') {
+      return `
+        <div class="modal-backdrop" onclick="(function(e){closeModal();})(event)">
+          <div class="modal" onclick="(function(e){e.stopPropagation();})(event)">
+            <h3>Training bearbeiten</h3>
+            <p>Praktisch für manuelles Nachtragen oder freie Sessions.</p>
+
+            <div class="muted small">Name</div>
+            <input class="input" value="${escapeHtml(m.name||'')}" oninput="updateModalField('name',this.value)" />
+
+            <div class="muted small">Datum/Uhrzeit</div>
+            <input class="input" type="datetime-local" value="${escapeHtml(m.datetimeLocal||'')}" oninput="updateModalField('datetimeLocal',this.value)" />
+
+            <div class="modal-actions">
+              <button class="btn btn-secondary" style="margin:0; padding:14px" onclick="closeModal()">Abbrechen</button>
+              <button class="btn btn-success" style="margin:0; padding:14px" onclick="saveWorkoutMeta()">Speichern</button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    return '';
+  }
+
+  function closeModal() { state.modal = null; render(); }
+
+  function renderPicker() {
+    if (!state.picker) return '';
+    const p = state.picker;
+    const q = (p.search || '').trim().toLowerCase();
+    const groupId = p.groupId;
+
+    const list = state.exercises
+      .filter(ex => !q || ex.name.toLowerCase().includes(q) || (ex.aliases||[]).some(a => String(a).toLowerCase().includes(q)))
+      .filter(ex => !groupId || ex.muscleGroupId === groupId);
+
+    const grouped = new Map(state.muscleGroups.map(g => [g.id, []]));
+    list.forEach(ex => {
+      if (!grouped.has(ex.muscleGroupId)) grouped.set(ex.muscleGroupId, []);
+      grouped.get(ex.muscleGroupId).push(ex);
+    });
+    state.muscleGroups.forEach(g => grouped.get(g.id)?.sort((a,b)=>a.name.localeCompare(b.name,'de')));
+
+    return `
+      <div class="modal-backdrop" onclick="closeExercisePicker()">
+        <div class="modal" onclick="(function(e){e.stopPropagation();})(event)">
+          <h3>Übung auswählen</h3>
+          <p>Sortiert nach Muskelgruppe. Du kannst suchen oder filtern.</p>
+
+          <input class="input" placeholder="Suchen..." value="${escapeHtml(p.search||'')}" oninput="setPickerSearch(this.value)" />
+
+          <div style="display:flex; gap:8px; flex-wrap:wrap; margin: 6px 0 10px">
+            <button class="mini-btn" onclick="setPickerGroup(null)">Alle</button>
+            ${state.muscleGroups.map(g => `<button class="mini-btn" onclick="setPickerGroup('${g.id}')">${escapeHtml(g.name)}</button>`).join('')}
+          </div>
+
+          <div style="max-height: 52vh; overflow:auto; padding-right: 4px;">
+            ${state.muscleGroups.map(g => {
+              const arr = grouped.get(g.id) || [];
+              if (!arr.length) return '';
+              return `
+                <div class="section-title">${escapeHtml(g.name)}</div>
+                ${arr.map(ex => `
+                  <div class="list-item" onclick="pickExercise('${ex.id}')">
+                    <div style="flex:1">
+                      <div class="name">${escapeHtml(ex.name)}</div>
+                      <div class="sub">${escapeHtml(getMuscleGroupNameById(ex.muscleGroupId))}</div>
+                    </div>
+                    <div style="opacity:0.7">→</div>
+                  </div>
+                `).join('')}
+              `;
+            }).join('')}
+          </div>
+
+          <div class="modal-actions" style="margin-top:10px">
+            <button class="btn btn-secondary" style="margin:0; padding:14px" onclick="closeExercisePicker()">Schließen</button>
+            <button class="btn btn-success" style="margin:0; padding:14px" onclick="openNewExerciseModal('${p.context}','${p.templateId || ''}','${p.replaceLogId || ''}')">Neue Übung</button>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  function render() {
+    const app = document.getElementById('app');
+    if (!app) return;
+
+    if (state.view === 'select') app.innerHTML = renderSelect();
+    else if (state.view === 'workout') app.innerHTML = renderWorkout();
+    else if (state.view === 'history') app.innerHTML = renderHistory();
+    else if (state.view === 'review') app.innerHTML = renderReview();
+    else if (state.view === 'exercises') app.innerHTML = renderExercises();
+    else if (state.view === 'templates') app.innerHTML = renderTemplates();
+    else if (state.view === 'template_edit') app.innerHTML = renderTemplateEdit();
+    else if (state.view === 'muscle_groups') app.innerHTML = renderMuscleGroups();
+    else if (state.view === 'bodyweight') app.innerHTML = renderBodyweight();
+    else app.innerHTML = renderSelect();
+
+    if (state.view === 'workout') renderTimer();
+  }
+
+  // -----------------------
+  // Expose functions
+  // -----------------------
+  window.state = state;
+  window.render = render;
+
+  window.startTemplateWorkout = startTemplateWorkout;
+  window.startFreeWorkout = startFreeWorkout;
+  window.resumeDraft = resumeDraft;
+  window.finishWorkout = finishWorkout;
+  window.cancelWorkout = cancelWorkout;
+  window.editWorkoutMeta = editWorkoutMeta;
+  window.saveWorkoutMeta = saveWorkoutMeta;
+
+  window.openExercisePicker = openExercisePicker;
+  window.closeExercisePicker = closeExercisePicker;
+  window.setPickerSearch = setPickerSearch;
+  window.setPickerGroup = setPickerGroup;
+  window.pickExercise = pickExercise;
+
+  window.openNewExerciseModal = openNewExerciseModal;
+  window.updateModalField = updateModalField;
+  window.createExerciseFromModal = createExerciseFromModal;
+
+  window.addSet = addSet;
+  window.removeSet = removeSet;
+  window.updateReps = updateReps;
+  window.updateWeight = updateWeight;
+  window.normalizeWeightInput = normalizeWeightInput;
+  window.editPause = editPause;
+  window.editTarget = editTarget;
+  window.removeExerciseFromWorkout = removeExerciseFromWorkout;
+
+  window.startTimer = startTimer;
+  window.stopTimer = stopTimer;
+  window.addTime = addTime;
+
+  window.toggleHistory = toggleHistory;
+  window.deleteWorkout = deleteWorkout;
+
+  window.exportData = exportData;
+  window.triggerImport = triggerImport;
+  window.handleImportFile = handleImportFile;
+
+  window.openExerciseEditModal = openExerciseEditModal;
+  window.saveExerciseEdits = saveExerciseEdits;
+  window.deleteExercise = deleteExercise;
+
+  window.openMergeModal = openMergeModal;
+  window.doMerge = doMerge;
+
+  window.openTemplates = openTemplates;
+  window.openTemplateEdit = openTemplateEdit;
+  window.renameTemplate = renameTemplate;
+  window.createTemplate = createTemplate;
+  window.deleteTemplate = deleteTemplate;
+  window.duplicateTemplate = duplicateTemplate;
+  window.moveTemplateItem = moveTemplateItem;
+  window.removeTemplateItem = removeTemplateItem;
+  window.updateTemplateItem = updateTemplateItem;
+
+  window.openMuscleGroups = openMuscleGroups;
+  window.openMuscleGroupAddModal = openMuscleGroupAddModal;
+  window.addMuscleGroup = addMuscleGroup;
+  window.openMuscleGroupEditModal = openMuscleGroupEditModal;
+  window.saveMuscleGroupEdit = saveMuscleGroupEdit;
+  window.moveMuscleGroup = moveMuscleGroup;
+  window.deleteMuscleGroup = deleteMuscleGroup;
+
+  window.openManualAddModal = openManualAddModal;
+  window.startManualFromModal = startManualFromModal;
+
+  window.openBodyweight = openBodyweight;
+  window.openBodyweightAddModal = openBodyweightAddModal;
+  window.saveBodyweight = saveBodyweight;
+  window.deleteBodyweight = deleteBodyweight;
+
+  window.closeModal = closeModal;
+
+  try { render(); } catch (e) { showFatal(e); }
+})();
+</script>
+
+</body>
+</html>
