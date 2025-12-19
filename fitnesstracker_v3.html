@@ -1925,41 +1925,57 @@
   // Export / Import (Backup)
   // -----------------------
   function exportData() {
-    try {
-      const payload = {
-        version: 3,
-        exportedAt: new Date().toISOString(),
-        muscleGroups: state.muscleGroups,
-        exercises: state.exercises,
-        templates: state.templates,
-        workouts: state.workouts,
-        bodyweightLogs: state.bodyweightLogs
-      };
-      const jsonStr = JSON.stringify(payload, null, 2);
-      const blob = new Blob([jsonStr], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `hypertrophie-tracker-backup-${new Date().toISOString().slice(0,10)}.json`;
-      a.style.display = 'none';
-      document.body.appendChild(a);
-      
-      // iOS Safari braucht einen kurzen Delay
-      setTimeout(() => {
-        a.click();
-        setTimeout(() => {
-          document.body.removeChild(a);
-          URL.revokeObjectURL(url);
-        }, 100);
-      }, 0);
-      
-      showToast('Export wird vorbereitet...', 2000);
-    } catch (e) {
-      console.error('Export error:', e);
-      alert('Export fehlgeschlagen: ' + e.message);
+  try {
+    const payload = {
+      version: 3,
+      exportedAt: new Date().toISOString(),
+      muscleGroups: state.muscleGroups,
+      exercises: state.exercises,
+      templates: state.templates,
+      workouts: state.workouts,
+      bodyweightLogs: state.bodyweightLogs
+    };
+    const jsonStr = JSON.stringify(payload, null, 2);
+    const fileName = `hypertrophie-tracker-backup-${new Date().toISOString().slice(0,10)}.json`;
+    
+    // iOS Share API bevorzugen
+    if (navigator.share && navigator.canShare) {
+      const file = new File([jsonStr], fileName, { type: 'application/json' });
+      if (navigator.canShare({ files: [file] })) {
+        navigator.share({ files: [file], title: 'Fitness Tracker Backup' })
+          .then(() => showToast('Export erfolgreich', 2000))
+          .catch(e => {
+            if (e.name !== 'AbortError') fallbackDownload(jsonStr, fileName);
+          });
+        return;
+      }
     }
+    
+    // Fallback
+    fallbackDownload(jsonStr, fileName);
+  } catch (e) {
+    alert('Export fehlgeschlagen: ' + e.message);
   }
+}
 
+function fallbackDownload(content, fileName) {
+  const blob = new Blob([content], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = fileName;
+  a.style.display = 'none';
+  document.body.appendChild(a);
+  setTimeout(() => {
+    a.click();
+    setTimeout(() => {
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }, 100);
+  }, 0);
+  showToast('Download startet...', 2000);
+}
+  
   function triggerImport() {
     const input = document.getElementById('import-file');
     if (input) input.click();
