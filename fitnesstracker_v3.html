@@ -43,10 +43,7 @@
       margin:0;
       font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
       color: var(--text);
-      background:
-        radial-gradient(900px 520px at 20% -10%, rgba(96,165,250,0.22), transparent 55%),
-        radial-gradient(760px 520px at 100% 10%, rgba(34,197,94,0.10), transparent 55%),
-        linear-gradient(180deg, var(--bg-1), var(--bg-0));
+      background: linear-gradient(180deg, var(--bg-1), var(--bg-0));
       padding-bottom: calc(86px + env(safe-area-inset-bottom));
       -webkit-font-smoothing: antialiased;
       text-rendering: optimizeLegibility;
@@ -171,7 +168,7 @@
 
     /* Cards */
     .card{
-      background: linear-gradient(180deg, rgba(255,255,255,0.085), rgba(255,255,255,0.055));
+      background: rgba(255,255,255,0.06);
       border: 1px solid rgba(148,163,184,0.18);
       border-radius: var(--radius-lg);
       padding: var(--card-pad);
@@ -311,7 +308,7 @@
     }
     .tile-template{
       border-color: rgba(96,165,250,0.22);
-      background: linear-gradient(180deg, rgba(96,165,250,0.11), rgba(255,255,255,0.05));
+      background: rgba(96,165,250,0.08);
     }
 
     /* Pills / chips */
@@ -619,7 +616,132 @@
       .tile-grid.templates{ grid-template-columns: 1fr; }
       .set-row{ grid-template-columns: 28px minmax(0,1fr) minmax(0,1fr) 44px; gap: 6px; }
     }
-  </style>
+  
+
+/* === STEP 13: remove remaining light tints + make action buttons wrap safely on 375px === */
+:root{
+  --bg0:#0b0d10;
+  --s1:#11151b;
+  --s2:#151b22;
+  --border0:#222a33;
+  --border1:#1b222b;
+  --text0:#e9eef6;
+  --muted0:#9aa6b2;
+}
+
+/* Background + typography */
+body{
+  background: var(--bg0) !important;
+  color: var(--text0) !important;
+}
+.muted{ color: var(--muted0) !important; }
+
+/* Core surfaces (cards, sheets, bars) */
+.card,
+.list-item,
+.modal,
+.timer-bar,
+.set-row{
+  background: var(--s1) !important;
+  border-color: var(--border0) !important;
+}
+
+/* Interactive surfaces (inputs/buttons/pills) */
+input,
+textarea,
+select,
+.set-select,
+.set-input,
+.select,
+.inline-select,
+.pill,
+.chip,
+.mini-btn,
+.btn-secondary,
+.btn-danger,
+.timer-btn{
+  background: var(--s2) !important;
+  border-color: var(--border0) !important;
+  color: var(--text0) !important;
+}
+
+/* Icon buttons: give them a proper tap target box (also removes "light shimmer" from transparency) */
+.btn-icon{
+  color: var(--muted0) !important;
+  border: 1px solid var(--border0) !important;
+  background: var(--s2) !important;
+  border-radius: 12px !important;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 !important;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+}
+.btn-icon-danger{ color: #ff6b6b !important; }
+
+/* Dividers */
+.line,
+hr{
+  border-color: var(--border1) !important;
+  background: var(--border1) !important;
+}
+
+/* Toast should not look bluish/light */
+.toast{
+  background: rgba(15,19,24,0.98) !important;
+  border-color: var(--border0) !important;
+}
+
+/* Ensure selects look consistent on iOS */
+select,
+.set-select{
+  -webkit-appearance: none;
+  appearance: none;
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--muted0) 50%),
+    linear-gradient(135deg, var(--muted0) 50%, transparent 50%);
+  background-position:
+    calc(100% - 16px) calc(50% - 3px),
+    calc(100% - 11px) calc(50% - 3px);
+  background-size: 6px 6px, 6px 6px;
+  background-repeat: no-repeat;
+  padding-right: 32px !important;
+}
+
+/* === Fix: action buttons must never overflow the card === */
+.list-item > div:first-child{
+  min-width: 0;          /* allow text to shrink instead of pushing buttons out */
+  flex: 1 1 auto;
+}
+.list-actions{
+  display:flex;
+  flex-wrap:wrap;        /* key fix */
+  gap:8px;
+  align-items:center;
+  justify-content:flex-end;
+}
+.mini-btn{
+  min-height: 44px;      /* keep touch target */
+  padding: 10px 12px;
+}
+
+/* On small screens: actions go to next row and fill available width */
+@media (max-width: 420px){
+  .list-item{
+    flex-wrap: wrap;
+    align-items: flex-start;
+  }
+  .list-actions{
+    width: 100%;
+    justify-content: flex-start;
+    margin-top: 8px;
+  }
+  .list-actions .mini-btn{
+    flex: 1 1 auto;
+  }
+}
+</style>
 </head>
 <body>
   <div id="app"></div>
@@ -2001,6 +2123,25 @@
     const input = document.getElementById('import-file');
     if (input) input.click();
   }
+
+  // Backward-compatible aliases for inline onclick handlers
+  // (Some views use openExport()/openImport() buttons)
+  function openExport() {
+    try { exportData(); }
+    catch (e) {
+      try { showToast('Export-Fehler: ' + (e && e.message ? e.message : String(e))); } catch (_) {}
+      try { console.error(e); } catch (_) {}
+    }
+  }
+
+  function openImport() {
+    try { triggerImport(); }
+    catch (e) {
+      try { showToast('Import-Fehler: ' + (e && e.message ? e.message : String(e))); } catch (_) {}
+      try { console.error(e); } catch (_) {}
+    }
+  }
+
 
   function migrateImportedToV3(data) {
     if (!data || typeof data !== 'object') return null;
@@ -3787,6 +3928,8 @@
   window.deleteWorkout = deleteWorkout;
 
   window.exportData = exportData;
+  window.openExport = openExport;
+  window.openImport = openImport;
   window.triggerImport = triggerImport;
   window.handleImportFile = handleImportFile;
 
