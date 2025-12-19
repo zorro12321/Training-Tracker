@@ -1932,6 +1932,8 @@
   // -----------------------
   // Export / Import (Backup)
   // -----------------------
+
+  
   function exportData() {
     try {
       const payload = {
@@ -1945,19 +1947,18 @@
       };
       
       const jsonStr = JSON.stringify(payload, null, 2);
-      const fileName = `hypertrophie-tracker-backup-${new Date().toISOString().slice(0,10)}.json`;
+      const fileName = 'hypertrophie-tracker-backup-' + new Date().toISOString().slice(0,10) + '.json';
       
-      // iOS Share API (funktioniert besser als Download)
+      // iOS Share API
       if (navigator.share) {
         const file = new File([jsonStr], fileName, { type: 'application/json' });
         navigator.share({
           files: [file],
           title: 'Fitness Tracker Backup'
         })
-        .then(() => showToast('Export erfolgreich', 2000))
-        .catch(err => {
+        .then(function() { showToast('Export erfolgreich', 2000); })
+        .catch(function(err) {
           if (err.name !== 'AbortError') {
-            console.error('Share error:', err);
             fallbackExport(jsonStr, fileName);
           }
         });
@@ -1965,7 +1966,6 @@
         fallbackExport(jsonStr, fileName);
       }
     } catch (e) {
-      console.error('Export error:', e);
       alert('Export fehlgeschlagen: ' + e.message);
     }
   }
@@ -1978,12 +1978,12 @@
     a.download = fileName;
     document.body.appendChild(a);
     a.click();
-    setTimeout(() => {
+    setTimeout(function() {
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
     }, 100);
-    showToast('Download gestartet', 2000);
   }
+
   function triggerImport() {
     const input = document.getElementById('import-file');
     if (input) input.click();
@@ -2039,28 +2039,24 @@
     const file = ev.target.files && ev.target.files[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = () => {
+    reader.onload = function() {
       try {
         const data = JSON.parse(reader.result);
-        const migrated = migrateImportedToV3(data);
-        if (!migrated) throw new Error('invalid');
-
+        if (!data || !data.exercises || !data.templates) {
+          throw new Error('Ungültige Datei');
+        }
+        
         if (!confirm("Import ersetzt deine aktuellen Daten. Fortfahren?")) return;
-
-        state.muscleGroups = migrated.muscleGroups;
-        state.exercises = migrated.exercises;
-        state.templates = migrated.templates;
-        state.workouts = migrated.workouts;
-        state.bodyweightLogs = migrated.bodyweightLogs;
-
-        saveJSON(KEY_MUSCLEGROUPS, state.muscleGroups);
-        saveJSON(KEY_EXERCISES, state.exercises);
-        saveJSON(KEY_TEMPLATES, state.templates);
-        saveJSON(KEY_HISTORY, state.workouts);
-        saveJSON(KEY_BODYWEIGHT, state.bodyweightLogs);
-
+        
+        state.muscleGroups = data.muscleGroups || ensureMuscleGroups();
+        state.exercises = data.exercises;
+        state.templates = data.templates;
+        state.workouts = data.workouts || [];
+        state.bodyweightLogs = data.bodyweightLogs || [];
+        
+        persistAll();
         normalizeAllWorkouts();
-
+        
         alert("Import erfolgreich.");
         state.view = 'select';
         state.currentWorkout = null;
@@ -2069,7 +2065,7 @@
         clearDraft();
         render();
       } catch (e) {
-        alert("Import fehlgeschlagen. Datei ist kein gültiges Backup.");
+        alert("Import fehlgeschlagen: " + e.message);
       } finally {
         ev.target.value = '';
       }
