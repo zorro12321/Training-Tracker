@@ -1924,30 +1924,41 @@
   // -----------------------
   // Export / Import (Backup)
   // -----------------------
-  window.exportData = function exportData() {
-  const payload = {
-    version: 3,
-    exportedAt: new Date().toISOString(),
-    muscleGroups: loadJSON(KEY_MUSCLEGROUPS, ensureMuscleGroups()),
-    exercises: loadJSON(KEY_EXERCISES, []),
-    templates: loadJSON(KEY_TEMPLATES, []),
-    workouts: loadJSON(KEY_HISTORY, []),
-    bodyweightLogs: loadJSON(KEY_BODYWEIGHT, [])
-  };
-
-  const json = JSON.stringify(payload, null, 2);
-  const filename = `hypertrophie-tracker-backup-${new Date().toISOString().slice(0,10)}.json`;
-  const blob = new Blob([json], { type: 'application/json' });
-
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 1500);
-};
+  function exportData() {
+    try {
+      const payload = {
+        version: 3,
+        exportedAt: new Date().toISOString(),
+        muscleGroups: state.muscleGroups,
+        exercises: state.exercises,
+        templates: state.templates,
+        workouts: state.workouts,
+        bodyweightLogs: state.bodyweightLogs
+      };
+      const jsonStr = JSON.stringify(payload, null, 2);
+      const blob = new Blob([jsonStr], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `hypertrophie-tracker-backup-${new Date().toISOString().slice(0,10)}.json`;
+      a.style.display = 'none';
+      document.body.appendChild(a);
+      
+      // iOS Safari braucht einen kurzen Delay
+      setTimeout(() => {
+        a.click();
+        setTimeout(() => {
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+        }, 100);
+      }, 0);
+      
+      showToast('Export wird vorbereitet...', 2000);
+    } catch (e) {
+      console.error('Export error:', e);
+      alert('Export fehlgeschlagen: ' + e.message);
+    }
+  }
 
   function triggerImport() {
     const input = document.getElementById('import-file');
