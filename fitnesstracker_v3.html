@@ -1939,27 +1939,28 @@
   const filename = `hypertrophie-tracker-backup-${new Date().toISOString().slice(0,10)}.json`;
   const blob = new Blob([json], { type: 'application/json' });
 
-  // iOS/Modern Mobile: Share-Sheet (sehr zuverlässig)
+  const downloadFallback = () => {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.rel = 'noopener';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1500);
+  };
+
   try {
     const file = new File([blob], filename, { type: 'application/json' });
-    if (navigator.canShare && navigator.canShare({ files: [file] })) {
-      navigator.share({ files: [file], title: 'Backup', text: 'Training-Tracker Backup' });
+    if (navigator.canShare && navigator.canShare({ files: [file] }) && navigator.share) {
+      navigator.share({ files: [file], title: 'Backup', text: 'Training-Tracker Backup' })
+        .catch(() => downloadFallback());   // wichtig: bei Abbruch/Fehler fallback
       return;
     }
   } catch (e) {}
 
-  // Fallback: klassischer Download-Link
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  a.rel = 'noopener';
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-
-  // wichtig: nicht sofort revoken (Safari kann sonst “abwürgen”)
-  setTimeout(() => URL.revokeObjectURL(url), 1500);
+  downloadFallback();
 }
 
   function triggerImport() {
