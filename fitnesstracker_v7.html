@@ -1360,30 +1360,30 @@ function ensureV3Data() {
     if (draft) saveJSON(KEY_DRAFT, draft);
   }
 
-  ensureV3Data();
+// 1. Migration ausführen (schreibt Daten in den LocalStorage)
+ensureV3Data();
 
-  // -----------------------
-  // State initialization
-  // -----------------------
-  let state = {
-    view: 'select',
-    navigationOpen: false,
-    muscleGroups: ensureMuscleGroups(),
-    exercises: loadJSON(KEY_EXERCISES, []),
-    templates: loadJSON(KEY_TEMPLATES, []),
-    workouts: loadJSON(KEY_HISTORY, []),
-    bodyweightLogs: loadJSON(KEY_BODYWEIGHT, []),
-    currentWorkout: null,
-    expandedId: null,
-    timer: { active: false, endAt: 0, interval: null, notified: false },
-    modal: null,
-    picker: null,
-    hasDraft: !!localStorage.getItem(KEY_DRAFT),
-    editTemplateId: null,
-    exSearch: '',
-    mgSearch: '',
-    reviewExerciseId: null
-  };
+// 2. State erst danach initialisieren und sicherstellen, dass loadJSON die neuen Keys nutzt
+let state = {
+  view: 'select',
+  navigationOpen: false,
+  // Hier direkt die Funktionen oder Keys nutzen, die ensureV3Data gerade befüllt hat:
+  muscleGroups: loadJSON(KEY_MUSCLEGROUPS, []), 
+  exercises: loadJSON(KEY_EXERCISES, []),
+  templates: loadJSON(KEY_TEMPLATES, []),
+  workouts: loadJSON(KEY_HISTORY, []),
+  bodyweightLogs: loadJSON(KEY_BODYWEIGHT, []),
+  currentWorkout: null,
+  expandedId: null,
+  timer: { active: false, endAt: 0, interval: null, notified: false },
+  modal: null,
+  picker: null,
+  hasDraft: !!localStorage.getItem(KEY_DRAFT),
+  editTemplateId: null,
+  exSearch: '',
+  mgSearch: '',
+  reviewExerciseId: null
+};
 
   function persistAll() {
     saveJSON(KEY_MUSCLEGROUPS, state.muscleGroups);
