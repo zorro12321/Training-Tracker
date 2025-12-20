@@ -3454,8 +3454,7 @@
     for (let i = 0; i < days; i++) {
     const t = startT + i * dayMs;
     const d = new Date(t);
-    const iso = ${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')};
-    
+    const iso = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;    
     const isFuture = t > endT0; // alles nach “end” bleibt leer
     const count = isFuture ? 0 : (prByDate.get(iso) || 0);
     
