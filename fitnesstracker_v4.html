@@ -1,0 +1,3997 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <title>Hypertrophie Tracker</title>
+  <style>
+    /* ========================================
+       DESIGN SYSTEM & CSS RESET
+       ======================================== */
+    * { 
+      margin: 0; 
+      padding: 0; 
+      box-sizing: border-box; 
+    }
+
+    :root {
+      /* Colors - Modern Dark Theme */
+      --color-bg-primary: #0a0e1a;
+      --color-bg-secondary: #131722;
+      --color-bg-tertiary: #1a1f2e;
+      --color-bg-elevated: #1f2633;
+      
+      --color-surface: #252d3d;
+      --color-surface-hover: #2d3647;
+      
+      --color-border: #2d3647;
+      --color-border-focus: #3b82f6;
+      
+      --color-text-primary: #f1f5f9;
+      --color-text-secondary: #94a3b8;
+      --color-text-tertiary: #64748b;
+      
+      --color-accent: #3b82f6;
+      --color-accent-hover: #2563eb;
+      --color-accent-light: #60a5fa;
+      
+      --color-success: #10b981;
+      --color-success-hover: #059669;
+      --color-danger: #ef4444;
+      --color-danger-hover: #dc2626;
+      
+      /* Spacing System (8px base) */
+      --space-1: 4px;
+      --space-2: 8px;
+      --space-3: 12px;
+      --space-4: 16px;
+      --space-5: 20px;
+      --space-6: 24px;
+      --space-8: 32px;
+      --space-10: 40px;
+      
+      /* Typography */
+      --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      
+      --font-size-xs: 11px;
+      --font-size-sm: 13px;
+      --font-size-base: 15px;
+      --font-size-lg: 17px;
+      --font-size-xl: 20px;
+      --font-size-2xl: 24px;
+      --font-size-3xl: 28px;
+      
+      --font-weight-regular: 400;
+      --font-weight-medium: 500;
+      --font-weight-semibold: 600;
+      --font-weight-bold: 700;
+      
+      /* Radii */
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --radius-xl: 20px;
+      --radius-full: 999px;
+      
+      /* Shadows */
+      --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+      --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.4);
+      --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.5);
+      --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.6);
+      
+      /* Touch Targets */
+      --touch-target-min: 44px;
+      
+      /* Layout */
+      --page-pad: var(--space-5);
+      --card-pad: var(--space-4);
+      --container-max: 680px;
+    }
+
+    body { 
+      font-family: var(--font-family);
+      background: var(--color-bg-primary);
+      color: var(--color-text-primary);
+      font-size: var(--font-size-base);
+      line-height: 1.5;
+      padding-bottom: calc(84px + env(safe-area-inset-bottom));
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    #app { 
+      overflow-x: hidden; 
+      min-height: 100vh;
+    }
+
+    .container { 
+      max-width: var(--container-max);
+      margin: 0 auto;
+      padding: var(--page-pad);
+    }
+
+/* ========================================
+       TYPOGRAPHY
+       ======================================== */
+    .text-xs { font-size: var(--font-size-xs); }
+    .text-sm { font-size: var(--font-size-sm); }
+    .text-base { font-size: var(--font-size-base); }
+    .text-lg { font-size: var(--font-size-lg); }
+    .text-xl { font-size: var(--font-size-xl); }
+    .text-2xl { font-size: var(--font-size-2xl); }
+    .text-3xl { font-size: var(--font-size-3xl); }
+
+    .font-medium { font-weight: var(--font-weight-medium); }
+    .font-semibold { font-weight: var(--font-weight-semibold); }
+    .font-bold { font-weight: var(--font-weight-bold); }
+
+    .text-primary { color: var(--color-text-primary); }
+    .text-secondary { color: var(--color-text-secondary); }
+    .text-tertiary { color: var(--color-text-tertiary); }
+
+    .muted { color: var(--color-text-secondary); }
+    .small { font-size: var(--font-size-sm); }
+
+    /* ========================================
+       HEADER
+       ======================================== */
+    .header { 
+      text-align: center;
+      padding: calc(var(--space-10) + env(safe-area-inset-top)) var(--space-5) var(--space-6);
+      background: linear-gradient(180deg, var(--color-bg-secondary) 0%, transparent 100%);
+    }
+
+    .header h1 { 
+      font-size: var(--font-size-3xl);
+      font-weight: var(--font-weight-bold);
+      margin-bottom: var(--space-2);
+      color: var(--color-accent-light);
+      letter-spacing: -0.02em;
+    }
+
+    /* ========================================
+       STICKY HEADER
+       ======================================== */
+    .sticky-header { 
+      position: sticky;
+      top: 0;
+      background: var(--color-bg-primary);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      padding: calc(var(--space-3) + env(safe-area-inset-top)) var(--space-4) var(--space-3);
+      z-index: 60;
+      border-bottom: 1px solid var(--color-border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: var(--space-3);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .sticky-title { 
+      font-size: var(--font-size-xl);
+      font-weight: var(--font-weight-bold);
+      letter-spacing: -0.01em;
+    }
+
+/* ========================================
+       BUTTONS
+       ======================================== */
+    .btn { 
+      width: 100%;
+      min-height: var(--touch-target-min);
+      padding: var(--space-3) var(--space-4);
+      margin: var(--space-2) 0;
+      background: linear-gradient(135deg, var(--color-accent), var(--color-accent-hover));
+      border: none;
+      border-radius: var(--radius-md);
+      color: white;
+      font-size: var(--font-size-lg);
+      font-weight: var(--font-weight-semibold);
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .btn:active { 
+      transform: scale(0.98);
+      box-shadow: none;
+    }
+
+    .btn-secondary { 
+      background: var(--color-surface);
+      box-shadow: inset 0 0 0 1px var(--color-border);
+    }
+
+    .btn-secondary:hover {
+      background: var(--color-surface-hover);
+    }
+
+    .btn-success { 
+      background: linear-gradient(135deg, var(--color-success), var(--color-success-hover));
+    }
+
+    .btn-danger { 
+      background: linear-gradient(135deg, var(--color-danger), var(--color-danger-hover));
+    }
+
+    .btn-icon { 
+      background: transparent;
+      border: none;
+      color: var(--color-text-secondary);
+      min-width: var(--touch-target-min);
+      min-height: var(--touch-target-min);
+      padding: var(--space-2);
+      font-size: var(--font-size-xl);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--radius-sm);
+      transition: background 0.15s ease, color 0.15s ease;
+    }
+
+    .btn-icon:active {
+      background: var(--color-surface);
+    }
+
+    .btn-icon-danger { 
+      color: var(--color-danger);
+    }
+
+    .mini-btn {
+      padding: var(--space-2) var(--space-3);
+      min-height: 36px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--color-border);
+      background: var(--color-surface);
+      color: var(--color-text-primary);
+      font-weight: var(--font-weight-semibold);
+      font-size: var(--font-size-sm);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.15s ease;
+    }
+
+    .mini-btn:active {
+      transform: scale(0.98);
+      background: var(--color-surface-hover);
+    }
+
+    .btn-small { 
+      padding: var(--space-2) var(--space-3);
+      border-radius: var(--radius-sm);
+      border: none;
+      font-weight: var(--font-weight-semibold);
+      font-size: var(--font-size-sm);
+      cursor: pointer;
+      min-height: 36px;
+    }
+
+    button, input, select { 
+      -webkit-tap-highlight-color: transparent;
+    }
+
+/* ========================================
+       CARDS
+       ======================================== */
+    .card { 
+      background: var(--color-bg-elevated);
+      border-radius: var(--radius-lg);
+      padding: var(--card-pad);
+      margin: var(--space-4) 0;
+      border: 1px solid var(--color-border);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .card-title { 
+      font-size: var(--font-size-lg);
+      font-weight: var(--font-weight-bold);
+      color: var(--color-text-primary);
+      margin-bottom: var(--space-2);
+    }
+
+    .card-sub { 
+      color: var(--color-text-secondary);
+      font-size: var(--font-size-sm);
+      line-height: 1.4;
+      margin-top: var(--space-2);
+    }
+
+    /* ========================================
+       PILLS & CHIPS
+       ======================================== */
+    .pill { 
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      color: var(--color-text-primary);
+      padding: var(--space-1) var(--space-2);
+      border-radius: var(--radius-full);
+      font-size: var(--font-size-xs);
+      font-weight: var(--font-weight-medium);
+      display: inline-flex;
+      align-items: center;
+    }
+
+    .chips { 
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-2);
+      margin-top: var(--space-2);
+    }
+
+    .chip2 { 
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      color: var(--color-text-primary);
+      padding: var(--space-1) var(--space-2);
+      border-radius: var(--radius-full);
+      font-size: var(--font-size-sm);
+    }
+
+/* ========================================
+       EXERCISE DISPLAY
+       ======================================== */
+    .row { 
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: var(--space-3);
+    }
+
+    .exercise-header { 
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: var(--space-3);
+      margin-bottom: var(--space-3);
+    }
+
+    .exercise-title { 
+      font-size: var(--font-size-lg);
+      font-weight: var(--font-weight-bold);
+      color: var(--color-text-primary);
+      line-height: 1.3;
+    }
+
+    .exercise-meta { 
+      font-size: var(--font-size-sm);
+      color: var(--color-text-secondary);
+      display: flex;
+      gap: var(--space-2);
+      align-items: center;
+      flex-wrap: wrap;
+      margin-top: var(--space-1);
+    }
+
+    .timer-btn { 
+      background: var(--color-surface);
+      color: var(--color-accent-light);
+      border: 1px solid var(--color-accent);
+      border-radius: var(--radius-sm);
+      padding: var(--space-1) var(--space-2);
+      font-size: var(--font-size-xs);
+      font-weight: var(--font-weight-semibold);
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+
+    .timer-btn:active {
+      background: var(--color-accent);
+      color: white;
+    }
+
+    .line { 
+      margin-top: var(--space-2);
+      color: var(--color-text-secondary);
+      font-size: var(--font-size-sm);
+      line-height: 1.4;
+    }
+
+    .last-perf { 
+      margin-top: var(--space-2);
+      padding: var(--space-2);
+      background: var(--color-surface);
+      border-radius: var(--radius-sm);
+      color: var(--color-text-secondary);
+      font-size: var(--font-size-sm);
+      line-height: 1.4;
+    }
+
+    .last-label { 
+      margin-bottom: var(--space-1);
+      font-weight: var(--font-weight-medium);
+      color: var(--color-text-tertiary);
+    }
+
+    .last-sets { 
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-1);
+    }
+
+    .last-set { 
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+/* ========================================
+       SET INPUT ROW
+       ======================================== */
+    .set-row {
+      background: var(--color-surface);
+      border-radius: var(--radius-md);
+      padding: var(--space-2);
+      margin: var(--space-2) 0;
+      display: grid;
+      grid-template-columns: 32px minmax(0, 1fr) minmax(0, 1fr) 44px;
+      gap: var(--space-2);
+      align-items: center;
+      border: 1px solid var(--color-border);
+    }
+
+    .set-label { 
+      color: var(--color-text-tertiary);
+      width: auto;
+      font-size: var(--font-size-base);
+      font-weight: var(--font-weight-bold);
+      text-align: center;
+    }
+
+    .set-select, .set-input {
+      flex: 1;
+      min-width: 0;
+      width: 100%;
+      min-height: var(--touch-target-min);
+      padding: var(--space-2);
+      background: var(--color-bg-elevated);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      color: var(--color-text-primary);
+      font-size: var(--font-size-lg);
+      text-align: center;
+      font-weight: var(--font-weight-medium);
+      transition: border-color 0.15s ease, background 0.15s ease;
+    }
+
+    .set-select:focus, .set-input:focus { 
+      border-color: var(--color-border-focus);
+      outline: none;
+      background: var(--color-bg-secondary);
+    }
+
+    .set-row > .mini-btn { 
+      width: 44px;
+      min-width: 44px;
+      padding: var(--space-2) 0;
+      text-align: center;
+    }
+
+    /* ========================================
+       INPUTS & FORMS
+       ======================================== */
+    .input, .select { 
+      width: 100%;
+      min-height: var(--touch-target-min);
+      padding: var(--space-3);
+      border-radius: var(--radius-md);
+      border: 1px solid var(--color-border);
+      background: var(--color-bg-elevated);
+      color: var(--color-text-primary);
+      font-size: var(--font-size-base);
+      margin: var(--space-2) 0;
+      transition: border-color 0.15s ease, background 0.15s ease;
+    }
+
+    .input:focus, .select:focus {
+      border-color: var(--color-border-focus);
+      outline: none;
+      background: var(--color-bg-secondary);
+    }
+
+    .input::placeholder {
+      color: var(--color-text-tertiary);
+    }
+
+/* ========================================
+       TIMER BAR
+       ======================================== */
+    .timer-bar { 
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--color-bg-elevated);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      padding: var(--space-3) var(--space-4) calc(var(--space-3) + env(safe-area-inset-bottom));
+      border-top: 1px solid var(--color-border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 100;
+      box-shadow: var(--shadow-lg);
+    }
+
+    .timer-display { 
+      font-family: var(--font-mono);
+      font-size: var(--font-size-2xl);
+      font-weight: var(--font-weight-bold);
+      color: var(--color-accent-light);
+      letter-spacing: 0.02em;
+    }
+
+    .timer-controls { 
+      display: flex;
+      gap: var(--space-2);
+      align-items: center;
+    }
+
+/* ========================================
+       HISTORY
+       ======================================== */
+    .history-item { 
+      background: var(--color-bg-elevated);
+      border-radius: var(--radius-lg);
+      margin: var(--space-3) 0;
+      overflow: hidden;
+      border: 1px solid var(--color-border);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .history-header { 
+      padding: var(--space-4);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      gap: var(--space-3);
+      transition: background 0.15s ease;
+    }
+
+    .history-header:active {
+      background: var(--color-surface);
+    }
+
+    .history-details { 
+      padding: var(--space-4);
+      border-top: 1px solid var(--color-border);
+      display: none;
+      background: var(--color-surface);
+    }
+
+    .history-details.open { 
+      display: block;
+    }
+
+    /* ========================================
+       LIST ITEMS
+       ======================================== */
+    .section-title { 
+      font-size: var(--font-size-sm);
+      font-weight: var(--font-weight-bold);
+      color: var(--color-text-tertiary);
+      margin: var(--space-4) 0 var(--space-2);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .list-item { 
+      padding: var(--space-3);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      background: var(--color-bg-elevated);
+      margin: var(--space-2) 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: var(--space-3);
+      transition: background 0.15s ease;
+    }
+
+    .list-item:active {
+      background: var(--color-surface);
+    }
+
+    .list-item .name { 
+      font-weight: var(--font-weight-semibold);
+      color: var(--color-text-primary);
+      font-size: var(--font-size-base);
+    }
+
+    .list-item .sub { 
+      font-size: var(--font-size-sm);
+      color: var(--color-text-secondary);
+      margin-top: var(--space-1);
+    }
+
+    .list-actions { 
+      display: flex;
+      gap: var(--space-2);
+      align-items: center;
+      flex-shrink: 0;
+    }
+
+/* ========================================
+       MODALS & BOTTOM SHEETS
+       ======================================== */
+    .modal-backdrop { 
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      z-index: 200;
+      padding: 0;
+      animation: fadeIn 0.2s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .modal { 
+      width: 100%;
+      max-width: 560px;
+      max-height: 85vh;
+      background: var(--color-bg-secondary);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+      padding: var(--space-5);
+      padding-bottom: calc(var(--space-5) + env(safe-area-inset-bottom));
+      box-shadow: var(--shadow-xl);
+      overflow-y: auto;
+      animation: slideUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    @keyframes slideUp {
+      from { 
+        transform: translateY(100%);
+        opacity: 0;
+      }
+      to { 
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    .modal h3 { 
+      font-size: var(--font-size-xl);
+      font-weight: var(--font-weight-bold);
+      color: var(--color-text-primary);
+      margin-bottom: var(--space-2);
+    }
+
+    .modal p { 
+      color: var(--color-text-secondary);
+      font-size: var(--font-size-sm);
+      line-height: 1.5;
+      margin-bottom: var(--space-4);
+    }
+
+    .modal-actions { 
+      display: flex;
+      gap: var(--space-3);
+      margin-top: var(--space-4);
+    }
+
+    .modal-actions .btn {
+      margin: 0;
+    }
+
+/* ========================================
+       TOAST
+       ======================================== */
+    .toast {
+      position: fixed;
+      left: var(--space-3);
+      right: var(--space-3);
+      bottom: calc(84px + env(safe-area-inset-bottom) + var(--space-3));
+      z-index: 250;
+      background: var(--color-bg-elevated);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      padding: var(--space-3) var(--space-4);
+      color: var(--color-text-primary);
+      box-shadow: var(--shadow-lg);
+      opacity: 0;
+      transform: translateY(8px);
+      pointer-events: none;
+      transition: opacity 160ms ease, transform 160ms ease;
+      line-height: 1.4;
+      font-size: var(--font-size-base);
+    }
+
+    .toast.show { 
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+
+    /* ========================================
+       CHARTS
+       ======================================== */
+    .chart-canvas { 
+      width: 100%;
+      height: 220px;
+      display: block;
+      margin-top: var(--space-3);
+      border-radius: var(--radius-sm);
+    }
+
+    .chart-canvas.compact { 
+      height: 190px;
+    }
+
+    .chart-canvas.tall { 
+      height: 260px;
+    }
+
+    .heatmap-wrap { 
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      margin-top: var(--space-2);
+    }
+
+    .heatmap-canvas { 
+      width: 100%;
+      height: 140px;
+      display: block;
+    }
+
+    .review-grid { 
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: var(--space-3);
+    }
+
+    /* ========================================
+       UTILITIES
+       ======================================== */
+    .grid2 { 
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-3);
+    }
+
+    .inline-control { 
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      flex-wrap: wrap;
+      margin-top: var(--space-2);
+    }
+
+    .inline-control label { 
+      color: var(--color-text-secondary);
+      font-size: var(--font-size-sm);
+      font-weight: var(--font-weight-medium);
+    }
+
+    .inline-select { 
+      flex: 1;
+      min-width: 220px;
+      padding: var(--space-2);
+      border-radius: var(--radius-md);
+      border: 1px solid var(--color-border);
+      background: var(--color-bg-elevated);
+      color: var(--color-text-primary);
+      font-size: var(--font-size-base);
+    }
+
+    /* ========================================
+       FATAL ERROR
+       ======================================== */
+    #fatal {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      display: none;
+      background: rgba(0, 0, 0, 0.95);
+      padding: var(--space-4);
+      overflow: auto;
+      color: var(--color-text-primary);
+      font-family: var(--font-mono);
+      white-space: pre-wrap;
+      font-size: var(--font-size-sm);
+    }
+
+/* ========================================
+       RESPONSIVE ADJUSTMENTS
+       ======================================== */
+    @media (max-width: 520px) {
+      .grid2 { 
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 430px) {
+      :root {
+        --page-pad: var(--space-3);
+        --card-pad: var(--space-3);
+      }
+
+      .header { 
+        padding: calc(var(--space-8) + env(safe-area-inset-top)) var(--space-4) var(--space-5);
+      }
+
+      .header h1 {
+        font-size: var(--font-size-2xl);
+      }
+
+      .btn { 
+        padding: var(--space-3);
+        font-size: var(--font-size-base);
+      }
+
+      .sticky-title {
+        font-size: var(--font-size-lg);
+      }
+
+      .btn-icon {
+        min-width: var(--touch-target-min);
+        min-height: var(--touch-target-min);
+      }
+
+      .timer-btn {
+        padding: var(--space-2) var(--space-3);
+        font-size: var(--font-size-sm);
+      }
+
+      input, select, textarea {
+        font-size: 16px; /* Prevents iOS zoom */
+      }
+    }
+
+    @media (max-width: 360px) {
+      :root {
+        --page-pad: var(--space-2);
+        --card-pad: var(--space-2);
+      }
+
+      .btn { 
+        padding: var(--space-3) var(--space-2);
+      }
+
+      .sticky-header { 
+        padding-left: var(--space-3);
+        padding-right: var(--space-3);
+      }
+
+      .set-row { 
+        grid-template-columns: 28px minmax(0, 1fr) minmax(0, 1fr) 40px;
+        gap: var(--space-2);
+      }
+
+      .set-row > .mini-btn { 
+        width: 40px;
+        min-width: 40px;
+      }
+    }
+  </style>
+
+
+
+
+</head>
+<body>
+  <div id="app"></div>
+  <div id="fatal"></div>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <audio id="timer-beep" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"></audio>
+
+
+<script>
+(function () {
+  function showFatal(err) {
+    const box = document.getElementById('fatal');
+    if (!box) return;
+    box.style.display = 'block';
+    box.textContent = String(err && err.stack ? err.stack : err);
+  }
+  window.addEventListener('error', (e) => showFatal(e.error || (e.message + " @ " + e.filename + ":" + e.lineno)));
+  window.addEventListener('unhandledrejection', (e) => showFatal(e.reason || "Unhandled Promise Rejection"));
+
+  // -----------------------
+  // Storage Keys (v3)
+  // -----------------------
+  const KEY_MUSCLEGROUPS = 'muscleGroupsV3';
+  const KEY_EXERCISES = 'exerciseLibraryV3';
+  const KEY_TEMPLATES = 'workoutTemplatesV3';
+  const KEY_HISTORY = 'workoutHistoryV3';
+  const KEY_DRAFT = 'workoutDraftV3';
+  const KEY_BODYWEIGHT = 'bodyweightLogsV3';
+
+  // Legacy keys (v2)
+  const LEG_EXERCISES = 'exerciseLibraryV2';
+  const LEG_TEMPLATES = 'workoutTemplatesV2';
+  const LEG_HISTORY = 'workoutHistoryV2';
+  const LEG_DRAFT = 'workoutDraftV2';
+
+  // Defaults
+  const DEFAULT_PAUSE_SEC = 150;
+  const DEFAULT_PLANNED_SETS = 3;
+  const DEFAULT_TARGET = '8-12';
+
+  // Seed plan (initial templates)
+  const seedPlan = {
+    'Push A': [
+      { name: 'Bankdrücken (Kurzhantel/Maschine)', sets: 3, reps: '5-8', pause: 150 },
+      { name: 'Schrägbankdrücken (Kurzhantel)', sets: 3, reps: '8-12', pause: 120 },
+      { name: 'Butterfly / Pec Deck', sets: 3, reps: '12-20', pause: 75 },
+      { name: 'Seitheben (KH oder Kabel)', sets: 4, reps: '10-20', pause: 75 },
+      { name: 'Overhead-Trizeps Kabel', sets: 3, reps: '12-20', pause: 75 },
+      { name: 'Trizepsdrücken Kabel (Seil)', sets: 3, reps: '10-15', pause: 75 }
+    ],
+    'Pull A': [
+      { name: 'Latzug (neutral/V-Griff)', sets: 4, reps: '6-10', pause: 150 },
+      { name: 'Pullover (Maschine/Kabel)', sets: 4, reps: '8-12', pause: 120 },
+      { name: 'Kabelrudern eng', sets: 3, reps: '10-12', pause: 105 },
+      { name: 'Reverse Fly (Maschine)', sets: 4, reps: '12-20', pause: 75 },
+      { name: 'Face Pull (Seil)', sets: 2, reps: '15-20', pause: 75 },
+      { name: 'Bizepscurl (SZ oder Kabel)', sets: 3, reps: '8-12', pause: 75 },
+      { name: 'Incline Curl / High Cable Curl', sets: 3, reps: '10-15', pause: 75 }
+    ],
+    'Beine': [
+      { name: 'Hack Squat ODER Kniebeuge', sets: 3, reps: '5-10', pause: 180 },
+      { name: 'Rumänisches Kreuzheben (RDL)', sets: 3, reps: '6-10', pause: 180 },
+      { name: 'Lunges mit Gewicht', sets: 3, reps: '10-15', pause: 150 },
+      { name: 'Beinstrecker', sets: 3, reps: '12-15', pause: 90 },
+      { name: 'Beinbeuger sitzend', sets: 4, reps: '10-15', pause: 90 },
+      { name: 'Wadenheben (stehend/sitzend)', sets: 4, reps: '8-15', pause: 90 },
+      { name: 'Bauch: Cable Crunch / Knee Raise', sets: 3, reps: '10-15', pause: 75 }
+    ],
+    'Push B': [
+      { name: 'Schrägbank (Maschine/Smith)', sets: 3, reps: '8-12', pause: 120 },
+      { name: 'Brustpresse Flach (Maschine)', sets: 3, reps: '8-12', pause: 120 },
+      { name: 'Kabel-Flys (low-to-high/klassisch)', sets: 3, reps: '12-20', pause: 75 },
+      { name: 'Schulterpresse (Maschine) ODER Landmine', sets: 3, reps: '8-12', pause: 120 },
+      { name: 'Seitheben (Kabel, Variante)', sets: 4, reps: '12-20', pause: 75 },
+      { name: 'Trizeps: Dips-Maschine oder Kabel', sets: 3, reps: '8-12', pause: 90 }
+    ],
+    'Pull B': [
+      { name: 'Rudern brustgestützt (Maschine/T-Bar)', sets: 4, reps: '8-12', pause: 120 },
+      { name: 'Latzug (anderer Griff als Pull A)', sets: 3, reps: '10-15', pause: 90 },
+      { name: 'Rudermaschine (z.B. Hammer Strength)', sets: 3, reps: '10-12', pause: 105 },
+      { name: 'Reverse Fly', sets: 4, reps: '12-20', pause: 75 },
+      { name: 'External Rotation (Kabel)', sets: 2, reps: '15-20', pause: 75 },
+      { name: 'Bizeps Kabelcurl', sets: 3, reps: '10-15', pause: 75 },
+      { name: 'Hammer Curls', sets: 2, reps: '10-15', pause: 75 }
+    ]
+  };
+
+  // -----------------------
+  // Helpers
+  // -----------------------
+  function uid(prefix='id') {
+    return prefix + '_' + Math.random().toString(16).slice(2) + '_' + Date.now().toString(16);
+  }
+
+  function loadJSON(key, fallback) {
+    try { return JSON.parse(localStorage.getItem(key) || JSON.stringify(fallback)); }
+    catch { return fallback; }
+  }
+
+  function saveJSON(key, value) {
+    localStorage.setItem(key, JSON.stringify(value));
+  }
+
+  function escapeHtml(s) {
+    return String(s || '')
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;')
+      .replaceAll('"', '&quot;');
+  }
+
+
+  // -----------------------
+  // iOS UX helpers
+  // -----------------------
+  let _toastTimer = null;
+  function showToast(message, ms = 2500) {
+    const el = document.getElementById('toast');
+    if (!el) return;
+    el.textContent = String(message || '');
+    el.classList.add('show');
+    if (_toastTimer) clearTimeout(_toastTimer);
+    _toastTimer = setTimeout(() => el.classList.remove('show'), ms);
+  }
+  document.addEventListener('click', (e) => {
+    const t = e.target;
+    if (t && t.id === 'toast') t.classList.remove('show');
+  });
+
+  // Timer sound: iOS requires a user gesture before audio can play.
+  let _audioUnlocked = false;
+  let _audioCtx = null;
+
+  function unlockTimerSound() {
+    if (_audioUnlocked) return;
+    try {
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      if (!Ctx) { _audioUnlocked = true; return; }
+      _audioCtx = new Ctx();
+      if (_audioCtx.state === 'suspended') _audioCtx.resume().catch(() => {});
+      // tiny silent "priming" sound
+      const osc = _audioCtx.createOscillator();
+      const gain = _audioCtx.createGain();
+      gain.gain.value = 0;
+      osc.connect(gain);
+      gain.connect(_audioCtx.destination);
+      osc.start();
+      osc.stop(_audioCtx.currentTime + 0.01);
+      _audioUnlocked = true;
+    } catch {
+      _audioUnlocked = true;
+    }
+  }
+
+  function playTimerBeep() {
+    // Prefer WebAudio (more reliable on iOS than <audio> from remote URLs)
+    try {
+      if (_audioCtx) {
+        if (_audioCtx.state === 'suspended') _audioCtx.resume().catch(() => {});
+        const osc = _audioCtx.createOscillator();
+        const gain = _audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.value = 880;
+        const t0 = _audioCtx.currentTime;
+        gain.gain.setValueAtTime(0.0001, t0);
+        gain.gain.exponentialRampToValueAtTime(0.18, t0 + 0.01);
+        gain.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.14);
+        osc.connect(gain);
+        gain.connect(_audioCtx.destination);
+        osc.start(t0);
+        osc.stop(t0 + 0.16);
+        return;
+      }
+    } catch {}
+
+    // fallback: HTML audio element (may still fail if not unlocked)
+    const a = document.getElementById('timer-beep');
+    if (a) a.play().catch(() => {});
+  }
+
+  // Unlock on first interaction
+  document.addEventListener('pointerdown', unlockTimerSound, { once: true, passive: true });
+  document.addEventListener('touchstart', unlockTimerSound, { once: true, passive: true });
+
+
+  function clampInt(n, min, max) {
+    if (!Number.isFinite(n)) return null;
+    const x = Math.trunc(n);
+    if (x < min || x > max) return null;
+    return x;
+  }
+
+  function parseDecimalDE(input) {
+    if (input === null || input === undefined) return null;
+    const s = String(input).trim();
+    if (s === '') return null;
+    const normalized = s.replace(',', '.');
+    const n = Number(normalized);
+    if (!Number.isFinite(n)) return null;
+    if (n < 0) return null;
+    return n;
+  }
+
+  function formatDecimalDE(n, maxFrac = 2) {
+    if (!Number.isFinite(n)) return '';
+    return n.toLocaleString('de-DE', { maximumFractionDigits: maxFrac });
+  }
+
+  function formatDate(isoString) {
+    return new Date(isoString).toLocaleDateString('de-DE', {
+      weekday: 'short', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit'
+    });
+  }
+
+  function formatDateTimeLocal(isoString) {
+    const d = new Date(isoString);
+    const pad = (x) => String(x).padStart(2,'0');
+    const yyyy = d.getFullYear();
+    const mm = pad(d.getMonth()+1);
+    const dd = pad(d.getDate());
+    const hh = pad(d.getHours());
+    const mi = pad(d.getMinutes());
+    return `${yyyy}-${mm}-${dd}T${hh}:${mi}`;
+  }
+
+  function parseDateTimeLocal(value) {
+    // value: "YYYY-MM-DDTHH:MM"
+    if (!value) return null;
+    const d = new Date(value);
+    if (isNaN(d.getTime())) return null;
+    return d.toISOString();
+  }
+
+  function isSetDone(s) {
+    return Number.isFinite(s.reps) && Number.isFinite(s.weight) && s.reps > 0 && s.weight > 0;
+  }
+
+  function calcE1RM(weight, reps) {
+    if (!Number.isFinite(weight) || !Number.isFinite(reps) || reps <= 0) return null;
+    return weight * (1 + reps / 30);
+  }
+
+  function exerciseTopE1RM(exLog) {
+    let best = null;
+    (exLog.sets || []).forEach(s => {
+      const e = calcE1RM(s.weight, s.reps);
+      if (Number.isFinite(e)) best = best === null ? e : Math.max(best, e);
+    });
+    return best;
+  }
+
+  function workoutVolume(w) {
+    let sum = 0;
+    (w.exercises || []).forEach(ex => (ex.sets || []).forEach(s => { if (isSetDone(s)) sum += s.weight * s.reps; }));
+    return sum;
+  }
+
+  function formatE1RM(n) {
+    if (!Number.isFinite(n)) return '-';
+    return formatDecimalDE(n, 1) + ' kg';
+  }
+
+  function formatVolume(n) {
+    if (!Number.isFinite(n)) return '-';
+    return formatDecimalDE(n, 0) + ' kg';
+  }
+
+  function repsOptions(selected) {
+    let out = `<option value="">Wdh</option>`;
+    for (let i = 1; i <= 25; i++) out += `<option value="${i}" ${selected === i ? 'selected' : ''}>${i}</option>`;
+    return out;
+  }
+
+  function guessMuscleGroupName(name) {
+    const n = String(name || '').toLowerCase();
+    // keep previous heuristics
+    if (/(bank|brust|pec|fly|butterfly|cable[- ]?fly|brustpresse)/.test(n)) return 'Brust';
+    if (/(latzug|rud|pullover|row|pull|hammer strength|t-bar)/.test(n)) return 'Rücken';
+    if (/(schulter|seitheben|reverse fly|face pull|external rotation|landmine)/.test(n)) return 'Schulter';
+    if (/(squat|kniebeuge|hack|r(d|dl)|kreuzheben|lunges|beinstrecker|beinbeuger|waden)/.test(n)) return 'Beine';
+    if (/(bauch|crunch|knee raise|ab)/.test(n)) return 'Bauch';
+    if (/(bizeps|curl)/.test(n)) return 'Bizeps';
+    if (/(trizeps|dips|overhead)/.test(n)) return 'Trizeps';
+    return 'Brust';
+  }
+
+  // -----------------------
+  // Migration v2 -> v3
+  // -----------------------
+  function ensureMuscleGroups() {
+    const existing = loadJSON(KEY_MUSCLEGROUPS, null);
+    if (Array.isArray(existing) && existing.length && existing[0].id && existing[0].name) return existing;
+
+    // build from legacy or seed default list
+    const defaults = ['Brust', 'Rücken', 'Schulter', 'Beine', 'Bizeps', 'Trizeps', 'Bauch'];
+    const groups = defaults.map((name, idx) => ({ id: uid('mg'), name, order: idx }));
+    saveJSON(KEY_MUSCLEGROUPS, groups);
+    return groups;
+  }
+
+  function findOrCreateMuscleGroup(groups, name) {
+    const n = String(name || '').trim();
+    if (!n) return groups[0]?.id;
+    const hit = groups.find(g => g.name.toLowerCase() === n.toLowerCase());
+    if (hit) return hit.id;
+    const maxOrder = groups.reduce((m,g)=>Math.max(m, Number(g.order)||0), 0);
+    const ng = { id: uid('mg'), name: n, order: maxOrder + 1 };
+    groups.push(ng);
+    groups.sort((a,b)=>(a.order??0)-(b.order??0) || a.name.localeCompare(b.name,'de'));
+    return ng.id;
+  }
+
+  function ensureV3Data() {
+    // if v3 exercises exist, assume v3 initialized
+    const exV3 = loadJSON(KEY_EXERCISES, null);
+    const tplV3 = loadJSON(KEY_TEMPLATES, null);
+    const histV3 = loadJSON(KEY_HISTORY, null);
+
+    const hasV3 = Array.isArray(exV3) && Array.isArray(tplV3) && Array.isArray(histV3);
+    if (hasV3) return;
+
+    // migrate from v2 if present, otherwise seed from plan
+    let groups = ensureMuscleGroups();
+
+    // exercises
+    let exercises = loadJSON(LEG_EXERCISES, null);
+    if (!Array.isArray(exercises) || !exercises.length || !exercises[0].id) {
+      // seed from plan names
+      const names = [];
+      Object.keys(seedPlan).forEach(t => seedPlan[t].forEach(ex => names.push(ex.name)));
+      const unique = Array.from(new Set(names.map(x => String(x||'').trim()).filter(Boolean)));
+      exercises = unique.map(nm => {
+        const mgName = guessMuscleGroupName(nm);
+        const mgId = findOrCreateMuscleGroup(groups, mgName);
+        return { id: uid('ex'), name: nm, muscleGroupId: mgId, aliases: [] };
+      }).sort((a,b)=>a.name.localeCompare(b.name,'de'));
+    } else {
+      // convert muscleGroup string to id
+      exercises = exercises.map(ex => {
+        const mgName = ex.muscleGroup || ex.muscleGroupSnapshot || guessMuscleGroupName(ex.name);
+        const mgId = findOrCreateMuscleGroup(groups, mgName);
+        return { id: ex.id, name: ex.name, muscleGroupId: mgId, aliases: Array.isArray(ex.aliases)?ex.aliases:[] };
+      });
+    }
+
+    // templates
+    let templates = loadJSON(LEG_TEMPLATES, null);
+    if (!Array.isArray(templates) || !templates.length || !templates[0].templateId) {
+      // seed templates from plan with lookup by name
+      const byName = new Map(exercises.map(e => [e.name.toLowerCase(), e]));
+      templates = Object.keys(seedPlan).map(dayName => {
+        const items = seedPlan[dayName].map(ex => {
+          const e = byName.get(String(ex.name).toLowerCase());
+          const exerciseId = e ? e.id : uid('ex');
+          return { itemId: uid('it'), exerciseId, plannedSets: ex.sets, targetRepsText: ex.reps, pauseSec: ex.pause };
+        });
+        return { templateId: uid('tpl'), name: dayName, items };
+      });
+    }
+
+    // history
+    let workouts = loadJSON(LEG_HISTORY, []);
+    if (!Array.isArray(workouts)) workouts = [];
+
+    // draft
+    let draft = loadJSON(LEG_DRAFT, null);
+
+    // store v3
+    saveJSON(KEY_MUSCLEGROUPS, groups);
+    saveJSON(KEY_EXERCISES, exercises);
+    saveJSON(KEY_TEMPLATES, templates);
+    saveJSON(KEY_HISTORY, workouts);
+    if (draft) saveJSON(KEY_DRAFT, draft);
+  }
+
+  ensureV3Data();
+
+  // -----------------------
+  // State initialization
+  // -----------------------
+  let state = {
+    view: 'select',
+    muscleGroups: ensureMuscleGroups(),
+    exercises: loadJSON(KEY_EXERCISES, []),
+    templates: loadJSON(KEY_TEMPLATES, []),
+    workouts: loadJSON(KEY_HISTORY, []),
+    bodyweightLogs: loadJSON(KEY_BODYWEIGHT, []),
+    currentWorkout: null,
+    expandedId: null,
+    timer: { active: false, endAt: 0, interval: null, notified: false },
+    modal: null,
+    picker: null,
+    hasDraft: !!localStorage.getItem(KEY_DRAFT),
+    editTemplateId: null,
+    exSearch: '',
+    mgSearch: '',
+    reviewExerciseId: null
+  };
+
+  function persistAll() {
+    saveJSON(KEY_MUSCLEGROUPS, state.muscleGroups);
+    saveJSON(KEY_EXERCISES, state.exercises);
+    saveJSON(KEY_TEMPLATES, state.templates);
+    saveJSON(KEY_HISTORY, state.workouts);
+    saveJSON(KEY_BODYWEIGHT, state.bodyweightLogs);
+  }
+
+  function saveDraft() {
+    if (!state.currentWorkout) return;
+    saveJSON(KEY_DRAFT, state.currentWorkout);
+    state.hasDraft = true;
+  }
+
+  function clearDraft() {
+    localStorage.removeItem(KEY_DRAFT);
+    state.hasDraft = false;
+  }
+
+  function getMuscleGroupNameById(id) {
+    const g = state.muscleGroups.find(x => x.id === id);
+    return g ? g.name : 'Unbekannt';
+  }
+
+  function getMuscleGroupIdByName(name) {
+    const hit = state.muscleGroups.find(g => g.name.toLowerCase() === String(name||'').toLowerCase());
+    return hit ? hit.id : null;
+  }
+
+  function sortMuscleGroups() {
+    state.muscleGroups.sort((a,b)=>(a.order??0)-(b.order??0) || a.name.localeCompare(b.name,'de'));
+  }
+
+  function normalizeWorkout(w) {
+    // accept v2/v3 shape
+    if (!w || typeof w !== 'object') return null;
+    const out = {
+      id: Number(w.id) || Date.now(),
+      date: String(w.date || new Date().toISOString()),
+      templateId: w.templateId || null,
+      kind: w.kind || (w.templateId ? 'template' : 'free'),
+      nameSnapshot: String(w.nameSnapshot || w.type || 'Training'),
+      exercises: Array.isArray(w.exercises) ? w.exercises.map(normalizeExerciseLog).filter(Boolean) : []
+    };
+    return out;
+  }
+
+  function normalizeExerciseLog(ex) {
+    if (!ex || typeof ex !== 'object') return null;
+    const exId = String(ex.exerciseId || ex.id || '');
+    const lib = state.exercises.find(e => e.id === exId);
+    const nameSnapshot = String(ex.nameSnapshot || ex.name || (lib ? lib.name : '')).trim();
+    if (!nameSnapshot) return null;
+
+    const mgId = ex.muscleGroupIdSnapshot || ex.muscleGroupId || (lib ? lib.muscleGroupId : null) || findOrCreateMuscleGroup(state.muscleGroups, guessMuscleGroupName(nameSnapshot));
+    const mgNameSnapshot = String(ex.muscleGroupSnapshot || (mgId ? getMuscleGroupNameById(mgId) : guessMuscleGroupName(nameSnapshot)));
+
+    const pause = Number(ex.pauseSec ?? ex.pause ?? DEFAULT_PAUSE_SEC) || DEFAULT_PAUSE_SEC;
+    const plannedSets = Number(ex.plannedSets ?? ex.setsPlanned ?? ex.planned ?? ex.plannedSetsSnapshot ?? ex.sets ?? DEFAULT_PLANNED_SETS) || DEFAULT_PLANNED_SETS;
+    const targetRepsText = String(ex.targetRepsText || ex.repsTargetSnapshot || ex.reps || DEFAULT_TARGET);
+
+    const rawSets = Array.isArray(ex.sets) ? ex.sets : (Array.isArray(ex.completed) ? ex.completed : []);
+    const sets = rawSets.map(s => ({
+      reps: s.reps === null || s.reps === '' ? null : clampInt(parseInt(s.reps,10), 1, 25),
+      weight: parseDecimalDE(s.weight)
+    }));
+    while (sets.length < plannedSets) sets.push({ reps: null, weight: null });
+
+    return {
+      logId: String(ex.logId || uid('log')),
+      exerciseId: exId || (lib ? lib.id : uid('ex')),
+      nameSnapshot,
+      muscleGroupIdSnapshot: mgId,
+      muscleGroupSnapshot: mgNameSnapshot,
+      plannedSets,
+      targetRepsText,
+      pauseSec: pause,
+      sets
+    };
+  }
+
+  function normalizeAllWorkouts() {
+    state.workouts = (state.workouts || []).map(normalizeWorkout).filter(Boolean);
+    saveJSON(KEY_HISTORY, state.workouts);
+  }
+
+  normalizeAllWorkouts();
+
+  function go(view) { state.view = view; render(); }
+
+  // -----------------------
+  // Start / resume workouts
+  // -----------------------
+  function startTemplateWorkout(templateId, opts={}) {
+    const tpl = state.templates.find(t => t.templateId === templateId);
+    if (!tpl) return;
+
+    const exById = new Map(state.exercises.map(e => [e.id, e]));
+    const exercises = (tpl.items || []).map(item => {
+      const e = exById.get(item.exerciseId);
+      const name = e ? e.name : 'Unbekannte Übung';
+      const mgId = e ? e.muscleGroupId : findOrCreateMuscleGroup(state.muscleGroups, guessMuscleGroupName(name));
+      const mgName = getMuscleGroupNameById(mgId);
+      const plannedSets = Number(item.plannedSets) || DEFAULT_PLANNED_SETS;
+      const sets = Array(plannedSets).fill(null).map(() => ({ reps: null, weight: null }));
+      return {
+        logId: uid('log'),
+        exerciseId: item.exerciseId,
+        nameSnapshot: name,
+        muscleGroupIdSnapshot: mgId,
+        muscleGroupSnapshot: mgName,
+        plannedSets,
+        targetRepsText: String(item.targetRepsText || DEFAULT_TARGET),
+        pauseSec: Number(item.pauseSec) || DEFAULT_PAUSE_SEC,
+        sets
+      };
+    });
+
+    state.currentWorkout = {
+      id: Date.now(),
+      date: opts.date || new Date().toISOString(),
+      templateId: tpl.templateId,
+      kind: opts.kind || 'template',
+      nameSnapshot: opts.nameSnapshot || tpl.name,
+      exercises
+    };
+    state.view = 'workout';
+    saveDraft();
+    render();
+  }
+
+  function startFreeWorkout(opts={}) {
+    state.currentWorkout = {
+      id: Date.now(),
+      date: opts.date || new Date().toISOString(),
+      templateId: null,
+      kind: opts.kind || 'free',
+      nameSnapshot: opts.nameSnapshot || 'Freies Training',
+      exercises: []
+    };
+    state.view = 'workout';
+    saveDraft();
+    render();
+  }
+
+  function resumeDraft() {
+    const d = loadJSON(KEY_DRAFT, null);
+    if (!d) { state.hasDraft = false; return render(); }
+    state.currentWorkout = normalizeWorkout(d);
+    state.view = 'workout';
+    render();
+  }
+
+  function editWorkoutMeta() {
+    if (!state.currentWorkout) return;
+    state.modal = {
+      type: 'edit_workout_meta',
+      name: state.currentWorkout.nameSnapshot || 'Training',
+      datetimeLocal: formatDateTimeLocal(state.currentWorkout.date || new Date().toISOString())
+    };
+    render();
+  }
+
+  function saveWorkoutMeta() {
+    if (!state.modal || state.modal.type !== 'edit_workout_meta') return;
+    const name = String(state.modal.name || '').trim();
+    const iso = parseDateTimeLocal(state.modal.datetimeLocal);
+    if (name) state.currentWorkout.nameSnapshot = name;
+    if (iso) state.currentWorkout.date = iso;
+    saveDraft();
+    state.modal = null;
+    render();
+  }
+
+  function finishWorkout() {
+    if (!confirm("Training wirklich speichern?")) return;
+
+    const w = normalizeWorkout(state.currentWorkout);
+    if (!w) { alert("Training konnte nicht gespeichert werden."); return; }
+
+    state.workouts.unshift(w);
+    saveJSON(KEY_HISTORY, state.workouts);
+    clearDraft();
+    stopTimer();
+    state.currentWorkout = null;
+    state.view = 'history';
+    render();
+  }
+
+  function cancelWorkout() {
+    if (!confirm("Training abbrechen? Fortschritt bleibt als Draft gespeichert (Fortsetzen möglich).")) return;
+    stopTimer();
+    state.currentWorkout = null;
+    state.view = 'select';
+    render();
+  }
+
+  // -----------------------
+  // Exercise picker / add / replace
+  // -----------------------
+  function openExercisePicker(context, templateId=null, replaceLogId=null) {
+    state.picker = { context, templateId, replaceLogId, search: '', groupId: null };
+    render();
+  }
+  function closeExercisePicker() { state.picker = null; render(); }
+  function setPickerSearch(v) { if (!state.picker) return; state.picker.search = v; render(); }
+  function setPickerGroup(gid) { if (!state.picker) return; state.picker.groupId = gid; render(); }
+
+  function pickExercise(exerciseId) {
+    if (!state.picker) return;
+    if (state.picker.context === 'workout_add') addExerciseToCurrentWorkout(exerciseId);
+    else if (state.picker.context === 'workout_replace') replaceExerciseInCurrentWorkout(state.picker.replaceLogId, exerciseId);
+    else if (state.picker.context === 'template_add') addExerciseToTemplate(state.picker.templateId, exerciseId);
+    closeExercisePicker();
+  }
+
+  function openNewExerciseModal(context, templateId=null, replaceLogId=null) {
+    state.modal = { type: 'new_exercise', context, templateId, replaceLogId, name: '', muscleGroupId: state.muscleGroups[0]?.id || null };
+    render();
+  }
+
+  function updateModalField(field, value) {
+    if (!state.modal) return;
+    state.modal[field] = value;
+  }
+
+  function createExerciseFromModal() {
+    if (!state.modal || state.modal.type !== 'new_exercise') return;
+    const name = String(state.modal.name || '').trim();
+    const mgId = String(state.modal.muscleGroupId || '');
+    if (!name || !mgId) return;
+
+    const existing = state.exercises.find(e => e.name.toLowerCase() === name.toLowerCase() && e.muscleGroupId === mgId);
+    const exId = existing ? existing.id : uid('ex');
+
+    if (!existing) {
+      state.exercises.push({ id: exId, name, muscleGroupId: mgId, aliases: [] });
+      saveJSON(KEY_EXERCISES, state.exercises);
+    }
+
+    const ctx = state.modal.context;
+    const tplId = state.modal.templateId;
+    const replaceLogId = state.modal.replaceLogId;
+    state.modal = null;
+
+    if (ctx === 'workout_add') addExerciseToCurrentWorkout(exId);
+    if (ctx === 'workout_replace') replaceExerciseInCurrentWorkout(replaceLogId, exId);
+    if (ctx === 'template_add') addExerciseToTemplate(tplId, exId);
+
+    render();
+  }
+
+  function addExerciseToCurrentWorkout(exerciseId) {
+    if (!state.currentWorkout) return;
+    const ex = state.exercises.find(e => e.id === exerciseId);
+    if (!ex) return;
+
+    const plannedSets = DEFAULT_PLANNED_SETS;
+    const sets = Array(plannedSets).fill(null).map(() => ({ reps: null, weight: null }));
+    state.currentWorkout.exercises.push({
+      logId: uid('log'),
+      exerciseId: ex.id,
+      nameSnapshot: ex.name,
+      muscleGroupIdSnapshot: ex.muscleGroupId,
+      muscleGroupSnapshot: getMuscleGroupNameById(ex.muscleGroupId),
+      plannedSets,
+      targetRepsText: DEFAULT_TARGET,
+      pauseSec: DEFAULT_PAUSE_SEC,
+      sets
+    });
+
+    saveDraft();
+    render();
+  }
+
+  function addExerciseToTemplate(templateId, exerciseId) {
+    const tpl = state.templates.find(t => t.templateId === templateId);
+    if (!tpl) return;
+    tpl.items = tpl.items || [];
+    tpl.items.push({ itemId: uid('it'), exerciseId, plannedSets: DEFAULT_PLANNED_SETS, targetRepsText: DEFAULT_TARGET, pauseSec: DEFAULT_PAUSE_SEC });
+    saveJSON(KEY_TEMPLATES, state.templates);
+    render();
+  }
+
+  function removeExerciseFromWorkout(logId) {
+    if (!state.currentWorkout) return;
+    if (!confirm("Übung aus dem Training entfernen?")) return;
+    state.currentWorkout.exercises = (state.currentWorkout.exercises || []).filter(x => x.logId !== logId);
+    saveDraft();
+    render();
+  }
+
+  function replaceExerciseInCurrentWorkout(logId, exerciseId) {
+    if (!state.currentWorkout) return;
+    const lid = String(logId || '');
+    if (!lid) return;
+    const exLog = (state.currentWorkout.exercises || []).find(x => x.logId === lid);
+    if (!exLog) return;
+
+    const ex = state.exercises.find(e => e.id === exerciseId);
+    if (!ex) return;
+
+    if (!confirm("Übung ersetzen? Bereits eingetragene Sätze für diese Übung werden zurückgesetzt.")) return;
+
+    exLog.exerciseId = ex.id;
+    exLog.nameSnapshot = ex.name;
+    exLog.muscleGroupIdSnapshot = ex.muscleGroupId;
+    exLog.muscleGroupSnapshot = getMuscleGroupNameById(ex.muscleGroupId);
+
+    const planned = Number(exLog.plannedSets) || DEFAULT_PLANNED_SETS;
+    exLog.plannedSets = planned;
+    exLog.pauseSec = Number(exLog.pauseSec) || DEFAULT_PAUSE_SEC;
+    exLog.targetRepsText = exLog.targetRepsText || DEFAULT_TARGET;
+    exLog.sets = Array(planned).fill(null).map(() => ({ reps: null, weight: null }));
+
+    saveDraft();
+    render();
+  }
+
+  function addSet(logId) {
+    const ex = state.currentWorkout.exercises.find(x => x.logId === logId);
+    if (!ex) return;
+    ex.sets.push({ reps: null, weight: null });
+    saveDraft();
+    render();
+  }
+
+  function removeSet(logId, setIdx) {
+    const ex = state.currentWorkout.exercises.find(x => x.logId === logId);
+    if (!ex) return;
+    if (ex.sets.length <= 1) return;
+    ex.sets.splice(setIdx, 1);
+    saveDraft();
+    render();
+  }
+
+  function updateReps(logId, setIdx, value) {
+    const ex = state.currentWorkout.exercises.find(x => x.logId === logId);
+    if (!ex) return;
+    const v = value === '' ? null : clampInt(parseInt(value, 10), 1, 25);
+    ex.sets[setIdx].reps = v;
+    saveDraft();
+  }
+
+  function updateWeight(logId, setIdx, value) {
+    const ex = state.currentWorkout.exercises.find(x => x.logId === logId);
+    if (!ex) return;
+    const n = parseDecimalDE(value);
+    ex.sets[setIdx].weight = n;
+    saveDraft();
+  }
+
+  function normalizeWeightInput(el) {
+    const n = parseDecimalDE(el.value);
+    el.value = n === null ? '' : formatDecimalDE(n, 2);
+  }
+
+  function editPause(logId) {
+    const ex = state.currentWorkout.exercises.find(x => x.logId === logId);
+    if (!ex) return;
+    const val = prompt("Pause in Sekunden:", String(ex.pauseSec || DEFAULT_PAUSE_SEC));
+    if (val === null) return;
+    const n = clampInt(parseInt(val,10), 0, 9999);
+    if (n === null) { alert("Ungültige Sekunden."); return; }
+    ex.pauseSec = n;
+    saveDraft();
+    render();
+  }
+
+  function editTarget(logId) {
+    const ex = state.currentWorkout.exercises.find(x => x.logId === logId);
+    if (!ex) return;
+    const val = prompt("Wdh-Ziel (z.B. 8-12):", String(ex.targetRepsText || DEFAULT_TARGET));
+    if (val === null) return;
+    ex.targetRepsText = String(val).trim();
+    saveDraft();
+    render();
+  }
+
+  function getLastExercisePerformance(exerciseId) {
+    for (const w of state.workouts) {
+      const ex = (w.exercises || []).find(e => e.exerciseId === exerciseId);
+      if (!ex) continue;
+      const done = (ex.sets || []).filter(isSetDone);
+      if (!done.length) continue;
+      return { date: w.date, sets: done.map(s => ({ reps: s.reps, weight: s.weight })), topE1RM: exerciseTopE1RM(ex) };
+    }
+    return null;
+  }
+
+  // -----------------------
+  // Timer (endAt based)
+  // -----------------------
+  function tickTimer() {
+    if (!state.timer.active) return;
+    const now = Date.now();
+    if (now >= state.timer.endAt) {
+      if (!state.timer.notified) {
+        state.timer.notified = true;
+        playTimerBeep();
+        stopTimer(false);
+        try { if (navigator.vibrate) navigator.vibrate([120, 60, 120]); } catch {}
+        showToast("Pause vorbei! Weiter geht's!", 3200);
+      } else {
+        stopTimer(false);
+      }
+    }
+    renderTimer();
+  }
+
+  function startTimer(seconds) {
+    const sec = Number(seconds) || 0;
+    stopTimer(false);
+    if (sec <= 0) { renderTimer(); return; }
+    state.timer.active = true;
+    state.timer.notified = false;
+    state.timer.endAt = Date.now() + sec * 1000;
+    renderTimer();
+    state.timer.interval = setInterval(tickTimer, 250);
+  }
+
+  function stopTimer(renderNow=true) {
+    if (state.timer.interval) clearInterval(state.timer.interval);
+    state.timer.active = false;
+    state.timer.endAt = 0;
+    state.timer.interval = null;
+    state.timer.notified = false;
+    if (renderNow) renderTimer();
+  }
+
+  function addTime(seconds) {
+    const add = Number(seconds) || 0;
+    if (!state.timer.active) {
+      if (add > 0) startTimer(add);
+      return;
+    }
+    state.timer.endAt += add * 1000;
+    renderTimer();
+  }
+
+  function getTimeLeftSec() {
+    if (!state.timer.active) return 0;
+    const ms = state.timer.endAt - Date.now();
+    return Math.max(0, Math.ceil(ms / 1000));
+  }
+
+  function formatTime(seconds) {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m}:${s < 10 ? '0' : ''}${s}`;
+  }
+
+  function renderTimer() {
+    const timerEl = document.getElementById('timer-bar');
+    if (!timerEl) return;
+    const left = getTimeLeftSec();
+    timerEl.style.display = 'flex';
+    timerEl.innerHTML = `
+      <div class="timer-display">${state.timer.active ? formatTime(left) : '--:--'}</div>
+      <div class="timer-controls">
+        ${state.timer.active
+          ? `<button class="btn-small" style="background:#ef4444; color:white" data-action="timer_stop">Stop</button>
+             <button class="btn-small" style="background:#334155; color:white" data-action="timer_add" data-seconds="30">+30s</button>`
+          : `<span class="muted small">Pausentimer inaktiv</span>`
+        }
+      </div>
+    `;
+  }
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') {
+      if (state.currentWorkout) saveDraft();
+    } else {
+      // re-evaluate timer after coming back
+      if (state.timer.active) tickTimer();
+    }
+  });
+
+
+  // -----------------------
+  // Event delegation (first step)
+  // -----------------------
+  document.addEventListener('click', (e) => {
+    const el = e.target && e.target.closest ? e.target.closest('[data-action]') : null;
+    if (!el) return;
+    const action = el.getAttribute('data-action');
+    if (action === 'timer_stop') { stopTimer(); return; }
+    if (action === 'timer_add') {
+      const sec = Number(el.getAttribute('data-seconds') || 0);
+      addTime(sec);
+      return;
+    }
+  });
+
+  // -----------------------
+  // History
+  // -----------------------
+  function toggleHistory(id) { state.expandedId = state.expandedId === id ? null : id; render(); }
+
+  function deleteWorkout(id) {
+    if (!confirm("Dieses Training wirklich löschen?")) return;
+    state.workouts = state.workouts.filter(w => w.id !== id);
+    if (state.expandedId === id) state.expandedId = null;
+    saveJSON(KEY_HISTORY, state.workouts);
+    render();
+  }
+
+  function openManualAddModal() {
+    state.modal = {
+      type: 'manual_add',
+      datetimeLocal: formatDateTimeLocal(new Date().toISOString()),
+      mode: 'free', // free | template
+      templateId: state.templates[0]?.templateId || '',
+      name: 'Manuell'
+    };
+    render();
+  }
+
+  function startManualFromModal() {
+    if (!state.modal || state.modal.type !== 'manual_add') return;
+    const iso = parseDateTimeLocal(state.modal.datetimeLocal) || new Date().toISOString();
+    const mode = state.modal.mode;
+    const name = String(state.modal.name || 'Manuell').trim() || 'Manuell';
+    const tplId = String(state.modal.templateId || '');
+    state.modal = null;
+
+    if (mode === 'template' && tplId) startTemplateWorkout(tplId, { kind: 'manual', date: iso, nameSnapshot: name });
+    else startFreeWorkout({ kind: 'manual', date: iso, nameSnapshot: name });
+  }
+
+  // -----------------------
+  // Bodyweight
+  // -----------------------
+  function openBodyweight() { state.view = 'bodyweight'; render(); }
+
+  function openBodyweightAddModal() {
+    state.modal = {
+      type: 'bodyweight_add',
+      datetimeLocal: formatDateTimeLocal(new Date().toISOString()),
+      weight: '',
+      note: ''
+    };
+    render();
+  }
+
+  function saveBodyweight() {
+    if (!state.modal || state.modal.type !== 'bodyweight_add') return;
+    const iso = parseDateTimeLocal(state.modal.datetimeLocal) || new Date().toISOString();
+    const w = parseDecimalDE(state.modal.weight);
+    if (w === null) { alert("Bitte ein gültiges Gewicht eingeben."); return; }
+    const note = String(state.modal.note || '').trim();
+
+    state.bodyweightLogs.unshift({ id: uid('bw'), date: iso, weightKg: w, note });
+    state.bodyweightLogs.sort((a,b)=>new Date(b.date)-new Date(a.date));
+    saveJSON(KEY_BODYWEIGHT, state.bodyweightLogs);
+    state.modal = null;
+    render();
+  }
+
+  function deleteBodyweight(id) {
+    if (!confirm("Eintrag löschen?")) return;
+    state.bodyweightLogs = state.bodyweightLogs.filter(x => x.id !== id);
+    saveJSON(KEY_BODYWEIGHT, state.bodyweightLogs);
+    render();
+  }
+
+  // -----------------------
+  // Exercises management
+  // -----------------------
+  function openExerciseEditModal(exId) {
+    const ex = state.exercises.find(e => e.id === exId);
+    if (!ex) return;
+    state.modal = { type: 'edit_exercise', exId, name: ex.name, muscleGroupId: ex.muscleGroupId };
+    render();
+  }
+
+  function saveExerciseEdits() {
+    if (!state.modal || state.modal.type !== 'edit_exercise') return;
+    const ex = state.exercises.find(e => e.id === state.modal.exId);
+    if (!ex) return;
+
+    const newName = String(state.modal.name || '').trim();
+    const newMgId = String(state.modal.muscleGroupId || '');
+    if (!newName || !newMgId) return;
+
+    if (newName !== ex.name) {
+      ex.aliases = Array.isArray(ex.aliases) ? ex.aliases : [];
+      ex.aliases.push(ex.name);
+      ex.aliases = Array.from(new Set(ex.aliases.map(x => String(x).trim()).filter(Boolean)));
+    }
+
+    ex.name = newName;
+    ex.muscleGroupId = newMgId;
+
+    // update snapshots for readability
+    const mgName = getMuscleGroupNameById(newMgId);
+    state.workouts.forEach(w => (w.exercises||[]).forEach(log => {
+      if (log.exerciseId === ex.id) {
+        log.nameSnapshot = ex.name;
+        log.muscleGroupIdSnapshot = newMgId;
+        log.muscleGroupSnapshot = mgName;
+      }
+    }));
+    if (state.currentWorkout) {
+      state.currentWorkout.exercises.forEach(log => {
+        if (log.exerciseId === ex.id) {
+          log.nameSnapshot = ex.name;
+          log.muscleGroupIdSnapshot = newMgId;
+          log.muscleGroupSnapshot = mgName;
+        }
+      });
+      saveDraft();
+    }
+
+    saveJSON(KEY_EXERCISES, state.exercises);
+    saveJSON(KEY_HISTORY, state.workouts);
+    state.modal = null;
+    render();
+  }
+
+  function canDeleteExercise(exId) {
+    const inTemplates = state.templates.some(t => (t.items||[]).some(it => it.exerciseId === exId));
+    const inHistory = state.workouts.some(w => (w.exercises||[]).some(log => log.exerciseId === exId));
+    const inDraft = state.currentWorkout && state.currentWorkout.exercises.some(log => log.exerciseId === exId);
+    return !(inTemplates || inHistory || inDraft);
+  }
+
+  function deleteExercise(exId) {
+    if (!canDeleteExercise(exId)) {
+      alert("Diese Übung wird in Templates oder Historie verwendet. Bitte nutze Merge statt Löschen.");
+      return;
+    }
+    if (!confirm("Übung wirklich löschen?")) return;
+    state.exercises = state.exercises.filter(e => e.id !== exId);
+    saveJSON(KEY_EXERCISES, state.exercises);
+    render();
+  }
+
+  function openMergeModal(sourceId=null) {
+    state.modal = { type: 'merge_exercise', sourceId: sourceId || '', targetId: '' };
+    render();
+  }
+
+  function doMerge() {
+    if (!state.modal || state.modal.type !== 'merge_exercise') return;
+    const sourceId = String(state.modal.sourceId || '');
+    const targetId = String(state.modal.targetId || '');
+    if (!sourceId || !targetId || sourceId === targetId) return;
+
+    const source = state.exercises.find(e => e.id === sourceId);
+    const target = state.exercises.find(e => e.id === targetId);
+    if (!source || !target) return;
+
+    if (!confirm("Merge durchführen? Historie, Templates und Draft werden umgebogen.")) return;
+
+    // templates
+    state.templates.forEach(t => (t.items||[]).forEach(it => { if (it.exerciseId === sourceId) it.exerciseId = targetId; }));
+    // history
+    const mgName = getMuscleGroupNameById(target.muscleGroupId);
+    state.workouts.forEach(w => (w.exercises||[]).forEach(log => {
+      if (log.exerciseId === sourceId) {
+        log.exerciseId = targetId;
+        log.nameSnapshot = target.name;
+        log.muscleGroupIdSnapshot = target.muscleGroupId;
+        log.muscleGroupSnapshot = mgName;
+      }
+    }));
+    // draft
+    if (state.currentWorkout) {
+      state.currentWorkout.exercises.forEach(log => {
+        if (log.exerciseId === sourceId) {
+          log.exerciseId = targetId;
+          log.nameSnapshot = target.name;
+          log.muscleGroupIdSnapshot = target.muscleGroupId;
+          log.muscleGroupSnapshot = mgName;
+        }
+      });
+      saveDraft();
+    }
+    // aliases
+    target.aliases = Array.isArray(target.aliases) ? target.aliases : [];
+    target.aliases.push(source.name);
+    (source.aliases || []).forEach(a => target.aliases.push(a));
+    target.aliases = Array.from(new Set(target.aliases.map(x => String(x).trim()).filter(Boolean)));
+
+    // remove source
+    state.exercises = state.exercises.filter(e => e.id !== sourceId);
+
+    saveJSON(KEY_EXERCISES, state.exercises);
+    saveJSON(KEY_TEMPLATES, state.templates);
+    saveJSON(KEY_HISTORY, state.workouts);
+
+    state.modal = null;
+    render();
+  }
+
+  // -----------------------
+  // Muscle Groups management
+  // -----------------------
+  function openMuscleGroups() { state.view = 'muscle_groups'; render(); }
+
+  function openMuscleGroupAddModal() {
+    state.modal = { type: 'mg_add', name: '' };
+    render();
+  }
+
+  function addMuscleGroup() {
+    if (!state.modal || state.modal.type !== 'mg_add') return;
+    const name = String(state.modal.name || '').trim();
+    if (!name) return;
+    if (state.muscleGroups.some(g => g.name.toLowerCase() === name.toLowerCase())) {
+      alert("Diese Muskelgruppe existiert bereits.");
+      return;
+    }
+    const maxOrder = state.muscleGroups.reduce((m,g)=>Math.max(m, Number(g.order)||0), 0);
+    state.muscleGroups.push({ id: uid('mg'), name, order: maxOrder + 1 });
+    sortMuscleGroups();
+    saveJSON(KEY_MUSCLEGROUPS, state.muscleGroups);
+    state.modal = null;
+    render();
+  }
+
+  function openMuscleGroupEditModal(id) {
+    const g = state.muscleGroups.find(x => x.id === id);
+    if (!g) return;
+    state.modal = { type: 'mg_edit', id, name: g.name };
+    render();
+  }
+
+  function saveMuscleGroupEdit() {
+    if (!state.modal || state.modal.type !== 'mg_edit') return;
+    const g = state.muscleGroups.find(x => x.id === state.modal.id);
+    if (!g) return;
+    const name = String(state.modal.name || '').trim();
+    if (!name) return;
+    if (state.muscleGroups.some(x => x.id !== g.id && x.name.toLowerCase() === name.toLowerCase())) {
+      alert("Name bereits vergeben.");
+      return;
+    }
+    g.name = name;
+    saveJSON(KEY_MUSCLEGROUPS, state.muscleGroups);
+    state.modal = null;
+    render();
+  }
+
+  function moveMuscleGroup(id, dir) {
+    const idx = state.muscleGroups.findIndex(x => x.id === id);
+    if (idx < 0) return;
+    const j = idx + dir;
+    if (j < 0 || j >= state.muscleGroups.length) return;
+    const a = state.muscleGroups[idx], b = state.muscleGroups[j];
+    const tmp = a.order; a.order = b.order; b.order = tmp;
+    sortMuscleGroups();
+    saveJSON(KEY_MUSCLEGROUPS, state.muscleGroups);
+    render();
+  }
+
+  function canDeleteMuscleGroup(id) {
+    return !state.exercises.some(e => e.muscleGroupId === id);
+  }
+
+  function deleteMuscleGroup(id) {
+    if (!canDeleteMuscleGroup(id)) {
+      alert("Diese Muskelgruppe wird von Übungen verwendet. Ändere zuerst die betroffenen Übungen.");
+      return;
+    }
+    if (!confirm("Muskelgruppe wirklich löschen?")) return;
+    state.muscleGroups = state.muscleGroups.filter(g => g.id !== id);
+    saveJSON(KEY_MUSCLEGROUPS, state.muscleGroups);
+    render();
+  }
+
+  // -----------------------
+  // Templates management
+  // -----------------------
+  function openTemplates() { state.view = 'templates'; state.editTemplateId = null; render(); }
+  function openTemplateEdit(templateId) { state.view = 'template_edit'; state.editTemplateId = templateId; render(); }
+
+  function renameTemplate(templateId) {
+    const tpl = state.templates.find(t => t.templateId === templateId);
+    if (!tpl) return;
+    const val = prompt("Neuer Name für den Tag:", tpl.name);
+    if (val === null) return;
+    const n = String(val).trim();
+    if (!n) return;
+    tpl.name = n;
+    saveJSON(KEY_TEMPLATES, state.templates);
+    render();
+  }
+
+  function createTemplate() {
+    const name = prompt("Name des neuen Tags (Template):", "Neuer Tag");
+    if (name === null) return;
+    const n = String(name).trim();
+    if (!n) return;
+    state.templates.push({ templateId: uid('tpl'), name: n, items: [] });
+    saveJSON(KEY_TEMPLATES, state.templates);
+    render();
+  }
+
+  function deleteTemplate(templateId) {
+    if (!confirm("Template wirklich löschen? Historie bleibt erhalten.")) return;
+    state.templates = state.templates.filter(t => t.templateId !== templateId);
+    if (state.editTemplateId === templateId) state.editTemplateId = null;
+    saveJSON(KEY_TEMPLATES, state.templates);
+    render();
+  }
+
+  function duplicateTemplate(templateId) {
+    const tpl = state.templates.find(t => t.templateId === templateId);
+    if (!tpl) return;
+    const newName = prompt("Name der Kopie:", tpl.name + " (Kopie)");
+    if (newName === null) return;
+    const n = String(newName).trim();
+    if (!n) return;
+    const copy = { templateId: uid('tpl'), name: n, items: (tpl.items||[]).map(it => ({...it, itemId: uid('it')})) };
+    state.templates.push(copy);
+    saveJSON(KEY_TEMPLATES, state.templates);
+    render();
+  }
+
+  function moveTemplateItem(templateId, itemId, dir) {
+    const tpl = state.templates.find(t => t.templateId === templateId);
+    if (!tpl) return;
+    const idx = (tpl.items||[]).findIndex(x => x.itemId === itemId);
+    if (idx < 0) return;
+    const j = idx + dir;
+    if (j < 0 || j >= tpl.items.length) return;
+    const arr = tpl.items;
+    const tmp = arr[idx]; arr[idx] = arr[j]; arr[j] = tmp;
+    saveJSON(KEY_TEMPLATES, state.templates);
+    render();
+  }
+
+  function removeTemplateItem(templateId, itemId) {
+    const tpl = state.templates.find(t => t.templateId === templateId);
+    if (!tpl) return;
+    if (!confirm("Übung aus dem Template entfernen?")) return;
+    tpl.items = (tpl.items||[]).filter(x => x.itemId !== itemId);
+    saveJSON(KEY_TEMPLATES, state.templates);
+    render();
+  }
+
+  function updateTemplateItem(templateId, itemId, field, value) {
+    const tpl = state.templates.find(t => t.templateId === templateId);
+    if (!tpl) return;
+    const it = (tpl.items||[]).find(x => x.itemId === itemId);
+    if (!it) return;
+
+    if (field === 'plannedSets') {
+      const n = clampInt(parseInt(value,10), 0, 50);
+      it.plannedSets = n === null ? it.plannedSets : n;
+    } else if (field === 'pauseSec') {
+      const n = clampInt(parseInt(value,10), 0, 9999);
+      it.pauseSec = n === null ? it.pauseSec : n;
+    } else if (field === 'targetRepsText') {
+      it.targetRepsText = String(value || '').trim();
+    }
+    saveJSON(KEY_TEMPLATES, state.templates);
+  }
+
+  // -----------------------
+  // Review
+  // -----------------------
+  function workoutsWithinDays(days) {
+    const cutoff = new Date(Date.now() - days*24*60*60*1000);
+    return state.workouts.filter(w => new Date(w.date) >= cutoff);
+  }
+
+  function buildPRIndex() {
+    const pr = new Map();
+    for (const w of state.workouts) {
+      for (const ex of (w.exercises||[])) {
+        const done = (ex.sets||[]).filter(isSetDone);
+        if (!done.length) continue;
+        const top = exerciseTopE1RM(ex);
+        if (!Number.isFinite(top)) continue;
+        const prev = pr.get(ex.exerciseId);
+        if (!Number.isFinite(prev) || top > prev) pr.set(ex.exerciseId, top);
+      }
+    }
+    return pr;
+  }
+
+  function volumeByMuscle(days) {
+    const ws = workoutsWithinDays(days);
+    const map = new Map(state.muscleGroups.map(g => [g.id, 0]));
+    for (const w of ws) {
+      for (const ex of (w.exercises||[])) {
+        const gid = ex.muscleGroupIdSnapshot || getMuscleGroupIdByName(ex.muscleGroupSnapshot);
+        if (!gid) continue;
+        let v = 0;
+        (ex.sets||[]).forEach(s => { if (isSetDone(s)) v += s.weight * s.reps; });
+        map.set(gid, (map.get(gid) || 0) + v);
+      }
+    }
+    return map;
+  }
+
+  function lastBodyweight() {
+    if (!Array.isArray(state.bodyweightLogs) || !state.bodyweightLogs.length) return null;
+    const sorted = state.bodyweightLogs.slice().sort((a,b)=>new Date(b.date)-new Date(a.date));
+    return sorted[0];
+  }
+
+  // -----------------------
+  // Export / Import (Backup)
+  // -----------------------
+  function exportData() {
+    const payload = {
+      version: 3,
+      exportedAt: new Date().toISOString(),
+      muscleGroups: state.muscleGroups,
+      exercises: state.exercises,
+      templates: state.templates,
+      workouts: state.workouts,
+      bodyweightLogs: state.bodyweightLogs
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `hypertrophie-tracker-backup-${new Date().toISOString().slice(0,10)}.json`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  function triggerImport() {
+    const input = document.getElementById('import-file');
+    if (input) input.click();
+  }
+
+  function migrateImportedToV3(data) {
+    if (!data || typeof data !== 'object') return null;
+    // If already v3
+    if (data.version === 3 && Array.isArray(data.exercises) && Array.isArray(data.templates) && Array.isArray(data.workouts)) {
+      return {
+        muscleGroups: Array.isArray(data.muscleGroups) ? data.muscleGroups : ensureMuscleGroups(),
+        exercises: data.exercises,
+        templates: data.templates,
+        workouts: data.workouts,
+        bodyweightLogs: Array.isArray(data.bodyweightLogs) ? data.bodyweightLogs : []
+      };
+    }
+
+    // v2: exercises have muscleGroup string
+    if ((data.version === 2 || !data.version) && Array.isArray(data.exercises) && Array.isArray(data.templates) && Array.isArray(data.workouts)) {
+      const groups = ensureMuscleGroups().slice();
+      // create additional groups from v2 content
+      data.exercises.forEach(ex => { findOrCreateMuscleGroup(groups, ex.muscleGroup || guessMuscleGroupName(ex.name)); });
+      data.workouts.forEach(w => (w.exercises||[]).forEach(ex => { findOrCreateMuscleGroup(groups, ex.muscleGroupSnapshot || ex.muscleGroup || guessMuscleGroupName(ex.nameSnapshot||ex.name)); }));
+      // convert exercises
+      const exercises = data.exercises.map(ex => ({
+        id: ex.id || uid('ex'),
+        name: ex.name || 'Übung',
+        muscleGroupId: findOrCreateMuscleGroup(groups, ex.muscleGroup || guessMuscleGroupName(ex.name)),
+        aliases: Array.isArray(ex.aliases)?ex.aliases:[]
+      }));
+      // templates stay
+      const templates = data.templates.map(t => ({
+        templateId: t.templateId || uid('tpl'),
+        name: t.name || t.displayName || 'Tag',
+        items: (t.items||[]).map(it => ({
+          itemId: it.itemId || uid('it'),
+          exerciseId: it.exerciseId,
+          plannedSets: Number(it.plannedSets) || DEFAULT_PLANNED_SETS,
+          targetRepsText: String(it.targetRepsText || DEFAULT_TARGET),
+          pauseSec: Number(it.pauseSec) || DEFAULT_PAUSE_SEC
+        }))
+      }));
+      // workouts keep, normalize later
+      const workouts = data.workouts.map(w => w);
+
+      return { muscleGroups: groups, exercises, templates, workouts, bodyweightLogs: [] };
+    }
+    return null;
+  }
+
+  function handleImportFile(ev) {
+    const file = ev.target.files && ev.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const data = JSON.parse(reader.result);
+        const migrated = migrateImportedToV3(data);
+        if (!migrated) throw new Error('invalid');
+
+        if (!confirm("Import ersetzt deine aktuellen Daten. Fortfahren?")) return;
+
+        state.muscleGroups = migrated.muscleGroups;
+        state.exercises = migrated.exercises;
+        state.templates = migrated.templates;
+        state.workouts = migrated.workouts;
+        state.bodyweightLogs = migrated.bodyweightLogs;
+
+        saveJSON(KEY_MUSCLEGROUPS, state.muscleGroups);
+        saveJSON(KEY_EXERCISES, state.exercises);
+        saveJSON(KEY_TEMPLATES, state.templates);
+        saveJSON(KEY_HISTORY, state.workouts);
+        saveJSON(KEY_BODYWEIGHT, state.bodyweightLogs);
+
+        normalizeAllWorkouts();
+
+        alert("Import erfolgreich.");
+        state.view = 'select';
+        state.currentWorkout = null;
+        state.modal = null;
+        state.picker = null;
+        clearDraft();
+        render();
+      } catch (e) {
+        alert("Import fehlgeschlagen. Datei ist kein gültiges Backup.");
+      } finally {
+        ev.target.value = '';
+      }
+    };
+    reader.readAsText(file);
+  }
+
+  // -----------------------
+  // Rendering
+  // -----------------------
+  function renderSelect() {
+    const templateButtons = state.templates
+      .slice()
+      .sort((a,b)=>a.name.localeCompare(b.name,'de'))
+      .map(t => `
+        <button class="btn" onclick="startTemplateWorkout('${t.templateId}')">
+          <span>${escapeHtml(t.name)}</span><span style="opacity:0.6">→</span>
+        </button>
+      `).join('');
+
+    const bw = lastBodyweight();
+    const bwLine = bw ? `Letztes Körpergewicht: ${formatDecimalDE(bw.weightKg, 1)} kg (${formatDate(bw.date)})` : 'Körpergewicht: -';
+
+    return `
+      <div class="container">
+        <div class="header">
+          <h1>🔥 Dein Tracker</h1>
+          <div class="muted">Wähle deine heutige Session</div>
+        </div>
+
+        ${state.hasDraft ? `
+          <button class="btn btn-success" onclick="resumeDraft()">
+            <span>▶️ Training fortsetzen (Draft)</span><span style="opacity:0.7">→</span>
+          </button>
+        ` : ''}
+
+        ${templateButtons}
+
+        <button class="btn btn-secondary" onclick="startFreeWorkout()">
+          <span>🆓 Freies Training</span><span style="opacity:0.7">→</span>
+        </button>
+
+        <div style="margin-top:16px">
+          <button class="btn btn-secondary" onclick="go('history')">
+            <span>📜 Verlauf</span><span style="opacity:0.7">→</span>
+          </button>
+          <button class="btn btn-secondary" onclick="go('review')">
+            <span>📈 Review</span><span style="opacity:0.7">→</span>
+          </button>
+          <button class="btn btn-secondary" onclick="openTemplates()">
+            <span>🧩 Plan bearbeiten</span><span style="opacity:0.7">→</span>
+          </button>
+          <button class="btn btn-secondary" onclick="go('exercises')">
+            <span>🏷️ Übungen</span><span style="opacity:0.7">→</span>
+          </button>
+          <button class="btn btn-secondary" onclick="openMuscleGroups()">
+            <span>🧠 Muskelgruppen</span><span style="opacity:0.7">→</span>
+          </button>
+          <button class="btn btn-secondary" onclick="openBodyweight()">
+            <span>⚖️ Körpergewicht</span><span style="opacity:0.7">→</span>
+          </button>
+          <div class="muted small" style="margin-top:8px">${bwLine}</div>
+        </div>
+
+        <div style="margin-top:16px">
+          <button class="btn btn-secondary" onclick="exportData()">
+            <span>⬇️ Export / Backup</span><span style="opacity:0.7">JSON</span>
+          </button>
+          <button class="btn btn-secondary" onclick="triggerImport()">
+            <span>⬆️ Import / Restore</span><span style="opacity:0.7">JSON</span>
+          </button>
+          <input id="import-file" type="file" accept="application/json" style="display:none" onchange="handleImportFile(event)" />
+        </div>
+
+        ${renderModal()}
+      </div>
+    `;
+  }
+
+  function renderWorkout() {
+    const w = state.currentWorkout;
+    if (!w) { state.view = 'select'; return renderSelect(); }
+
+    const isFreeLike = (w.kind === 'free' || w.kind === 'manual');
+
+    const addExerciseBtn = `
+      <button class="btn btn-secondary" onclick="openExercisePicker('workout_add')">
+        <span>➕ Übung hinzufügen</span><span style="opacity:0.7">→</span>
+      </button>
+      <button class="btn btn-secondary" onclick="openNewExerciseModal('workout_add')">
+        <span>✨ Neue Übung erstellen</span><span style="opacity:0.7">→</span>
+      </button>
+    `;
+
+    // Keep template order for template workouts; for free/manual, group by muscle group
+    const list = (w.exercises || []);
+    const exList = (w.templateId && w.kind === 'template')
+      ? list
+      : list.slice().sort((a,b) =>
+          String(a.muscleGroupSnapshot||'').localeCompare(String(b.muscleGroupSnapshot||''),'de') ||
+          String(a.nameSnapshot||'').localeCompare(String(b.nameSnapshot||''),'de')
+        );
+
+    return `
+      <div class="sticky-header">
+        <button class="btn-icon" onclick="go('select')">←</button>
+        <div style="flex:1">
+          <div class="sticky-title">${escapeHtml(w.nameSnapshot || 'Training')}</div>
+          <div class="muted small">⏱ Timer · Draft wird automatisch gespeichert · + Satz möglich</div>
+        </div>
+        <button class="btn-icon" onclick="editWorkoutMeta()">🗓️</button>
+        <button class="btn-success" style="padding: 10px 14px; border-radius: 12px; border:none; font-weight:900; cursor:pointer" onclick="finishWorkout()">Speichern</button>
+      </div>
+
+      <div class="container" style="padding-bottom: calc(120px + env(safe-area-inset-bottom));">
+        ${addExerciseBtn}
+
+        ${(exList.length ? exList.map(ex => {
+          const last = getLastExercisePerformance(ex.exerciseId);
+          const lastBlock = last
+            ? (() => {
+                const setLines = last.sets.slice(0, 4)
+                  .map(s => `<div class="last-set">${s.reps}×${formatDecimalDE(s.weight, 2)} kg</div>`)
+                  .join('');
+                const more = last.sets.length > 4 ? `<div class="last-set">…</div>` : '';
+                return `
+                  <div class="last-perf">
+                    <div class="last-label">Letztes Mal (${formatDate(last.date)}):</div>
+                    <div class="last-sets">${setLines}${more}</div>
+                  </div>
+                `;
+              })()
+            : `
+              <div class="last-perf">
+                <div class="last-label">Letztes Mal:</div>
+                <div class="last-sets"><div class="last-set">-</div></div>
+              </div>
+            `;
+
+          return `
+            <div class="card">
+              <div class="exercise-header">
+                <div style="flex:1">
+                  <div class="row">
+                    <div>
+                      <div class="exercise-title">${escapeHtml(ex.nameSnapshot)}</div>
+                      <div class="exercise-meta">
+                        <span class="pill">${escapeHtml(ex.muscleGroupSnapshot)}</span>
+                        <span>Target: ${escapeHtml(ex.plannedSets || ex.sets?.length || 0)} × ${escapeHtml(ex.targetRepsText || '')}</span>
+                        <button class="timer-btn" onclick="startTimer(${Number(ex.pauseSec)||DEFAULT_PAUSE_SEC})">⏱ ${Number(ex.pauseSec)||DEFAULT_PAUSE_SEC}s</button>
+                        <button class="mini-btn" onclick="editPause('${ex.logId}')">Pause</button>
+                        
+                      </div>
+                    </div>
+                    <div class="list-actions">
+                      <button class="mini-btn" onclick="openExercisePicker('workout_replace', null, '${ex.logId}')">Ersetzen</button>
+                      <button class="btn-icon btn-icon-danger" onclick="removeExerciseFromWorkout('${ex.logId}')">🗑️</button>
+                    </div>
+                  </div>
+                  <div class="line">${lastBlock}</div>
+                </div>
+              </div>
+
+              ${(ex.sets || []).map((set, setIdx) => `
+                <div class="set-row">
+                  <span class="set-label">${setIdx + 1}</span>
+                  <select class="set-select" onchange="updateReps('${ex.logId}', ${setIdx}, this.value)">
+                    ${repsOptions(set.reps)}
+                  </select>
+                  <input class="set-input"
+                         type="text"
+                         inputmode="decimal"
+                         pattern="[0-9]*[.,]?[0-9]*"
+                         placeholder="kg"
+                         value="${set.weight === null ? '' : formatDecimalDE(set.weight, 2)}"
+                         oninput="updateWeight('${ex.logId}', ${setIdx}, this.value)"
+                         onblur="normalizeWeightInput(this)" />
+                  <button class="mini-btn" onclick="removeSet('${ex.logId}', ${setIdx})">−</button>
+                </div>
+              `).join('')}
+
+              <div style="display:flex; gap:10px; margin-top:10px;">
+                <button class="mini-btn" style="flex:1" onclick="addSet('${ex.logId}')">+ Satz</button>
+              </div>
+            </div>
+          `;
+        }).join('') : `<div class="muted" style="text-align:center; padding: 30px 10px;">Keine Übungen im Training. Füge eine Übung hinzu.</div>` )}
+
+        <button class="btn btn-danger" onclick="cancelWorkout()">
+          <span>Abbrechen</span><span style="opacity:0.7">Draft bleibt</span>
+        </button>
+      </div>
+
+      <div id="timer-bar" class="timer-bar"></div>
+
+      ${renderModal()}
+      ${renderPicker()}
+    `;
+  }
+
+  function renderHistory() {
+    const list = state.workouts || [];
+    return `
+      <div class="sticky-header">
+        <button class="btn-icon" onclick="go('select')">←</button>
+        <div class="sticky-title">Verlauf</div>
+        <button class="btn-icon" onclick="go('review')">📈</button>
+      </div>
+
+      <div class="container">
+        <div style="margin:10px 0 18px 0">
+          <button class="btn btn-secondary" onclick="openManualAddModal()"><span>➕ Manuell hinzufügen</span><span style="opacity:0.7">→</span></button>
+
+          <button class="btn btn-secondary" onclick="exportData()"><span>⬇️ Export / Backup</span><span style="opacity:0.7">JSON</span></button>
+          <button class="btn btn-secondary" onclick="triggerImport()"><span>⬆️ Import / Restore</span><span style="opacity:0.7">JSON</span></button>
+          <input id="import-file" type="file" accept="application/json" style="display:none" onchange="handleImportFile(event)" />
+        </div>
+
+        ${list.length === 0 ? `
+          <div style="text-align:center; padding: 40px; color:#64748b;">Keine Trainings gefunden.</div>
+        ` : list.map(w => {
+          const vol = workoutVolume(w);
+          const doneExercises = (w.exercises||[]).filter(ex => (ex.sets||[]).some(isSetDone));
+          return `
+            <div class="history-item">
+              <div class="history-header" onclick="toggleHistory(${w.id})">
+                <div style="flex:1">
+                  <div style="color:#e2e8f0; font-size: 16px; font-weight:900;">${escapeHtml(w.nameSnapshot)}</div>
+                  <div class="muted small">${formatDate(w.date)} · Volumen: ${formatVolume(vol)}</div>
+                </div>
+                <button class="btn-icon btn-icon-danger" onclick="(function(e){e.stopPropagation();})(event); deleteWorkout(${w.id});">🗑️</button>
+                <span style="color:#60a5fa; font-size:18px">${state.expandedId === w.id ? '−' : '+'}</span>
+              </div>
+
+              <div class="history-details ${state.expandedId === w.id ? 'open' : ''}">
+                ${doneExercises.length === 0 ? `
+                  <div class="muted small">Keine geloggten Übungen.</div>
+                ` : doneExercises.map(ex => {
+                  const setsDone = (ex.sets||[]).filter(isSetDone);
+                  return `
+                    <div style="margin-bottom: 14px; border-bottom: 1px solid #1e293b; padding-bottom:10px;">
+                      <div style="color:#e2e8f0; font-size:14px; font-weight:900; margin-bottom:4px;">${escapeHtml(ex.nameSnapshot)}</div>
+                      <div class="muted small">Muskelgruppe: ${escapeHtml(ex.muscleGroupSnapshot)} · Top e1RM: ${formatE1RM(exerciseTopE1RM(ex))}</div>
+                      <div class="chips">
+                        ${setsDone.map(s => `<span class="chip2">${s.reps} × ${formatDecimalDE(s.weight, 2)} kg</span>`).join('')}
+                      </div>
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+            </div>
+          `;
+        }).join('')}
+        ${renderModal()}
+      </div>
+    `;
+  }
+
+    function renderReview() {
+    // Ensure a default exercise is selected for the strength trend chart
+    if (!state.reviewExerciseId) {
+      const counts = new Map();
+      state.workouts.forEach(w => (w.exercises || []).forEach(ex => {
+        const id = ex.exerciseId || null;
+        if (!id) return;
+        counts.set(id, (counts.get(id) || 0) + 1);
+      }));
+      let bestId = state.exercises[0]?.id || null;
+      let bestCount = -1;
+      counts.forEach((c, id) => { if (c > bestCount) { bestCount = c; bestId = id; } });
+      state.reviewExerciseId = bestId;
+    }
+
+    const vol7 = workoutsWithinDays(7).reduce((sum,w)=>sum+workoutVolume(w),0);
+    const vol30 = workoutsWithinDays(30).reduce((sum,w)=>sum+workoutVolume(w),0);
+    const bw = lastBodyweight();
+
+    const last7Avg = bodyweightAvgLastNDays(7);
+    const last14Avg = bodyweightAvgLastNDays(14);
+    const bwDelta = (Number.isFinite(last7Avg) && Number.isFinite(last14Avg)) ? (last7Avg - last14Avg) : NaN;
+
+    const exOptions = state.exercises
+      .slice()
+      .sort((a,b)=>a.name.localeCompare(b.name,'de'))
+      .map(ex => `<option value="${escapeHtml(ex.id)}" ${ex.id===state.reviewExerciseId?'selected':''}>${escapeHtml(ex.name)}</option>`)
+      .join('');
+
+    return `
+      <div class="sticky-header">
+        <button class="btn-icon" onclick="go('select')">←</button>
+        <div class="sticky-title">Review</div>
+        <button class="btn-icon" onclick="go('history')">📜</button>
+      </div>
+
+      <div class="container">
+        <div class="card">
+          <div class="card-title">Übersicht</div>
+          <div class="row"><div class="muted">Workouts gesamt</div><div style="font-weight:900">${state.workouts.length}</div></div>
+          <div style="height:8px"></div>
+          <div class="row"><div class="muted">Volumen 7 Tage</div><div style="font-weight:900">${formatVolume(vol7)}</div></div>
+          <div class="row"><div class="muted">Volumen 30 Tage</div><div style="font-weight:900">${formatVolume(vol30)}</div></div>
+          <div style="height:10px"></div>
+          <div class="row"><div class="muted">Körpergewicht</div><div style="font-weight:900">${bw ? (formatDecimalDE(bw.weightKg, 1) + ' kg') : '-'}</div></div>
+          <div class="muted small" style="margin-top:6px">
+            ${bw ? ('Letzter Eintrag: ' + formatDate(bw.date)) : 'Noch keine Einträge.'}
+            ${Number.isFinite(bwDelta) ? (' · 7T Ø vs. 14T Ø: ' + (bwDelta>0?'+':'') + formatDecimalDE(bwDelta, 1) + ' kg') : ''}
+          </div>
+          <button class="btn btn-secondary" style="margin-top:12px" onclick="openBodyweight()">⚖️ Körpergewicht öffnen</button>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Wochenvolumen (letzte 12 Wochen)</div>
+          <canvas id="chartWeeklyVolume" class="chart-canvas tall" aria-label="Wochenvolumen"></canvas>
+          <div class="card-sub">Summe aus kg × Wdh pro Woche. Gut für Hypertrophie-Progress.</div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Trainingsfrequenz (letzte 12 Wochen)</div>
+          <canvas id="chartWeeklyFreq" class="chart-canvas compact" aria-label="Trainingsfrequenz"></canvas>
+          <div class="card-sub">Workouts pro Woche + Trendlinie (4-Wochen-Mittel).</div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Muskelgruppen-Balance (Volumen 30 Tage)</div>
+          <canvas id="chartMuscleBalance" class="chart-canvas" aria-label="Volumen nach Muskelgruppe"></canvas>
+          <div class="card-sub">Zeigt, ob einzelne Muskelgruppen deutlich unter- oder überrepräsentiert sind.</div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Krafttrend (e1RM) pro Übung</div>
+          <div class="inline-control">
+            <label for="reviewExerciseSelect">Übung</label>
+            <select id="reviewExerciseSelect" class="inline-select" onchange="setReviewExercise(this.value)">
+              ${exOptions}
+            </select>
+          </div>
+          <canvas id="chartStrengthTrend" class="chart-canvas tall" aria-label="Krafttrend"></canvas>
+          <div class="card-sub">Punkte: Top e1RM pro Workout. Linie: Trend (5 Workouts gleitender Mittelwert).</div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">PR-Heatmap (letzte 26 Wochen)</div>
+          <div class="heatmap-wrap">
+            <canvas id="chartPRHeatmap" class="heatmap-canvas" aria-label="PR Heatmap"></canvas>
+          </div>
+          <div class="card-sub">Markiert Tage, an denen du einen neuen e1RM-Rekord gesetzt hast (je dunkler, desto mehr PRs).</div>
+        </div>
+
+        <button class="btn btn-secondary" onclick="exportData()"><span>⬇️ Backup exportieren</span><span style="opacity:0.7">JSON</span></button>
+      </div>
+    `;
+  }
+
+  function renderExercises() {
+    const q = (state.exSearch || '').trim().toLowerCase();
+    const list = state.exercises.filter(ex => !q || ex.name.toLowerCase().includes(q) || (ex.aliases||[]).some(a => String(a).toLowerCase().includes(q)));
+
+    const grouped = new Map(state.muscleGroups.map(g => [g.id, []]));
+    list.forEach(ex => {
+      if (!grouped.has(ex.muscleGroupId)) grouped.set(ex.muscleGroupId, []);
+      grouped.get(ex.muscleGroupId).push(ex);
+    });
+
+    state.muscleGroups.forEach(g => grouped.get(g.id)?.sort((a,b)=>a.name.localeCompare(b.name,'de')));
+
+    return `
+      <div class="sticky-header">
+        <button class="btn-icon" onclick="go('select')">←</button>
+        <div class="sticky-title">Übungen</div>
+        <button class="btn-icon" onclick="openMergeModal()">⇄</button>
+      </div>
+
+      <div class="container">
+        <input class="input" placeholder="Suchen..." value="${escapeHtml(state.exSearch||'')}" oninput="state.exSearch=this.value; render()" />
+
+        <button class="btn btn-secondary" onclick="openNewExerciseModal('workout_add')">
+          <span>✨ Neue Übung erstellen</span><span style="opacity:0.7">→</span>
+        </button>
+
+        ${state.muscleGroups.map(g => {
+          const arr = grouped.get(g.id) || [];
+          if (!arr.length) return '';
+          return `
+            <div class="section-title">${escapeHtml(g.name)}</div>
+            ${arr.map(ex => `
+              <div class="list-item">
+                <div style="flex:1">
+                  <div class="name">${escapeHtml(ex.name)}</div>
+                  <div class="sub">Muskelgruppe: ${escapeHtml(getMuscleGroupNameById(ex.muscleGroupId))}${(ex.aliases||[]).length ? ` · Aliases: ${escapeHtml(ex.aliases.slice(0,3).join(', '))}${ex.aliases.length>3?' …':''}` : ''}</div>
+                </div>
+                <div class="list-actions">
+                  <button class="mini-btn" onclick="openExerciseEditModal('${ex.id}')">Edit</button>
+                  <button class="mini-btn" onclick="openMergeModal('${ex.id}')">Merge</button>
+                  <button class="btn-icon btn-icon-danger" onclick="deleteExercise('${ex.id}')">🗑️</button>
+                </div>
+              </div>
+            `).join('')}
+          `;
+        }).join('')}
+
+        ${renderModal()}
+      </div>
+    `;
+  }
+
+  function renderMuscleGroups() {
+    sortMuscleGroups();
+    return `
+      <div class="sticky-header">
+        <button class="btn-icon" onclick="go('select')">←</button>
+        <div class="sticky-title">Muskelgruppen</div>
+        <button class="btn-icon" onclick="openMuscleGroupAddModal()">＋</button>
+      </div>
+
+      <div class="container">
+        <div class="muted small" style="margin-bottom:10px">Muskelgruppen steuern Sortierung und Reporting. Löschen ist nur möglich, wenn keine Übung die Gruppe nutzt.</div>
+
+        ${state.muscleGroups.map(g => `
+          <div class="list-item">
+            <div style="flex:1">
+              <div class="name">${escapeHtml(g.name)}</div>
+              <div class="sub">Übungen: ${state.exercises.filter(e=>e.muscleGroupId===g.id).length}</div>
+            </div>
+            <div class="list-actions">
+              <button class="mini-btn" onclick="moveMuscleGroup('${g.id}',-1)">↑</button>
+              <button class="mini-btn" onclick="moveMuscleGroup('${g.id}',1)">↓</button>
+              <button class="mini-btn" onclick="openMuscleGroupEditModal('${g.id}')">Edit</button>
+              <button class="btn-icon btn-icon-danger" onclick="deleteMuscleGroup('${g.id}')">🗑️</button>
+            </div>
+          </div>
+        `).join('')}
+
+        ${renderModal()}
+      </div>
+    `;
+  }
+
+  function renderBodyweight() {
+    const listDesc = (state.bodyweightLogs || []).slice().sort((a,b)=>new Date(b.date)-new Date(a.date));
+    const listAsc = listDesc.slice().sort((a,b)=>new Date(a.date)-new Date(b.date));
+    const chartBlock = `
+      <div class="card">
+        <div class="card-title">Gewichtsverlauf</div>
+        ${listAsc.length >= 2
+          ? `<canvas id="bodyweightChart" class="chart-canvas" aria-label="Gewichtsverlauf"></canvas>`
+          : `<div class="muted" style="padding: 10px 0;">Mindestens 2 Einträge nötig, um eine Grafik anzuzeigen.</div>`
+        }
+      </div>
+    `;
+
+    return `
+      <div class="sticky-header">
+        <button class="btn-icon" onclick="go('select')">←</button>
+        <div class="sticky-title">Körpergewicht</div>
+        <button class="btn-icon" onclick="openBodyweightAddModal()">＋</button>
+      </div>
+
+      <div class="container">
+        <button class="btn btn-secondary" onclick="openBodyweightAddModal()">
+          <span>➕ Gewicht eintragen</span><span style="opacity:0.7">→</span>
+        </button>
+
+        ${chartBlock}
+
+        ${listDesc.length ? listDesc.map(x => `
+          <div class="list-item">
+            <div style="flex:1">
+              <div class="name">${formatDecimalDE(x.weightKg, 1)} kg</div>
+              <div class="sub">${formatDate(x.date)}${x.note ? ' · ' + escapeHtml(x.note) : ''}</div>
+            </div>
+            <div class="list-actions">
+              <button class="btn-icon btn-icon-danger" onclick="deleteBodyweight('${x.id}')">🗑️</button>
+            </div>
+          </div>
+        `).join('') : `<div class="muted" style="text-align:center; padding: 30px 10px;">Keine Einträge.</div>`}
+
+        ${renderModal()}
+      </div>
+    `;
+  }
+
+  
+  function formatShortDateDE(isoDate) {
+    try {
+      const d = new Date(isoDate);
+      if (isNaN(d.getTime())) return '';
+      const dd = String(d.getDate()).padStart(2, '0');
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      return `${dd}.${mm}.`;
+    } catch (e) { return ''; }
+  }
+
+  function drawBodyweightChart() {
+    if (state.view !== 'bodyweight') return;
+    const canvas = document.getElementById('bodyweightChart');
+    if (!canvas) return;
+
+    // Parse date-only strings as local dates to avoid iOS/Safari UTC-shift quirks
+    const parseISODateLocal = (iso) => {
+      if (!iso || typeof iso !== 'string') return NaN;
+      const m = /^\s*(\d{4})-(\d{2})-(\d{2})/.exec(iso);
+      if (m) return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3])).getTime();
+      const t = new Date(iso).getTime();
+      return isNaN(t) ? NaN : t;
+    };
+
+    const logs = (state.bodyweightLogs || []).slice()
+      .filter(x => x && x.date && x.weightKg != null)
+      .map(x => {
+        const w = Number(x.weightKg);
+        const t = parseISODateLocal(x.date);
+        return { ...x, weightKg: w, _t: t };
+      })
+      .filter(x => Number.isFinite(x.weightKg) && Number.isFinite(x._t))
+      .sort((a, b) => a._t - b._t);
+
+    if (logs.length < 2) return;
+
+    const dpr = Math.max(1, Math.min(3, window.devicePixelRatio || 1));
+    const rect = canvas.getBoundingClientRect();
+    const cssW = Math.max(260, Math.floor(rect.width || 320));
+    const cssH = Math.max(180, Math.floor(rect.height || 220));
+
+    canvas.width = Math.floor(cssW * dpr);
+    canvas.height = Math.floor(cssH * dpr);
+
+    const ctx = canvas.getContext('2d');
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, cssW, cssH);
+
+    // Background (match app)
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(0, 0, cssW, cssH);
+
+    const padL = 44, padR = 14, padT = 14, padB = 30;
+    const w = cssW - padL - padR;
+    const h = cssH - padT - padB;
+
+    const times = logs.map(x => x._t);
+    const vals = logs.map(x => x.weightKg);
+
+    const minT = Math.min(...times);
+    const maxT = Math.max(...times);
+
+    let minY = Math.min(...vals);
+    let maxY = Math.max(...vals);
+    const yPad = Math.max(0.5, (maxY - minY) * 0.15);
+    minY = minY - yPad;
+    maxY = maxY + yPad;
+    if (Math.abs(maxY - minY) < 0.5) { minY -= 0.5; maxY += 0.5; }
+
+    const xOf = (t) => {
+      if (maxT === minT) return padL;
+      return padL + ((t - minT) / (maxT - minT)) * w;
+    };
+    const yOf = (v) => padT + (1 - ((v - minY) / (maxY - minY))) * h;
+
+    // 7-day moving average (rolling window, last 7 calendar days up to each point)
+    const dayMs = 24 * 60 * 60 * 1000;
+    const ma = [];
+    let left = 0;
+    let sum = 0;
+    for (let i = 0; i < logs.length; i++) {
+      const t = logs[i]._t;
+      sum += logs[i].weightKg;
+      while (t - logs[left]._t > 6 * dayMs) {
+        sum -= logs[left].weightKg;
+        left++;
+      }
+      const count = i - left + 1;
+      ma.push({ t, avg: sum / count });
+    }
+    const lastAvg7 = ma.length ? ma[ma.length - 1].avg : null;
+
+    // Grid
+    ctx.strokeStyle = '#334155';
+    ctx.lineWidth = 1;
+
+    const gridY = 4;
+    for (let i = 0; i <= gridY; i++) {
+      const y = padT + (h / gridY) * i;
+      ctx.beginPath();
+      ctx.moveTo(padL, y);
+      ctx.lineTo(padL + w, y);
+      ctx.stroke();
+    }
+
+    // Axes labels
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = '12px -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif';
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'middle';
+
+    for (let i = 0; i <= gridY; i++) {
+      const y = padT + (h / gridY) * i;
+      const v = maxY - ((maxY - minY) / gridY) * i;
+      ctx.fillText(formatDecimalDE(v, 1), padL - 8, y);
+    }
+
+    // X labels (up to 5)
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+    const ticks = Math.min(5, logs.length);
+    for (let i = 0; i < ticks; i++) {
+      const idx = Math.round((logs.length - 1) * (i / (ticks - 1)));
+      const t = logs[idx]._t;
+      const x = xOf(t);
+      const label = formatShortDateDE(logs[idx].date);
+      ctx.fillText(label, x, padT + h + 8);
+    }
+
+    // 7-day moving average line (dashed)
+    if (lastAvg7 !== null && ma.length >= 2) {
+      ctx.save();
+      ctx.strokeStyle = '#94a3b8';
+      ctx.setLineDash([6, 4]);
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ma.forEach((p, i) => {
+        const x = xOf(p.t);
+        const y = yOf(p.avg);
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+      ctx.stroke();
+
+      const label = '7T Ø ' + formatDecimalDE(lastAvg7, 1) + ' kg';
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = '12px -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif';
+      ctx.textAlign = 'right';
+      ctx.textBaseline = 'bottom';
+      const yLabel = Math.max(padT + 12, Math.min(padT + h - 4, yOf(lastAvg7) - 4));
+      ctx.fillText(label, padL + w, yLabel);
+
+      ctx.restore();
+    }
+
+    // Weight line
+    ctx.strokeStyle = '#60a5fa';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    logs.forEach((p, i) => {
+      const x = xOf(p._t);
+      const y = yOf(p.weightKg);
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    });
+    ctx.stroke();
+
+    // Points
+    ctx.fillStyle = '#e2e8f0';
+    logs.forEach((p) => {
+      const x = xOf(p._t);
+      const y = yOf(p.weightKg);
+      ctx.beginPath();
+      ctx.arc(x, y, 3, 0, Math.PI * 2);
+      ctx.fill();
+    });
+  }
+
+  window.addEventListener('resize', () => {
+    if (state.view === 'bodyweight') {
+      // allow layout to settle before reading bounding box
+      setTimeout(drawBodyweightChart, 0);
+    }
+  }, { passive: true });
+
+
+  function parseISODateLocal(iso) {
+    if (!iso || typeof iso !== 'string') return NaN;
+    const m = /^\s*(\d{4})-(\d{2})-(\d{2})/.exec(iso);
+    if (m) return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3])).getTime();
+    const t = new Date(iso).getTime();
+    return isNaN(t) ? NaN : t;
+  }
+
+  function bodyweightAvgLastNDays(n) {
+    const logs = (state.bodyweightLogs || [])
+      .map(x => ({ t: parseISODateLocal(x?.date), w: Number(x?.weightKg) }))
+      .filter(x => Number.isFinite(x.t) && Number.isFinite(x.w))
+      .sort((a,b)=>a.t-b.t);
+    if (!logs.length) return NaN;
+
+    const endT = logs[logs.length - 1].t;
+    const startT = endT - (n - 1) * 24 * 60 * 60 * 1000;
+    const inRange = logs.filter(x => x.t >= startT && x.t <= endT);
+    if (!inRange.length) return NaN;
+    return inRange.reduce((s,x)=>s+x.w,0) / inRange.length;
+  }
+
+  function setReviewExercise(exId) {
+    state.reviewExerciseId = exId || null;
+    render();
+  }
+
+  function getCanvasCtx(canvas, fallbackHeight) {
+    const dpr = Math.max(1, Math.min(3, window.devicePixelRatio || 1));
+    const rect = canvas.getBoundingClientRect();
+    const cssW = Math.max(260, Math.floor(rect.width || 320));
+    const cssH = Math.max(120, Math.floor(rect.height || fallbackHeight || 220));
+    canvas.width = Math.floor(cssW * dpr);
+    canvas.height = Math.floor(cssH * dpr);
+    const ctx = canvas.getContext('2d');
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, cssW, cssH);
+    return { ctx, cssW, cssH };
+  }
+
+
+  function computePadLForYAxis(ctx, labels, minPadL) {
+    const minL = Number.isFinite(minPadL) ? minPadL : 42;
+    ctx.save();
+    ctx.font = '12px -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif';
+    let maxW = 0;
+    (labels || []).forEach(l => {
+      const s = String(l ?? '');
+      const w = ctx.measureText(s).width;
+      if (w > maxW) maxW = w;
+    });
+    ctx.restore();
+    // +16: 8px gap to axis + a little safety for iOS Safari text metrics
+    return Math.max(minL, Math.ceil(maxW) + 16);
+  }
+
+  function drawAxes(ctx, padL, padT, w, h, yMin, yMax, yFmt) {
+    ctx.save();
+    ctx.strokeStyle = 'rgba(148,163,184,0.20)';
+    ctx.lineWidth = 1;
+
+    const ticks = 4;
+    for (let i = 0; i <= ticks; i++) {
+      const t = i / ticks;
+      const y = padT + h - (t * h);
+      ctx.beginPath();
+      ctx.moveTo(padL, y);
+      ctx.lineTo(padL + w, y);
+      ctx.stroke();
+    }
+
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = '12px -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif';
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'middle';
+    for (let i = 0; i <= ticks; i++) {
+      const t = i / ticks;
+      const v = yMin + (t * (yMax - yMin));
+      const y = padT + h - (t * h);
+      const label = yFmt ? yFmt(v) : String(Math.round(v));
+      ctx.fillText(label, padL - 8, y);
+    }
+
+    ctx.restore();
+  }
+
+  function getWeekStartLocal(t) {
+    const d = new Date(t);
+    const day = (d.getDay() + 6) % 7; // Monday=0
+    d.setHours(0,0,0,0);
+    d.setDate(d.getDate() - day);
+    return d.getTime();
+  }
+
+  function buildWeeklySeries(weeks) {
+    const wks = weeks || 12;
+    const workouts = (state.workouts || []).slice()
+      .map(w => ({ w, t: parseISODateLocal(w?.date) }))
+      .filter(x => Number.isFinite(x.t))
+      .sort((a,b)=>a.t-b.t);
+
+    const endT = workouts.length ? workouts[workouts.length - 1].t : Date.now();
+    const endWeek = getWeekStartLocal(endT);
+    const startWeek = endWeek - (wks - 1) * 7 * 24 * 60 * 60 * 1000;
+
+    const series = [];
+    for (let i = 0; i < wks; i++) {
+      const weekT = startWeek + i * 7 * 24 * 60 * 60 * 1000;
+      series.push({ weekT, vol: 0, count: 0 });
+    }
+
+    const idxByWeek = new Map(series.map((s,i)=>[s.weekT, i]));
+    workouts.forEach(({w,t}) => {
+      const ws = getWeekStartLocal(t);
+      const idx = idxByWeek.get(ws);
+      if (idx == null) return;
+      series[idx].vol += workoutVolume(w);
+      series[idx].count += 1;
+    });
+
+    return series;
+  }
+
+  
+  function drawWeeklyVolumeChart() {
+    const canvas = document.getElementById('chartWeeklyVolume');
+    if (!canvas) return;
+    const { ctx, cssW, cssH } = getCanvasCtx(canvas, 260);
+
+    const padR = 14, padT = 16, padB = 30;
+
+    const series = buildWeeklySeries(12);
+    const maxV = Math.max(1, ...series.map(s => s.vol));
+    const yMin = 0;
+    const yMax = maxV * 1.05;
+
+    // Dynamic left padding so y-axis labels never get clipped (iOS Safari)
+    const ticks = 4;
+    const yLabels = [];
+    for (let i = 0; i <= ticks; i++) {
+      const t = i / ticks;
+      const v = yMin + (t * (yMax - yMin));
+      yLabels.push(formatVolume(v));
+    }
+    const padL = computePadLForYAxis(ctx, yLabels, 56);
+
+    const w = cssW - padL - padR;
+    const h = cssH - padT - padB;
+
+    drawAxes(ctx, padL, padT, w, h, yMin, yMax, (v)=>formatVolume(v));
+
+    // Bars
+    const n = series.length;
+    const gap = 6;
+    const barW = Math.max(6, Math.floor((w - gap * (n - 1)) / n));
+    ctx.fillStyle = 'rgba(96,165,250,0.85)';
+
+    series.forEach((s, i) => {
+      const x = padL + i * (barW + gap);
+      const y = padT + h - (s.vol / yMax) * h;
+      const bh = (s.vol / yMax) * h;
+      ctx.beginPath();
+      ctx.roundRect ? ctx.roundRect(x, y, barW, bh, 6) : ctx.rect(x, y, barW, bh);
+      ctx.fill();
+    });
+
+    // X labels: adaptive skipping to avoid overlaps on small screens
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = '12px -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+
+    const minDx = 52; // minimum pixel distance between labels
+    let lastX = -1e9;
+
+    series.forEach((s, i) => {
+      const isLast = i === series.length - 1;
+      // Preferred cadence: every ~2 weeks, but adapt to available width
+      const dx = barW + gap;
+      const step = Math.max(2, Math.ceil(minDx / Math.max(1, dx)));
+      if (!isLast && (i % step !== 0)) return;
+
+      const x = padL + i * (barW + gap) + barW / 2;
+      if (!isLast && (x - lastX) < minDx) return;
+
+      const d = new Date(s.weekT);
+      const label = `${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.`;
+      ctx.fillText(label, x, padT + h + 6);
+      lastX = x;
+    });
+  }
+
+
+  function drawWeeklyFrequencyChart() {
+    const canvas = document.getElementById('chartWeeklyFreq');
+    if (!canvas) return;
+    const { ctx, cssW, cssH } = getCanvasCtx(canvas, 190);
+
+    const padL = 42, padR = 12, padT = 14, padB = 22;
+    const w = cssW - padL - padR;
+    const h = cssH - padT - padB;
+
+    const series = buildWeeklySeries(12);
+    const maxC = Math.max(1, ...series.map(s => s.count));
+    const yMin = 0;
+    const yMax = Math.max(4, maxC) + 0.5;
+
+    drawAxes(ctx, padL, padT, w, h, yMin, yMax, (v)=>String(Math.round(v)));
+
+    const n = series.length;
+    const gap = 6;
+    const barW = Math.max(6, Math.floor((w - gap * (n - 1)) / n));
+    ctx.fillStyle = 'rgba(34,197,94,0.70)';
+
+    const yOf = (val) => padT + h - (val / yMax) * h;
+
+    series.forEach((s, i) => {
+      const x = padL + i * (barW + gap);
+      const y = yOf(s.count);
+      const bh = (s.count / yMax) * h;
+      ctx.beginPath();
+      ctx.roundRect ? ctx.roundRect(x, y, barW, bh, 6) : ctx.rect(x, y, barW, bh);
+      ctx.fill();
+    });
+
+    // 4-week moving average line
+    const ma = series.map((s, i) => {
+      const start = Math.max(0, i - 3);
+      const slice = series.slice(start, i + 1);
+      return slice.reduce((sum,x)=>sum+x.count,0) / slice.length;
+    });
+
+    ctx.strokeStyle = 'rgba(96,165,250,0.95)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ma.forEach((v, i) => {
+      const x = padL + i * (barW + gap) + barW / 2;
+      const y = yOf(v);
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    });
+    ctx.stroke();
+  }
+
+  
+  function drawMuscleBalanceChart() {
+    const canvas = document.getElementById('chartMuscleBalance');
+    if (!canvas) return;
+    const { ctx, cssW, cssH } = getCanvasCtx(canvas, 240);
+
+    // More right padding so value labels never clip
+    const padL = 110, padR = 28, padT = 18, padB = 14;
+    const w = cssW - padL - padR;
+    const h = cssH - padT - padB;
+
+    const volByMg = volumeByMuscle(30);
+    const rows = state.muscleGroups
+      .map(g => ({ name: g.name, vol: (volByMg.get(g.id) || 0) }))
+      .sort((a,b)=>b.vol-a.vol);
+
+    const maxV = Math.max(1, ...rows.map(r => r.vol));
+    const visibleRows = Math.min(8, Math.max(6, rows.length));
+    const rowH = Math.max(14, Math.floor((h - (visibleRows - 1) * 6) / visibleRows));
+    const gap = 6;
+
+    // Left labels (muscle group names)
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = '12px -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif';
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'middle';
+
+    rows.forEach((r, i) => {
+      const y = padT + i * (rowH + gap) + rowH / 2;
+      if (y > padT + h) return;
+      const label = String(r.name || '').slice(0, 14);
+      ctx.fillText(label, padL - 8, y);
+    });
+
+    // Bars + value labels
+    rows.forEach((r, i) => {
+      const yTop = padT + i * (rowH + gap);
+      if (yTop > padT + h) return;
+
+      const bw = (r.vol / maxV) * w;
+      ctx.fillStyle = 'rgba(96,165,250,0.85)';
+      ctx.beginPath();
+      ctx.roundRect ? ctx.roundRect(padL, yTop, bw, rowH, 8) : ctx.rect(padL, yTop, bw, rowH);
+      ctx.fill();
+
+      const value = formatVolume(r.vol);
+      ctx.fillStyle = '#e2e8f0';
+      ctx.font = '12px -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif';
+      ctx.textBaseline = 'middle';
+
+      // If the bar is close to the right edge, draw the value inside the bar (right-aligned)
+      const nearRight = bw > (w - 92);
+      if (nearRight) {
+        ctx.textAlign = 'right';
+        ctx.fillText(value, padL + Math.min(bw, w) - 8, yTop + rowH / 2);
+      } else {
+        ctx.textAlign = 'left';
+        ctx.fillText(value, padL + bw + 10, yTop + rowH / 2);
+      }
+    });
+  }
+
+
+  function bestE1RMInWorkoutForExercise(workout, exId) {
+    let best = 0;
+    const exLogs = (workout?.exercises || []).filter(x => x.exerciseId === exId);
+    exLogs.forEach(ex => {
+      (ex.sets || []).forEach(s => {
+        const reps = Number(s?.reps);
+        const weight = Number(s?.weight);
+        if (!Number.isFinite(reps) || !Number.isFinite(weight) || reps <= 0 || weight <= 0) return;
+        const e1 = epleyE1RM(weight, reps);
+        if (e1 > best) best = e1;
+      });
+    });
+    return best;
+  }
+
+  
+  function drawStrengthTrendChart() {
+    const canvas = document.getElementById('chartStrengthTrend');
+    if (!canvas) return;
+    const exId = state.reviewExerciseId;
+    if (!exId) return;
+
+    const { ctx, cssW, cssH } = getCanvasCtx(canvas, 260);
+
+    const pts = (state.workouts || [])
+      .map(wk => ({ t: parseISODateLocal(wk?.date), v: bestE1RMInWorkoutForExercise(wk, exId) }))
+      .filter(p => Number.isFinite(p.t) && Number.isFinite(p.v) && p.v > 0)
+      .sort((a,b)=>a.t-b.t);
+
+    if (pts.length < 2) {
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = '13px -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('Zu wenig Daten für diese Übung.', cssW/2, cssH/2);
+      return;
+    }
+
+    const vMin = Math.min(...pts.map(p=>p.v));
+    const vMax = Math.max(...pts.map(p=>p.v));
+    const span = Math.max(1, (vMax - vMin));
+    const yMin = Math.max(0, vMin - span * 0.15);
+    const yMax = vMax + span * 0.15 + 1;
+
+    const padR = 14, padT = 16, padB = 28;
+
+    // Dynamic left padding so y-axis labels never get clipped (iOS Safari)
+    const ticks = 4;
+    const yLabels = [];
+    for (let i = 0; i <= ticks; i++) {
+      const t = i / ticks;
+      const v = yMin + (t * (yMax - yMin));
+      yLabels.push(formatE1RM(v));
+    }
+    const padL = computePadLForYAxis(ctx, yLabels, 56);
+
+    const w = cssW - padL - padR;
+    const h = cssH - padT - padB;
+
+    drawAxes(ctx, padL, padT, w, h, yMin, yMax, (v)=>formatE1RM(v));
+
+    const tMin = pts[0].t;
+    const tMax = pts[pts.length-1].t;
+
+    const xOf = (t) => padL + (t - tMin) / Math.max(1, (tMax - tMin)) * w;
+    const yOf = (v) => padT + h - (v - yMin) / Math.max(1e-9, (yMax - yMin)) * h;
+
+    // Points line
+    ctx.strokeStyle = 'rgba(96,165,250,0.95)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    pts.forEach((p, i) => {
+      const x = xOf(p.t), y = yOf(p.v);
+      if (i === 0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    });
+    ctx.stroke();
+
+    // Points
+    ctx.fillStyle = '#e2e8f0';
+    pts.forEach(p => {
+      const x = xOf(p.t), y = yOf(p.v);
+      ctx.beginPath(); ctx.arc(x,y,3,0,Math.PI*2); ctx.fill();
+    });
+
+    // 5-session moving average trend line
+    if (pts.length >= 5) {
+      const ma = pts.map((p, i) => {
+        const start = Math.max(0, i - 4);
+        const slice = pts.slice(start, i + 1);
+        return slice.reduce((s,x)=>s+x.v,0) / slice.length;
+      });
+      ctx.strokeStyle = 'rgba(34,197,94,0.90)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ma.forEach((v, i) => {
+        const x = xOf(pts[i].t), y = yOf(v);
+        if (i === 0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+      });
+      ctx.stroke();
+    }
+
+    // X labels (start/end)
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = '12px -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif';
+    ctx.textBaseline = 'top';
+    const d0 = new Date(tMin);
+    const d1 = new Date(tMax);
+    const l0 = `${String(d0.getDate()).padStart(2,'0')}.${String(d0.getMonth()+1).padStart(2,'0')}.`;
+    const l1 = `${String(d1.getDate()).padStart(2,'0')}.${String(d1.getMonth()+1).padStart(2,'0')}.`;
+    ctx.textAlign = 'left';
+    ctx.fillText(l0, padL, padT + h + 6);
+    ctx.textAlign = 'right';
+    ctx.fillText(l1, padL + w, padT + h + 6);
+  }
+
+
+  function buildPRByDate() {
+    // PR = new all-time high e1RM for an exercise (tracked across workouts)
+    const prCounts = new Map(); // date -> count
+    const bestSoFar = new Map(); // exId -> best e1rm
+
+    const workouts = (state.workouts || []).slice()
+      .map(w => ({ w, t: parseISODateLocal(w?.date), d: w?.date }))
+      .filter(x => Number.isFinite(x.t) && x.d)
+      .sort((a,b)=>a.t-b.t);
+
+    workouts.forEach(({w, d}) => {
+      const todayPRs = new Set();
+      (w.exercises || []).forEach(ex => {
+        const exId = ex.exerciseId;
+        if (!exId) return;
+        let best = 0;
+        (ex.sets || []).forEach(s => {
+          const reps = Number(s?.reps);
+          const weight = Number(s?.weight);
+          if (!Number.isFinite(reps) || !Number.isFinite(weight) || reps <= 0 || weight <= 0) return;
+          const e1 = epleyE1RM(weight, reps);
+          if (e1 > best) best = e1;
+        });
+        if (best <= 0) return;
+
+        const prev = bestSoFar.get(exId) || 0;
+        if (best > prev + 0.0001) {
+          bestSoFar.set(exId, best);
+          todayPRs.add(exId);
+        }
+      });
+
+      if (todayPRs.size) prCounts.set(d, (prCounts.get(d) || 0) + todayPRs.size);
+    });
+
+    return prCounts;
+  }
+
+  function drawPRHeatmapChart() {
+    const canvas = document.getElementById('chartPRHeatmap');
+    if (!canvas) return;
+    const { ctx, cssW, cssH } = getCanvasCtx(canvas, 140);
+
+    const prByDate = buildPRByDate();
+
+    // Range: last 26 weeks, ending at last workout date (or today)
+    const lastT = Math.max(
+      ...(state.workouts || []).map(w => parseISODateLocal(w?.date)).filter(Number.isFinite),
+      Date.now()
+    );
+    const end = new Date(lastT);
+    end.setHours(0,0,0,0);
+
+    const weeks = 26;
+    const days = weeks * 7;
+    const start = new Date(end);
+    start.setDate(start.getDate() - (days - 1));
+
+    // Align start to Monday
+    const startT = getWeekStartLocal(start.getTime());
+    const startD = new Date(startT);
+
+    const padL = 18, padT = 10, padR = 10, padB = 18;
+    const gridW = cssW - padL - padR;
+    const gridH = cssH - padT - padB;
+
+    const cell = Math.max(8, Math.min(14, Math.floor(gridW / (weeks + 1))));
+    const gap = 3;
+    const cellW = cell;
+    const cellH = cell;
+
+    // Build day list
+    const dayList = [];
+    for (let i = 0; i < days; i++) {
+      const d = new Date(startD);
+      d.setDate(d.getDate() + i);
+      const iso = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+      const count = prByDate.get(iso) || 0;
+      dayList.push({ d, iso, count });
+    }
+
+    const maxC = Math.max(0, ...dayList.map(x => x.count));
+
+    function colorFor(c) {
+      if (c <= 0) return 'rgba(148,163,184,0.12)';
+      if (maxC <= 1) return 'rgba(96,165,250,0.70)';
+      const t = Math.min(1, c / maxC);
+      // interpolate between blue and green-ish
+      const a = 0.45 + 0.45 * t;
+      return `rgba(96,165,250,${a.toFixed(3)})`;
+    }
+
+    // Draw cells
+    dayList.forEach((x, i) => {
+      const week = Math.floor(i / 7);
+      const dow = (x.d.getDay() + 6) % 7; // Monday=0
+      const px = padL + week * (cellW + gap);
+      const py = padT + dow * (cellH + gap);
+      ctx.fillStyle = colorFor(x.count);
+      ctx.beginPath();
+      ctx.roundRect ? ctx.roundRect(px, py, cellW, cellH, 3) : ctx.rect(px, py, cellW, cellH);
+      ctx.fill();
+    });
+
+    // Week labels (every ~4 weeks)
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = '12px -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+    for (let w = 0; w < weeks; w += 4) {
+      const idx = w * 7;
+      const d = dayList[idx]?.d;
+      if (!d) continue;
+      const label = `${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getFullYear()).slice(-2)}`;
+      const x = padL + w * (cellW + gap) + cellW / 2;
+      ctx.fillText(label, x, padT + 7 * (cellH + gap) + 4);
+    }
+  }
+
+  function drawReviewCharts() {
+    if (state.view !== 'review') return;
+    try {
+      drawWeeklyVolumeChart();
+      drawWeeklyFrequencyChart();
+      drawMuscleBalanceChart();
+      drawStrengthTrendChart();
+      drawPRHeatmapChart();
+    } catch (e) {
+      // Fail silently to avoid breaking the whole UI; chart rendering is non-critical
+      console && console.warn && console.warn('Review charts error', e);
+    }
+  }
+
+  window.addEventListener('resize', () => {
+    if (state.view === 'review') setTimeout(drawReviewCharts, 0);
+  }, { passive: true });
+
+
+  function renderTemplates() {
+    const list = state.templates.slice().sort((a,b)=>a.name.localeCompare(b.name,'de'));
+    return `
+      <div class="sticky-header">
+        <button class="btn-icon" onclick="go('select')">←</button>
+        <div class="sticky-title">Plan bearbeiten</div>
+        <button class="btn-icon" onclick="createTemplate()">＋</button>
+      </div>
+
+      <div class="container">
+        ${list.map(t => `
+          <div class="list-item">
+            <div style="flex:1">
+              <div class="name">${escapeHtml(t.name)}</div>
+              <div class="sub">${(t.items||[]).length} Übungen</div>
+            </div>
+            <div class="list-actions">
+              <button class="mini-btn" onclick="openTemplateEdit('${t.templateId}')">Bearbeiten</button>
+              <button class="mini-btn" onclick="renameTemplate('${t.templateId}')">Name</button>
+              <button class="mini-btn" onclick="duplicateTemplate('${t.templateId}')">Dupl.</button>
+              <button class="btn-icon btn-icon-danger" onclick="deleteTemplate('${t.templateId}')">🗑️</button>
+            </div>
+          </div>
+        `).join('')}
+
+        <div style="margin-top:16px">
+          <button class="btn btn-secondary" onclick="exportData()"><span>⬇️ Export / Backup</span><span style="opacity:0.7">JSON</span></button>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderTemplateEdit() {
+    const tpl = state.templates.find(t => t.templateId === state.editTemplateId);
+    if (!tpl) { state.view = 'templates'; return renderTemplates(); }
+    const exById = new Map(state.exercises.map(e => [e.id, e]));
+    const items = (tpl.items||[]).map(it => {
+      const ex = exById.get(it.exerciseId);
+      const exName = ex ? ex.name : 'Unbekannt';
+      const exMg = ex ? getMuscleGroupNameById(ex.muscleGroupId) : 'Unbekannt';
+      return { ...it, exName, exMg };
+    });
+
+    return `
+      <div class="sticky-header">
+        <button class="btn-icon" onclick="state.view='templates'; render()">←</button>
+        <div style="flex:1">
+          <div class="sticky-title">${escapeHtml(tpl.name)}</div>
+          <div class="muted small">Template bearbeiten · Name lässt sich über "Name" ändern</div>
+        </div>
+        <button class="btn-icon" onclick="renameTemplate('${tpl.templateId}')">Name</button>
+      </div>
+
+      <div class="container">
+        <button class="btn btn-secondary" onclick="openExercisePicker('template_add','${tpl.templateId}')">
+          <span>➕ Übung hinzufügen</span><span style="opacity:0.7">→</span>
+        </button>
+        <button class="btn btn-secondary" onclick="openNewExerciseModal('template_add','${tpl.templateId}')">
+          <span>✨ Neue Übung erstellen</span><span style="opacity:0.7">→</span>
+        </button>
+
+        ${items.length ? items.map(it => `
+          <div class="card">
+            <div class="row">
+              <div style="flex:1">
+                <div class="exercise-title">${escapeHtml(it.exName)}</div>
+                <div class="exercise-meta">
+                  <span class="pill">${escapeHtml(it.exMg)}</span>
+                </div>
+              </div>
+              <div class="list-actions">
+                <button class="mini-btn" onclick="moveTemplateItem('${tpl.templateId}','${it.itemId}',-1)">↑</button>
+                <button class="mini-btn" onclick="moveTemplateItem('${tpl.templateId}','${it.itemId}',1)">↓</button>
+                <button class="btn-icon btn-icon-danger" onclick="removeTemplateItem('${tpl.templateId}','${it.itemId}')">🗑️</button>
+              </div>
+            </div>
+
+            <div class="grid2" style="margin-top:10px">
+              <div>
+                <div class="muted small">Sätze</div>
+                <input class="input" inputmode="numeric" pattern="[0-9]*" value="${it.plannedSets}" oninput="updateTemplateItem('${tpl.templateId}','${it.itemId}','plannedSets',this.value)" />
+              </div>
+              <div>
+                <div class="muted small">Pause (s)</div>
+                <input class="input" inputmode="numeric" pattern="[0-9]*" value="${it.pauseSec}" oninput="updateTemplateItem('${tpl.templateId}','${it.itemId}','pauseSec',this.value)" />
+              </div>
+            </div>
+            <div>
+              <div class="muted small">Wdh-Ziel</div>
+              <input class="input" value="${escapeHtml(it.targetRepsText||'')}" oninput="updateTemplateItem('${tpl.templateId}','${it.itemId}','targetRepsText',this.value)" />
+            </div>
+          </div>
+        `).join('') : `<div class="muted" style="text-align:center; padding: 28px 10px;">Keine Übungen im Template. Füge eine Übung hinzu.</div>`}
+
+        ${renderPicker()}
+        ${renderModal()}
+      </div>
+    `;
+  }
+
+  function renderModal() {
+    if (!state.modal) return '';
+    const m = state.modal;
+
+    if (m.type === 'new_exercise') {
+      return `
+        <div class="modal-backdrop" onclick="(function(e){closeModal();})(event)">
+          <div class="modal" onclick="(function(e){e.stopPropagation();})(event)">
+            <h3>Neue Übung erstellen</h3>
+            <p>Die Übung wird in die Datenbank aufgenommen und steht künftig überall zur Verfügung. Standard-Pause: ${DEFAULT_PAUSE_SEC}s.</p>
+
+            <div class="muted small">Name</div>
+            <input class="input" value="${escapeHtml(m.name||'')}" oninput="updateModalField('name',this.value)" placeholder="z.B. Kabelrudern breit" />
+
+            <div class="muted small">Muskelgruppe</div>
+            <select class="select" onchange="updateModalField('muscleGroupId',this.value)">
+              ${state.muscleGroups.map(g => `<option value="${g.id}" ${m.muscleGroupId===g.id?'selected':''}>${escapeHtml(g.name)}</option>`).join('')}
+            </select>
+
+            <div class="modal-actions">
+              <button class="btn btn-secondary" style="margin:0; padding:14px" onclick="closeModal()">Abbrechen</button>
+              <button class="btn btn-success" style="margin:0; padding:14px" onclick="createExerciseFromModal()">Erstellen</button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    if (m.type === 'edit_exercise') {
+      return `
+        <div class="modal-backdrop" onclick="(function(e){closeModal();})(event)">
+          <div class="modal" onclick="(function(e){e.stopPropagation();})(event)">
+            <h3>Übung bearbeiten</h3>
+            <p>Name und Muskelgruppe wirken sich auf Sortierung und Reporting aus.</p>
+
+            <div class="muted small">Name</div>
+            <input class="input" value="${escapeHtml(m.name||'')}" oninput="updateModalField('name',this.value)" />
+
+            <div class="muted small">Muskelgruppe</div>
+            <select class="select" onchange="updateModalField('muscleGroupId',this.value)">
+              ${state.muscleGroups.map(g => `<option value="${g.id}" ${m.muscleGroupId===g.id?'selected':''}>${escapeHtml(g.name)}</option>`).join('')}
+            </select>
+
+            <div class="modal-actions">
+              <button class="btn btn-secondary" style="margin:0; padding:14px" onclick="closeModal()">Abbrechen</button>
+              <button class="btn btn-success" style="margin:0; padding:14px" onclick="saveExerciseEdits()">Speichern</button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    if (m.type === 'merge_exercise') {
+      const options = state.exercises.map(e => {
+        const g = getMuscleGroupNameById(e.muscleGroupId);
+        return `<option value="${e.id}">${escapeHtml(g)} · ${escapeHtml(e.name)}</option>`;
+      }).join('');
+      return `
+        <div class="modal-backdrop" onclick="(function(e){closeModal();})(event)">
+          <div class="modal" onclick="(function(e){e.stopPropagation();})(event)">
+            <h3>Übungen zusammenführen (Merge)</h3>
+            <p>Quelle wird in Ziel überführt. Templates, Historie und Draft werden angepasst. Die Quelle wird danach entfernt.</p>
+
+            <div class="muted small">Quelle</div>
+            <select class="select" onchange="updateModalField('sourceId',this.value)">
+              <option value="">Bitte wählen</option>
+              ${options}
+            </select>
+
+            <div class="muted small">Ziel</div>
+            <select class="select" onchange="updateModalField('targetId',this.value)">
+              <option value="">Bitte wählen</option>
+              ${options}
+            </select>
+
+            <div class="modal-actions">
+              <button class="btn btn-secondary" style="margin:0; padding:14px" onclick="closeModal()">Abbrechen</button>
+              <button class="btn btn-success" style="margin:0; padding:14px" onclick="doMerge()">Merge</button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    if (m.type === 'mg_add') {
+      return `
+        <div class="modal-backdrop" onclick="(function(e){closeModal();})(event)">
+          <div class="modal" onclick="(function(e){e.stopPropagation();})(event)">
+            <h3>Muskelgruppe hinzufügen</h3>
+            <p>Beispiele: Bauch, hintere Schulter, obere Brust.</p>
+            <div class="muted small">Name</div>
+            <input class="input" value="${escapeHtml(m.name||'')}" oninput="updateModalField('name',this.value)" placeholder="z.B. Bauch" />
+            <div class="modal-actions">
+              <button class="btn btn-secondary" style="margin:0; padding:14px" onclick="closeModal()">Abbrechen</button>
+              <button class="btn btn-success" style="margin:0; padding:14px" onclick="addMuscleGroup()">Hinzufügen</button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    if (m.type === 'mg_edit') {
+      return `
+        <div class="modal-backdrop" onclick="(function(e){closeModal();})(event)">
+          <div class="modal" onclick="(function(e){e.stopPropagation();})(event)">
+            <h3>Muskelgruppe bearbeiten</h3>
+            <div class="muted small">Name</div>
+            <input class="input" value="${escapeHtml(m.name||'')}" oninput="updateModalField('name',this.value)" />
+            <div class="modal-actions">
+              <button class="btn btn-secondary" style="margin:0; padding:14px" onclick="closeModal()">Abbrechen</button>
+              <button class="btn btn-success" style="margin:0; padding:14px" onclick="saveMuscleGroupEdit()">Speichern</button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    if (m.type === 'manual_add') {
+      return `
+        <div class="modal-backdrop" onclick="(function(e){closeModal();})(event)">
+          <div class="modal" onclick="(function(e){e.stopPropagation();})(event)">
+            <h3>Training manuell hinzufügen</h3>
+            <p>Wähle Datum/Uhrzeit und ob du von einem Template starten willst.</p>
+
+            <div class="muted small">Name</div>
+            <input class="input" value="${escapeHtml(m.name||'Manuell')}" oninput="updateModalField('name',this.value)" />
+
+            <div class="muted small">Datum/Uhrzeit</div>
+            <input class="input" type="datetime-local" value="${escapeHtml(m.datetimeLocal||'')}" oninput="updateModalField('datetimeLocal',this.value)" />
+
+            <div class="muted small">Modus</div>
+            <select class="select" onchange="updateModalField('mode',this.value)">
+              <option value="free" ${m.mode==='free'?'selected':''}>Freies Training</option>
+              <option value="template" ${m.mode==='template'?'selected':''}>Template</option>
+            </select>
+
+            ${m.mode === 'template' ? `
+              <div class="muted small">Template</div>
+              <select class="select" onchange="updateModalField('templateId',this.value)">
+                ${state.templates.map(t => `<option value="${t.templateId}" ${m.templateId===t.templateId?'selected':''}>${escapeHtml(t.name)}</option>`).join('')}
+              </select>
+            ` : ''}
+
+            <div class="modal-actions">
+              <button class="btn btn-secondary" style="margin:0; padding:14px" onclick="closeModal()">Abbrechen</button>
+              <button class="btn btn-success" style="margin:0; padding:14px" onclick="startManualFromModal()">Starten</button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    if (m.type === 'bodyweight_add') {
+      return `
+        <div class="modal-backdrop" onclick="(function(e){closeModal();})(event)">
+          <div class="modal" onclick="(function(e){e.stopPropagation();})(event)">
+            <h3>Körpergewicht eintragen</h3>
+            <div class="muted small">Datum/Uhrzeit</div>
+            <input class="input" type="datetime-local" value="${escapeHtml(m.datetimeLocal||'')}" oninput="updateModalField('datetimeLocal',this.value)" />
+
+            <div class="muted small">Gewicht (kg)</div>
+            <input class="input" type="text" inputmode="decimal" pattern="[0-9]*[.,]?[0-9]*" value="${escapeHtml(m.weight||'')}" oninput="updateModalField('weight',this.value)" placeholder="z.B. 82,5" />
+
+            <div class="muted small">Notiz (optional)</div>
+            <input class="input" value="${escapeHtml(m.note||'')}" oninput="updateModalField('note',this.value)" placeholder="z.B. morgens nüchtern" />
+
+            <div class="modal-actions">
+              <button class="btn btn-secondary" style="margin:0; padding:14px" onclick="closeModal()">Abbrechen</button>
+              <button class="btn btn-success" style="margin:0; padding:14px" onclick="saveBodyweight()">Speichern</button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    if (m.type === 'edit_workout_meta') {
+      return `
+        <div class="modal-backdrop" onclick="(function(e){closeModal();})(event)">
+          <div class="modal" onclick="(function(e){e.stopPropagation();})(event)">
+            <h3>Training bearbeiten</h3>
+            <p>Praktisch für manuelles Nachtragen oder freie Sessions.</p>
+
+            <div class="muted small">Name</div>
+            <input class="input" value="${escapeHtml(m.name||'')}" oninput="updateModalField('name',this.value)" />
+
+            <div class="muted small">Datum/Uhrzeit</div>
+            <input class="input" type="datetime-local" value="${escapeHtml(m.datetimeLocal||'')}" oninput="updateModalField('datetimeLocal',this.value)" />
+
+            <div class="modal-actions">
+              <button class="btn btn-secondary" style="margin:0; padding:14px" onclick="closeModal()">Abbrechen</button>
+              <button class="btn btn-success" style="margin:0; padding:14px" onclick="saveWorkoutMeta()">Speichern</button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    return '';
+  }
+
+  function closeModal() { state.modal = null; render(); }
+
+  function renderPicker() {
+    if (!state.picker) return '';
+    const p = state.picker;
+    const q = (p.search || '').trim().toLowerCase();
+    const groupId = p.groupId;
+
+    const list = state.exercises
+      .filter(ex => !q || ex.name.toLowerCase().includes(q) || (ex.aliases||[]).some(a => String(a).toLowerCase().includes(q)))
+      .filter(ex => !groupId || ex.muscleGroupId === groupId);
+
+    const grouped = new Map(state.muscleGroups.map(g => [g.id, []]));
+    list.forEach(ex => {
+      if (!grouped.has(ex.muscleGroupId)) grouped.set(ex.muscleGroupId, []);
+      grouped.get(ex.muscleGroupId).push(ex);
+    });
+    state.muscleGroups.forEach(g => grouped.get(g.id)?.sort((a,b)=>a.name.localeCompare(b.name,'de')));
+
+    return `
+      <div class="modal-backdrop" onclick="closeExercisePicker()">
+        <div class="modal" onclick="(function(e){e.stopPropagation();})(event)">
+          <h3>Übung auswählen</h3>
+          <p>Sortiert nach Muskelgruppe. Du kannst suchen oder filtern.</p>
+
+          <input class="input" placeholder="Suchen..." value="${escapeHtml(p.search||'')}" oninput="setPickerSearch(this.value)" />
+
+          <div style="display:flex; gap:8px; flex-wrap:wrap; margin: 6px 0 10px">
+            <button class="mini-btn" onclick="setPickerGroup(null)">Alle</button>
+            ${state.muscleGroups.map(g => `<button class="mini-btn" onclick="setPickerGroup('${g.id}')">${escapeHtml(g.name)}</button>`).join('')}
+          </div>
+
+          <div style="max-height: 52vh; overflow:auto; padding-right: 4px;">
+            ${state.muscleGroups.map(g => {
+              const arr = grouped.get(g.id) || [];
+              if (!arr.length) return '';
+              return `
+                <div class="section-title">${escapeHtml(g.name)}</div>
+                ${arr.map(ex => `
+                  <div class="list-item" onclick="pickExercise('${ex.id}')">
+                    <div style="flex:1">
+                      <div class="name">${escapeHtml(ex.name)}</div>
+                      <div class="sub">${escapeHtml(getMuscleGroupNameById(ex.muscleGroupId))}</div>
+                    </div>
+                    <div style="opacity:0.7">→</div>
+                  </div>
+                `).join('')}
+              `;
+            }).join('')}
+          </div>
+
+          <div class="modal-actions" style="margin-top:10px">
+            <button class="btn btn-secondary" style="margin:0; padding:14px" onclick="closeExercisePicker()">Schließen</button>
+            <button class="btn btn-success" style="margin:0; padding:14px" onclick="openNewExerciseModal('${p.context}','${p.templateId || ''}','${p.replaceLogId || ''}')">Neue Übung</button>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  function render() {
+    const app = document.getElementById('app');
+    if (!app) return;
+
+    if (state.view === 'select') app.innerHTML = renderSelect();
+    else if (state.view === 'workout') app.innerHTML = renderWorkout();
+    else if (state.view === 'history') app.innerHTML = renderHistory();
+    else if (state.view === 'review') app.innerHTML = renderReview();
+    else if (state.view === 'exercises') app.innerHTML = renderExercises();
+    else if (state.view === 'templates') app.innerHTML = renderTemplates();
+    else if (state.view === 'template_edit') app.innerHTML = renderTemplateEdit();
+    else if (state.view === 'muscle_groups') app.innerHTML = renderMuscleGroups();
+    else if (state.view === 'bodyweight') app.innerHTML = renderBodyweight();
+    else app.innerHTML = renderSelect();
+
+    if (state.view === 'workout') renderTimer();
+    if (state.view === 'bodyweight') setTimeout(drawBodyweightChart, 0);
+    if (state.view === 'review') setTimeout(drawReviewCharts, 0);
+  }
+
+  // -----------------------
+  // Expose functions
+  // -----------------------
+  window.state = state;
+  window.render = render;
+  window.go = go;
+  window.setReviewExercise = setReviewExercise;
+
+  window.startTemplateWorkout = startTemplateWorkout;
+  window.startFreeWorkout = startFreeWorkout;
+  window.resumeDraft = resumeDraft;
+  window.finishWorkout = finishWorkout;
+  window.cancelWorkout = cancelWorkout;
+  window.editWorkoutMeta = editWorkoutMeta;
+  window.saveWorkoutMeta = saveWorkoutMeta;
+
+  window.openExercisePicker = openExercisePicker;
+  window.closeExercisePicker = closeExercisePicker;
+  window.setPickerSearch = setPickerSearch;
+  window.setPickerGroup = setPickerGroup;
+  window.pickExercise = pickExercise;
+
+  window.openNewExerciseModal = openNewExerciseModal;
+  window.updateModalField = updateModalField;
+  window.createExerciseFromModal = createExerciseFromModal;
+
+  window.addSet = addSet;
+  window.removeSet = removeSet;
+  window.updateReps = updateReps;
+  window.updateWeight = updateWeight;
+  window.normalizeWeightInput = normalizeWeightInput;
+  window.editPause = editPause;
+  window.editTarget = editTarget;
+  window.removeExerciseFromWorkout = removeExerciseFromWorkout;
+
+  window.startTimer = startTimer;
+  window.stopTimer = stopTimer;
+  window.addTime = addTime;
+
+  window.toggleHistory = toggleHistory;
+  window.deleteWorkout = deleteWorkout;
+
+  window.exportData = exportData;
+  window.triggerImport = triggerImport;
+  window.handleImportFile = handleImportFile;
+
+  window.openExerciseEditModal = openExerciseEditModal;
+  window.saveExerciseEdits = saveExerciseEdits;
+  window.deleteExercise = deleteExercise;
+
+  window.openMergeModal = openMergeModal;
+  window.doMerge = doMerge;
+
+  window.openTemplates = openTemplates;
+  window.openTemplateEdit = openTemplateEdit;
+  window.renameTemplate = renameTemplate;
+  window.createTemplate = createTemplate;
+  window.deleteTemplate = deleteTemplate;
+  window.duplicateTemplate = duplicateTemplate;
+  window.moveTemplateItem = moveTemplateItem;
+  window.removeTemplateItem = removeTemplateItem;
+  window.updateTemplateItem = updateTemplateItem;
+
+  window.openMuscleGroups = openMuscleGroups;
+  window.openMuscleGroupAddModal = openMuscleGroupAddModal;
+  window.addMuscleGroup = addMuscleGroup;
+  window.openMuscleGroupEditModal = openMuscleGroupEditModal;
+  window.saveMuscleGroupEdit = saveMuscleGroupEdit;
+  window.moveMuscleGroup = moveMuscleGroup;
+  window.deleteMuscleGroup = deleteMuscleGroup;
+
+  window.openManualAddModal = openManualAddModal;
+  window.startManualFromModal = startManualFromModal;
+
+  window.openBodyweight = openBodyweight;
+  window.openBodyweightAddModal = openBodyweightAddModal;
+  window.saveBodyweight = saveBodyweight;
+  window.deleteBodyweight = deleteBodyweight;
+
+  window.closeModal = closeModal;
+
+  try { render(); } catch (e) { showFatal(e); }
+})();
+</script>
+
+</body>
+</html>
