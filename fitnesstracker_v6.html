@@ -2958,6 +2958,14 @@
     return isNaN(t) ? NaN : t;
   }
 
+  function isoDayKeyFromTime(t) {
+  if (!Number.isFinite(t)) return null;
+  const d = new Date(t);
+  const pad = (x) => String(x).padStart(2,'0');
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+}
+  
+
   function bodyweightAvgLastNDays(n) {
     const logs = (state.bodyweightLogs || [])
       .map(x => ({ t: parseISODateLocal(x?.date), w: Number(x?.weightKg) }))
@@ -3379,9 +3387,13 @@
     const bestSoFar = new Map(); // exId -> best e1rm
 
     const workouts = (state.workouts || []).slice()
-      .map(w => ({ w, t: parseISODateLocal(w?.date), d: w?.date }))
-      .filter(x => Number.isFinite(x.t) && x.d)
-      .sort((a,b)=>a.t-b.t);
+  .map(w => {
+    const t = parseISODateLocal(w?.date);
+    const d = isoDayKeyFromTime(t); // YYYY-MM-DD
+    return { w, t, d };
+  })
+  .filter(x => Number.isFinite(x.t) && x.d)
+  .sort((a,b)=>a.t-b.t);
 
     workouts.forEach(({w, d}) => {
       const todayPRs = new Set();
