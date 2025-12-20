@@ -1330,35 +1330,6 @@ function ensureV3Data() {
   console.log("Migration zu V3 erfolgreich gespeichert.");
 }
 
-    // templates
-    let templates = loadJSON(LEG_TEMPLATES, null);
-    if (!Array.isArray(templates) || !templates.length || !templates[0].templateId) {
-      // seed templates from plan with lookup by name
-      const byName = new Map(exercises.map(e => [e.name.toLowerCase(), e]));
-      templates = Object.keys(seedPlan).map(dayName => {
-        const items = seedPlan[dayName].map(ex => {
-          const e = byName.get(String(ex.name).toLowerCase());
-          const exerciseId = e ? e.id : uid('ex');
-          return { itemId: uid('it'), exerciseId, plannedSets: ex.sets, targetRepsText: ex.reps, pauseSec: ex.pause };
-        });
-        return { templateId: uid('tpl'), name: dayName, items };
-      });
-    }
-
-    // history
-    let workouts = loadJSON(LEG_HISTORY, []);
-    if (!Array.isArray(workouts)) workouts = [];
-
-    // draft
-    let draft = loadJSON(LEG_DRAFT, null);
-
-    // store v3
-    saveJSON(KEY_MUSCLEGROUPS, groups);
-    saveJSON(KEY_EXERCISES, exercises);
-    saveJSON(KEY_TEMPLATES, templates);
-    saveJSON(KEY_HISTORY, workouts);
-    if (draft) saveJSON(KEY_DRAFT, draft);
-  }
 
 // 1. Migration ausführen (schreibt Daten in den LocalStorage)
 ensureV3Data();
