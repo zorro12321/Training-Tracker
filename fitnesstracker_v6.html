@@ -1273,7 +1273,8 @@
   }
 
   function saveDraft(shouldRender = true) {
-  saveJSON(KEY_DRAFT, state.activeWorkout);
+  saveJSON(KEY_DRAFT, state.currentWorkout);
+  state.hasDraft = true;
   if (shouldRender) {
     render();
   }
@@ -1411,12 +1412,13 @@
   }
 
   function resumeDraft() {
-    const d = loadJSON(KEY_DRAFT, null);
-    if (!d) { state.hasDraft = false; return render(); }
-    state.currentWorkout = normalizeWorkout(d);
-    state.view = 'workout';
-    render();
-  }
+  const d = loadJSON(KEY_DRAFT, null);
+  if (!d) { state.hasDraft = false; return render(); }
+  state.currentWorkout = normalizeWorkout(d);
+  state.hasDraft = true;
+  state.view = 'workout';
+  render();
+}
 
   function editWorkoutMeta() {
     if (!state.currentWorkout) return;
