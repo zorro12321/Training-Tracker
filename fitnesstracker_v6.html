@@ -3428,30 +3428,38 @@
 
     const weeks = 26;
     const days = weeks * 7;
-    const start = new Date(end);
-    start.setDate(start.getDate() - (days - 1));
-
-    // Align start to Monday
-    const startT = getWeekStartLocal(start.getTime());
+    const dayMs = 24 * 60 * 60 * 1000;
+    
+    const endT0 = end.getTime();                 // 00:00 local von “end”
+    const endWeekStart = getWeekStartLocal(endT0); // Montag der “end”-Woche
+    const startT = endWeekStart - (weeks - 1) * 7 * dayMs; // Montag vor 25 Wochen
     const startD = new Date(startT);
 
     const padL = 18, padT = 10, padR = 10, padB = 18;
     const gridW = cssW - padL - padR;
     const gridH = cssH - padT - padB;
 
-    const cell = Math.max(8, Math.min(14, Math.floor(gridW / (weeks + 1))));
     const gap = 3;
+    
+    // so berechnen, dass inklusive gaps garantiert in die Fläche passt
+    const maxCellW = Math.floor((gridW - (weeks - 1) * gap) / weeks);
+    const maxCellH = Math.floor((gridH - (7 - 1) * gap) / 7);
+    const cell = Math.max(6, Math.min(14, maxCellW, maxCellH));
+    
     const cellW = cell;
     const cellH = cell;
 
     // Build day list
     const dayList = [];
     for (let i = 0; i < days; i++) {
-      const d = new Date(startD);
-      d.setDate(d.getDate() + i);
-      const iso = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-      const count = prByDate.get(iso) || 0;
-      dayList.push({ d, iso, count });
+    const t = startT + i * dayMs;
+    const d = new Date(t);
+    const iso = ${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')};
+    
+    const isFuture = t > endT0; // alles nach “end” bleibt leer
+    const count = isFuture ? 0 : (prByDate.get(iso) || 0);
+    
+    dayList.push({ d, iso, count, isFuture });
     }
 
     const maxC = Math.max(0, ...dayList.map(x => x.count));
