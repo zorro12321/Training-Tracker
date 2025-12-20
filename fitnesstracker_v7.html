@@ -4232,7 +4232,42 @@ function goAndCloseNav(view) {
 
   window.handleExSearch = handleExSearch;
 
+  // ... (deine ganzen window.xxx Zuweisungen davor)
+
+  window.handleExSearch = handleExSearch;
+
+  // --- DIAGNOSE START ---
+  console.log("Prüfe Initialisierung...");
   
+  try {
+    if (typeof ensureV3Data !== 'function') throw new Error("ensureV3Data fehlt!");
+    ensureV3Data();
+    console.log("Migration abgeschlossen.");
+    
+    if (typeof render !== 'function') throw new Error("render-Funktion fehlt!");
+    render();
+    console.log("Initiales Rendering erfolgreich.");
+    
+  } catch (e) {
+    console.error("KRITISCHER FEHLER:", e);
+    
+    // Visuelles Feedback auf dem Bildschirm
+    document.body.innerHTML = `
+      <div style="background:#1a1f2e; color:#ff4444; padding:20px; font-family:sans-serif; line-height:1.5;">
+        <h2 style="color:white;">⚠️ App-Start fehlgeschlagen</h2>
+        <p><strong>Fehler:</strong> ${e.message}</p>
+        <p><strong>Wo:</strong> Zeile ${e.stack ? e.stack.split('\n')[1] : 'unbekannt'}</p>
+        <hr style="border:0; border-top:1px solid #333; margin:20px 0;">
+        <button onclick="localStorage.clear(); location.reload();" 
+                style="background:#3b82f6; color:white; border:none; padding:10px 20px; border-radius:5px; cursor:pointer;">
+          Speicher leeren & Neu laden
+        </button>
+        <p style="color:#64748b; font-size:12px; margin-top:10px;">
+          (Hinweis: Das Leeren löscht deine Trainingsdaten, repariert aber die App.)
+        </p>
+      </div>
+    `;
+  }
 
   try { render(); } catch (e) { showFatal(e); }
 })();
