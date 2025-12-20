@@ -2653,7 +2653,7 @@
       </div>
 
       <div class="container">
-        <input class="input" placeholder="Suchen..." value="${escapeHtml(state.exSearch||'')}" oninput="state.exSearch=this.value; render()" />
+        <input id="exerciseSearchInput" class="input" placeholder="Suchen..." value="${escapeHtml(state.exSearch||'')}" oninput="handleExSearch(this)" />
 
         <button class="btn btn-secondary" onclick="openNewExerciseModal('workout_add')">
           <span>✨ Neue Übung erstellen</span><span style="opacity:0.7">→</span>
@@ -3889,6 +3889,24 @@
     if (state.view === 'review') setTimeout(drawReviewCharts, 0);
   }
 
+  function handleExSearch(inputEl) {
+  // 1. Cursor-Position merken
+  const selectionStart = inputEl.selectionStart;
+  
+  // 2. Den Suchbegriff im State speichern
+  state.exSearch = inputEl.value;
+  
+  // 3. Die Seite neu zeichnen
+  render();
+  
+  // 4. Das neue Input-Feld suchen und Fokus zurückgeben
+  const newInput = document.getElementById('exerciseSearchInput');
+  if (newInput) {
+    newInput.focus();
+    // Cursor an die exakt gleiche Stelle setzen
+    newInput.setSelectionRange(selectionStart, selectionStart);
+  }
+}
   // -----------------------
   // Expose functions
   // -----------------------
@@ -3969,6 +3987,8 @@
   window.deleteBodyweight = deleteBodyweight;
 
   window.closeModal = closeModal;
+
+  window.handleExSearch = handleExSearch;
 
   try { render(); } catch (e) { showFatal(e); }
 })();
