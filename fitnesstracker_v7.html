@@ -1282,16 +1282,15 @@ function ensureV3Data() {
   const hasV3 = Array.isArray(exV3) && Array.isArray(tplV3) && Array.isArray(histV3);
   if (hasV3) return;
 
-  // 2. Basis-Daten vorbereiten (WICHTIG: Variablen hier definieren!)
+  // 2. Basis-Daten vorbereiten
   let groups = ensureMuscleGroups();
-  let exercises = [];
-  let templates = [];
+  let exercises = loadJSON(LEG_EXERCISES, null);
+  let templates = loadJSON(LEG_TEMPLATES, null);
   let workouts = loadJSON(LEG_HISTORY, []);
   let draft = loadJSON(LEG_DRAFT, null);
 
   // 3. Übungen migrieren
-  const oldEx = loadJSON(LEG_EXERCISES, null);
-  if (!Array.isArray(oldEx) || !oldEx.length || !oldEx[0].id) {
+  if (!Array.isArray(exercises) || !exercises.length || !exercises[0].id) {
     const names = [];
     Object.keys(seedPlan).forEach(t => seedPlan[t].forEach(ex => names.push(ex.name)));
     const unique = Array.from(new Set(names.map(x => String(x||'').trim()).filter(Boolean)));
@@ -1301,7 +1300,7 @@ function ensureV3Data() {
       return { id: uid('ex'), name: nm, muscleGroupId: mgId, aliases: [] };
     }).sort((a,b)=>a.name.localeCompare(b.name,'de'));
   } else {
-    exercises = oldEx.map(ex => {
+    exercises = exercises.map(ex => {
       const mgName = ex.muscleGroup || ex.muscleGroupSnapshot || guessMuscleGroupName(ex.name);
       const mgId = findOrCreateMuscleGroup(groups, mgName);
       return { id: ex.id, name: ex.name, muscleGroupId: mgId, aliases: Array.isArray(ex.aliases)?ex.aliases:[] };
@@ -1309,8 +1308,7 @@ function ensureV3Data() {
   }
 
   // 4. Templates migrieren
-  const oldTpl = loadJSON(LEG_TEMPLATES, null);
-  if (!Array.isArray(oldTpl) || !oldTpl.length || !oldTpl[0].templateId) {
+  if (!Array.isArray(templates) || !templates.length || !templates[0].templateId) {
     const byName = new Map(exercises.map(e => [e.name.toLowerCase(), e]));
     templates = Object.keys(seedPlan).map(dayName => {
       const items = seedPlan[dayName].map(ex => {
@@ -1320,18 +1318,16 @@ function ensureV3Data() {
       });
       return { templateId: uid('tpl'), name: dayName, items };
     });
-  } else {
-    templates = oldTpl;
   }
 
-  // 5. Speichern (JETZT SIND ALLE VARIABLEN DEFINIERT)
+  // 5. Speichern der migrierten Daten
   saveJSON(KEY_MUSCLEGROUPS, groups);
   saveJSON(KEY_EXERCISES, exercises);
   saveJSON(KEY_TEMPLATES, templates);
   saveJSON(KEY_HISTORY, workouts);
   if (draft) saveJSON(KEY_DRAFT, draft);
-  
-  console.log("Migration zu V3 erfolgreich!");
+
+  console.log("Migration zu V3 erfolgreich gespeichert.");
 }
 
     // templates
