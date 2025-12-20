@@ -1273,8 +1273,8 @@
     return ng.id;
   }
 
-  function ensureV3Data() {
-    // if v3 exercises exist, assume v3 initialized
+function ensureV3Data() {
+    // 1. Prüfen, ob V3 bereits existiert
     const exV3 = loadJSON(KEY_EXERCISES, null);
     const tplV3 = loadJSON(KEY_TEMPLATES, null);
     const histV3 = loadJSON(KEY_HISTORY, null);
@@ -1282,29 +1282,50 @@
     const hasV3 = Array.isArray(exV3) && Array.isArray(tplV3) && Array.isArray(histV3);
     if (hasV3) return;
 
-    // migrate from v2 if present, otherwise seed from plan
-    let groups = ensureMuscleGroups();
+    console.log("Starte Migration auf Version 3...");
 
-    // exercises
+    // 2. Basis-Daten laden/vorbereiten
+    let groups = ensureMuscleGroups();
     let exercises = loadJSON(LEG_EXERCISES, null);
+    let templates = loadJSON(LEG_TEMPLATES, []);
+    let workouts = loadJSON(LEG_HISTORY, []);
+    let draft = loadJSON(LEG_DRAFT, null);
+
+    // 3. Übungen migrieren oder neu erstellen
     if (!Array.isArray(exercises) || !exercises.length || !exercises[0].id) {
-      // seed from plan names
-      const names = [];
-      Object.keys(seedPlan).forEach(t => seedPlan[t].forEach(ex => names.push(ex.name)));
-      const unique = Array.from(new Set(names.map(x => String(x||'').trim()).filter(Boolean)));
-      exercises = unique.map(nm => {
-        const mgName = guessMuscleGroupName(nm);
-        const mgId = findOrCreateMuscleGroup(groups, mgName);
-        return { id: uid('ex'), name: nm, muscleGroupId: mgId, aliases: [] };
-      }).sort((a,b)=>a.name.localeCompare(b.name,'de'));
+        // Falls keine Übungen da sind: Aus dem Seed-Plan erstellen
+        const names = [];
+        Object.keys(seedPlan).forEach(t => seedPlan[t].forEach(ex => names.push(ex.name)));
+        const unique = Array.from(new Set(names.map(x => String(x||'').trim()).filter(Boolean)));
+        exercises = unique.map(nm => {
+            const mgName = guessMuscleGroupName(nm);
+            const mgId = findOrCreateMuscleGroup(groups, mgName);
+            return { id: uid('ex'), name: nm, muscleGroupId: mgId, aliases: [] };
+        }).sort((a,b)=>a.name.localeCompare(b.name,'de'));
     } else {
-      // convert muscleGroup string to id
-      exercises = exercises.map(ex => {
-        const mgName = ex.muscleGroup || ex.muscleGroupSnapshot || guessMuscleGroupName(ex.name);
-        const mgId = findOrCreateMuscleGroup(groups, mgName);
-        return { id: ex.id, name: ex.name, muscleGroupId: mgId, aliases: Array.isArray(ex.aliases)?ex.aliases:[] };
-      });
+        // Falls Übungen da sind: Auf IDs umstellen
+        exercises = exercises.map(ex => {
+            const mgName = ex.muscleGroup || ex.muscleGroupSnapshot || guessMuscleGroupName(ex.name);
+            const mgId = findOrCreateMuscleGroup(groups, mgName);
+            return { 
+                id: ex.id || uid('ex'), 
+                name: ex.name, 
+                muscleGroupId: mgId, 
+                aliases: Array.isArray(ex.aliases) ? ex.aliases : [] 
+            };
+        });
     }
+
+    // 4. WICHTIG: Die Speicherung muss HINTER die Logik, 
+    // damit sie immer ausgeführt wird (außerhalb des if/else)
+    saveJSON(KEY_MUSCLEGROUPS, groups);
+    saveJSON(KEY_EXERCISES, exercises);
+    saveJSON(KEY_TEMPLATES, templates);
+    saveJSON(KEY_HISTORY, workouts);
+    if (draft) saveJSON(KEY_DRAFT, draft);
+
+    console.log("Migration zu V3 erfolgreich abgeschlossen und gespeichert.");
+}
 
     // templates
     let templates = loadJSON(LEG_TEMPLATES, null);
