@@ -1285,8 +1285,8 @@
   }
 
   function getMuscleGroupIdByName(name) {
-    const hit = state.muscleGroups.find(g => g.name.toLowerCase() === String(name||'').toLowerCase());
-    return hit ? hit.id : null;
+    const key = String(name || ‘’).trim().toLowerCase();
+    const hit = state.muscleGroups.find(g => String(g.name||’’).trim().toLowerCase() === key);
   }
 
   function sortMuscleGroups() {
@@ -3065,16 +3065,6 @@ const frequentChips = (frequentIds.length ? frequentIds.slice(0, 8) : []).map(mk
 function decodeMaybeUri(s) {
   if (!s) return '';
   try { return decodeURIComponent(String(s)); } catch { return String(s); }
-}
-
-function normalizeReviewCompareSelection() {
-  let sel = Array.isArray(state.reviewCompareExerciseIds) ? state.reviewCompareExerciseIds.slice() : [];
-  sel = sel.filter(Boolean);
-  sel = Array.from(new Set(sel)).slice(0, 3);
-  state.reviewCompareExerciseIds = sel;
-  if (!state.reviewStrengthMode) state.reviewStrengthMode = 'index';
-  if (!state.reviewExerciseId && sel[0]) state.reviewExerciseId = sel[0];
-  return sel;
 }
 
 // Backwards compatible: selects exactly one exercise (single-view behavior)
