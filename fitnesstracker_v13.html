@@ -3633,7 +3633,13 @@ function toggleReviewCompareExercise(exIdEnc) {
   const strengthWeeks = (state.reviewPeriod === '7d') ? 4 : (state.reviewPeriod === '30d') ? 6 : (state.reviewPeriod === '12w') ? 12 : 9999;
 const strengthCutoff = Date.now() - strengthWeeks * 7 * 24 * 60 * 60 * 1000;
 
-const toPts = (id) => (state.workouts || [])
+const strengthWeeks = (state.reviewPeriod === '7d') ? 4 : (state.reviewPeriod === '30d') ? 6 : (state.reviewPeriod === '12w') ? 12 : 9999;
+  const strengthCutoff = Date.now() - strengthWeeks * 7 * 24 * 60 * 60 * 1000;
+
+ const strengthWeeks = (state.reviewPeriod === '7d') ? 4 : (state.reviewPeriod === '30d') ? 6 : (state.reviewPeriod === '12w') ? 12 : 9999;
+  const strengthCutoff = Date.now() - strengthWeeks * 7 * 24 * 60 * 60 * 1000;
+
+  const toPts = (id) => (state.workouts || [])
     .map(wk => ({ t: parseISODateLocal(wk?.date), v: bestE1RMInWorkoutForExercise(wk, id) }))
     .filter(p => Number.isFinite(p.t) && Number.isFinite(p.v) && p.v > 0 && p.t >= strengthCutoff)
     .sort((a,b)=>a.t-b.t);
