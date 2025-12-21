@@ -2372,7 +2372,7 @@
 
     // Keep template order for template workouts; for free/manual, group by muscle group
 // Keep insertion order (latest added stays at the bottom)
-const list = (w.exercises || []);
+const exList = (w.exercises || []);
 
     return `
       <div class="sticky-header">
@@ -3023,7 +3023,11 @@ const frequentChips = (frequentIds.length ? frequentIds.slice(0, 8) : []).map(mk
       ctx.arc(x, y, 3, 0, Math.PI * 2);
       ctx.fill();
     });
+
+  } catch (e) {
+    console && console.warn && console.warn('Bodyweight chart error', e);
   }
+}
 
   function parseISODateLocal(iso) {
     if (!iso || typeof iso !== 'string') return NaN;
