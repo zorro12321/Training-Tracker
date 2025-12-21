@@ -2797,7 +2797,7 @@ const exList = (w.exercises || []);
       </div>
 
       <div class="card">
-        <div class="card-title">Muskelgruppen-Balance (Volumen 30 Tage)</div>
+        <div class="card-title">Muskelgruppen-Balance (${currentPeriod === '7d' ? '7 Tage' : currentPeriod === '30d' ? '30 Tage' : currentPeriod === '12w' ? '12 Wochen' : 'Gesamt'})</div>
         <canvas id="chartMuscleBalance" class="chart-canvas" aria-label="Volumen nach Muskelgruppe"></canvas>
         <div class="card-sub">Zeigt, ob einzelne Muskelgruppen deutlich unter- oder überrepräsentiert sind.</div>
       </div>
@@ -3534,7 +3534,8 @@ function toggleReviewCompareExercise(exIdEnc) {
     const w = cssW - padL - padR;
     const h = cssH - padT - padB;
 
-    const volByMg = volumeByMuscle(30);
+    const periodDays = (state.reviewPeriod === '7d') ? 7 : (state.reviewPeriod === '30d') ? 30 : (state.reviewPeriod === '12w') ? 84 : 9999;
+    const volByMg = volumeByMuscle(periodDays);
     const rows = state.muscleGroups
       .map(g => ({ name: g.name, vol: (volByMg.get(g.id) || 0) }))
       .sort((a,b)=>b.vol-a.vol);
