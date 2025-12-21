@@ -2785,7 +2785,7 @@ const exList = (w.exercises || []);
         </div>
 
         <canvas id="chartStrengthTrend" class="chart-canvas tall" aria-label="Krafttrend Vergleich"></canvas>
-        <div class="card-sub">Linien: e1RM-Verlauf je Übung im ausgewählten Modus. Punkte: Top e1RM pro Workout.</div>
+        <div class="card-sub">Linien: e1RM-Verlauf je Übung (${currentPeriod === '7d' ? '4 Wochen' : currentPeriod === '30d' ? '6 Wochen' : currentPeriod === '12w' ? '12 Wochen' : 'Gesamt'}). Punkte: Top e1RM pro Workout.</div>
       </div>
     `;
 
@@ -3630,9 +3630,12 @@ function toggleReviewCompareExercise(exIdEnc) {
   const series = [];
   const skipped = [];
 
-  const toPts = (id) => (state.workouts || [])
+  const strengthWeeks = (state.reviewPeriod === '7d') ? 4 : (state.reviewPeriod === '30d') ? 6 : (state.reviewPeriod === '12w') ? 12 : 9999;
+const strengthCutoff = Date.now() - strengthWeeks * 7 * 24 * 60 * 60 * 1000;
+
+const toPts = (id) => (state.workouts || [])
     .map(wk => ({ t: parseISODateLocal(wk?.date), v: bestE1RMInWorkoutForExercise(wk, id) }))
-    .filter(p => Number.isFinite(p.t) && Number.isFinite(p.v) && p.v > 0)
+    .filter(p => Number.isFinite(p.t) && Number.isFinite(p.v) && p.v > 0 && p.t >= strengthCutoff)
     .sort((a,b)=>a.t-b.t);
 
   const movingAverage = (vals, window) => vals.map((_, i) => {
