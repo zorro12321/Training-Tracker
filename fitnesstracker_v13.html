@@ -2927,8 +2927,7 @@ const exList = (w.exercises || []);
       </div>
     `;
 
-    return `
-      const bwPeriod = state.bodyweightPeriod || '30d';
+    const bwPeriod = state.bodyweightPeriod || '30d';
     const periodSelector = `
       <div class="period-selector">
         <button class="period-btn ${bwPeriod==='7d'?'active':''}" onclick="state.bodyweightPeriod='7d'; render()">7T</button>
