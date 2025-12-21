@@ -381,6 +381,43 @@
       transform: scale(0.96);
     }
 
+    /* ========================================
+       PERIOD SELECTOR
+       ======================================== */
+    .period-selector {
+      display: flex;
+      justify-content: center;
+      gap: var(--space-2);
+      padding: var(--space-3) var(--page-pad) var(--space-4);
+      background: var(--color-bg-primary);
+    }
+
+    .period-btn {
+      flex: 1;
+      max-width: 80px;
+      padding: var(--space-2) var(--space-3);
+      border-radius: var(--radius-sm);
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      color: var(--color-text-secondary);
+      font-size: var(--font-size-xs);
+      font-weight: var(--font-weight-semibold);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.15s ease;
+      text-align: center;
+    }
+
+    .period-btn.active {
+      background: rgba(96,165,250,0.15);
+      border-color: var(--color-accent);
+      color: var(--color-accent-light);
+    }
+
+    .period-btn:active {
+      transform: scale(0.96);
+    }
+
 .seg {
   display: inline-flex;
   border: 1px solid var(--color-border);
@@ -1280,6 +1317,7 @@
   let state = {
     view: 'select',
     reviewTab: 'overview',
+    reviewPeriod: '12w',
     muscleGroups: ensureMuscleGroups(),
     exercises: loadJSON(KEY_EXERCISES, []),
     templates: loadJSON(KEY_TEMPLATES, []),
@@ -2587,8 +2625,10 @@ const exList = (w.exercises || []);
       state.reviewExerciseId = bestId;
     }
 
+    // Dynamische Volumen-Berechnung basierend auf Period
+    const periodDays = currentPeriod === '7d' ? 7 : currentPeriod === '30d' ? 30 : currentPeriod === '12w' ? 84 : 365;
     const vol7 = workoutsWithinDays(7).reduce((sum,w)=>sum+workoutVolume(w),0);
-    const vol30 = workoutsWithinDays(30).reduce((sum,w)=>sum+workoutVolume(w),0);
+    const volPeriod = workoutsWithinDays(periodDays).reduce((sum,w)=>sum+workoutVolume(w),0);
     const bw = lastBodyweight();
 
     const last7Avg = bodyweightAvgLastNDays(7);
@@ -2663,6 +2703,17 @@ const exList = (w.exercises || []);
     const frequentChips = (frequentIds.length ? frequentIds.slice(0, 8) : []).map(mkToggleChip).join('') || `<span class="muted small">Noch keine Workouts.</span>`;
 
     // --- TAB CONTENT ---
+    // --- PERIOD SELECTOR ---
+    const currentPeriod = state.reviewPeriod || '12w';
+    const periodSelector = `
+      <div class="period-selector">
+        <button class="period-btn ${currentPeriod==='7d'?'active':''}" onclick="state.reviewPeriod='7d'; render()">7T</button>
+        <button class="period-btn ${currentPeriod==='30d'?'active':''}" onclick="state.reviewPeriod='30d'; render()">30T</button>
+        <button class="period-btn ${currentPeriod==='12w'?'active':''}" onclick="state.reviewPeriod='12w'; render()">12W</button>
+        <button class="period-btn ${currentPeriod==='all'?'active':''}" onclick="state.reviewPeriod='all'; render()">Alle</button>
+      </div>
+    `;
+  
     const currentTab = state.reviewTab || 'overview';
 
     const tabOverview = `
@@ -2671,7 +2722,7 @@ const exList = (w.exercises || []);
         <div class="row"><div class="muted">Workouts gesamt</div><div style="font-weight:900">${state.workouts.length}</div></div>
         <div style="height:8px"></div>
         <div class="row"><div class="muted">Volumen 7 Tage</div><div style="font-weight:900">${formatVolume(vol7)}</div></div>
-        <div class="row"><div class="muted">Volumen 30 Tage</div><div style="font-weight:900">${formatVolume(vol30)}</div></div>
+        <div class="row"><div class="muted">Volumen ${currentPeriod === '7d' ? '7 Tage' : currentPeriod === '30d' ? '30 Tage' : currentPeriod === '12w' ? '12 Wochen' : 'Gesamt'}</div><div style="font-weight:900">${formatVolume(volPeriod)}</div></div>
         <div style="height:10px"></div>
         <div class="row"><div class="muted">Körpergewicht</div><div style="font-weight:900">${bw ? (formatDecimalDE(bw.weightKg, 1) + ' kg') : '-'}</div></div>
         <div class="muted small" style="margin-top:6px">
@@ -2682,7 +2733,7 @@ const exList = (w.exercises || []);
       </div>
 
       <div class="card">
-        <div class="card-title">Trainingsfrequenz (letzte 12 Wochen)</div>
+        <div class="card-title">Trainingsfrequenz ${currentPeriod === 'all' ? '(Gesamt)' : ''}</div>
         <canvas id="chartWeeklyFreq" class="chart-canvas compact" aria-label="Trainingsfrequenz"></canvas>
         <div class="card-sub">Workouts pro Woche + Trendlinie (4-Wochen-Mittel).</div>
       </div>
@@ -2738,7 +2789,7 @@ const exList = (w.exercises || []);
 
     const tabVolumen = `
       <div class="card">
-        <div class="card-title">Wochenvolumen (letzte 12 Wochen)</div>
+        <div class="card-title">Wochenvolumen ${currentPeriod === 'all' ? '(Gesamt)' : ''}</div>
         <canvas id="chartWeeklyVolume" class="chart-canvas tall" aria-label="Wochenvolumen"></canvas>
         <div class="card-sub">Summe aus kg × Wdh pro Woche. Gut für Hypertrophie-Progress.</div>
       </div>
@@ -2757,13 +2808,16 @@ const exList = (w.exercises || []);
         <button class="btn-icon" onclick="go('history')">📜</button>
       </div>
 
-      <div class="review-tabs">
+    <div class="review-tabs">
         <button class="review-tab ${currentTab==='overview'?'active':''}" onclick="state.reviewTab='overview'; render()">📊 Übersicht</button>
         <button class="review-tab ${currentTab==='kraft'?'active':''}" onclick="state.reviewTab='kraft'; render()">💪 Kraft</button>
         <button class="review-tab ${currentTab==='volumen'?'active':''}" onclick="state.reviewTab='volumen'; render()">📈 Volumen</button>
       </div>
 
+      ${periodSelector}
+
       <div class="container">
+  
         ${currentTab === 'overview' ? tabOverview : ''}
         ${currentTab === 'kraft' ? tabKraft : ''}
         ${currentTab === 'volumen' ? tabVolumen : ''}
@@ -3251,7 +3305,20 @@ function toggleReviewCompareExercise(exIdEnc) {
       .filter(x => Number.isFinite(x.t))
       .sort((a,b)=>a.t-b.t);
 
-    const endT = workouts.length ? workouts[workouts.length - 1].t : Date.now();
+    if (!workouts.length) {
+      // Return empty series
+      const endT = Date.now();
+      const endWeek = getWeekStartLocal(endT);
+      const startWeek = endWeek - (wks - 1) * 7 * 24 * 60 * 60 * 1000;
+      const series = [];
+      for (let i = 0; i < wks; i++) {
+        const weekT = startWeek + i * 7 * 24 * 60 * 60 * 1000;
+        series.push({ weekT, vol: 0, count: 0 });
+      }
+      return series;
+    }
+
+    const endT = workouts[workouts.length - 1].t;
     const endWeek = getWeekStartLocal(endT);
     const startWeek = endWeek - (wks - 1) * 7 * 24 * 60 * 60 * 1000;
 
@@ -3273,6 +3340,25 @@ function toggleReviewCompareExercise(exIdEnc) {
     return series;
   }
 
+  function getReviewWeeks() {
+    const period = state.reviewPeriod || '12w';
+    if (period === '7d') return 2;        // ~2 Wochen für 7-Tage-View
+    if (period === '30d') return 5;       // ~5 Wochen für 30-Tage-View
+    if (period === '12w') return 12;      // 12 Wochen (Standard)
+    if (period === 'all') {
+      // Berechne Wochen seit erstem Workout
+      const workouts = (state.workouts || [])
+        .map(w => parseISODateLocal(w?.date))
+        .filter(Number.isFinite)
+        .sort((a,b)=>a-b);
+      if (!workouts.length) return 12;
+      const firstT = workouts[0];
+      const lastT = workouts[workouts.length - 1];
+      const daysDiff = Math.ceil((lastT - firstT) / (24 * 60 * 60 * 1000));
+      return Math.max(4, Math.ceil(daysDiff / 7));
+    }
+    return 12;
+  }
   
   function drawWeeklyVolumeChart() {
     const canvas = document.getElementById('chartWeeklyVolume');
@@ -3281,7 +3367,7 @@ function toggleReviewCompareExercise(exIdEnc) {
 
     const padR = 14, padT = 16, padB = 30;
 
-    const series = buildWeeklySeries(12);
+    const series = buildWeeklySeries(getReviewWeeks());
     const maxV = Math.max(1, ...series.map(s => s.vol));
     const yMin = 0;
     const yMax = maxV * 1.05;
@@ -3393,7 +3479,7 @@ function toggleReviewCompareExercise(exIdEnc) {
     const w = cssW - padL - padR;
     const h = cssH - padT - padB;
 
-    const series = buildWeeklySeries(12);
+    const series = buildWeeklySeries(getReviewWeeks());
     const maxC = Math.max(1, ...series.map(s => s.count));
     const yMin = 0;
     const yMax = Math.max(4, maxC) + 0.5;
