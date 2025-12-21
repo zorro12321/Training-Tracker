@@ -1318,6 +1318,7 @@
     view: 'select',
     reviewTab: 'overview',
     reviewPeriod: '12w',
+    bodyweightPeriod: '30d',
     muscleGroups: ensureMuscleGroups(),
     exercises: loadJSON(KEY_EXERCISES, []),
     templates: loadJSON(KEY_TEMPLATES, []),
@@ -2927,11 +2928,24 @@ const exList = (w.exercises || []);
     `;
 
     return `
+      const bwPeriod = state.bodyweightPeriod || '30d';
+    const periodSelector = `
+      <div class="period-selector">
+        <button class="period-btn ${bwPeriod==='7d'?'active':''}" onclick="state.bodyweightPeriod='7d'; render()">7T</button>
+        <button class="period-btn ${bwPeriod==='30d'?'active':''}" onclick="state.bodyweightPeriod='30d'; render()">30T</button>
+        <button class="period-btn ${bwPeriod==='90d'?'active':''}" onclick="state.bodyweightPeriod='90d'; render()">90T</button>
+        <button class="period-btn ${bwPeriod==='all'?'active':''}" onclick="state.bodyweightPeriod='all'; render()">Alle</button>
+      </div>
+    `;
+
+    return `
       <div class="sticky-header">
         <button class="btn-icon" onclick="go('select')">←</button>
         <div class="sticky-title">Körpergewicht</div>
         <button class="btn-icon" onclick="openBodyweightAddModal()">＋</button>
       </div>
+
+      ${periodSelector}
 
       <div class="container">
         <button class="btn btn-secondary" onclick="openBodyweightAddModal()">
@@ -2983,6 +2997,10 @@ const exList = (w.exercises || []);
       return isNaN(t) ? NaN : t;
     };
 
+    const bwPeriod = state.bodyweightPeriod || '30d';
+    const bwDays = (bwPeriod === '7d') ? 7 : (bwPeriod === '30d') ? 30 : (bwPeriod === '90d') ? 90 : 9999;
+    const bwCutoff = Date.now() - bwDays * 24 * 60 * 60 * 1000;
+
     const logs = (state.bodyweightLogs || []).slice()
       .filter(x => x && x.date && x.weightKg != null)
       .map(x => {
@@ -2990,7 +3008,7 @@ const exList = (w.exercises || []);
         const t = parseISODateLocal(x.date);
         return { ...x, weightKg: w, _t: t };
       })
-      .filter(x => Number.isFinite(x.weightKg) && Number.isFinite(x._t))
+      .filter(x => Number.isFinite(x.weightKg) && Number.isFinite(x._t) && x._t >= bwCutoff)
       .sort((a, b) => a._t - b._t);
 
     if (logs.length < 2) return;
