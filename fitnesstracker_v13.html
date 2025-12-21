@@ -2741,7 +2741,7 @@ const exList = (w.exercises || []);
       </div>
 
       <div class="card">
-        <div class="card-title">PR-Heatmap (letzte 26 Wochen)</div>
+        <div class="card-title">PR-Heatmap (${currentPeriod === '7d' ? '4 Wochen' : currentPeriod === '30d' ? '6 Wochen' : currentPeriod === '12w' ? '12 Wochen' : '26 Wochen'})</div>
         <div class="heatmap-wrap">
           <canvas id="chartPRHeatmap" class="heatmap-canvas" aria-label="PR Heatmap"></canvas>
         </div>
@@ -3885,7 +3885,7 @@ series.forEach((s, idx) => {
     const end = new Date(lastT);
     end.setHours(0,0,0,0);
 
-    const weeks = 26;
+    const weeks = (state.reviewPeriod === '7d') ? 4 : (state.reviewPeriod === '30d') ? 6 : (state.reviewPeriod === '12w') ? 12 : 26;
     const days = weeks * 7;
     const dayMs = 24 * 60 * 60 * 1000;
     
