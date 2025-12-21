@@ -2626,6 +2626,8 @@ const exList = (w.exercises || []);
     }
 
     // Dynamische Volumen-Berechnung basierend auf Period
+    const currentPeriod = state.reviewPeriod || '12w';
+  
     const periodDays = currentPeriod === '7d' ? 7 : currentPeriod === '30d' ? 30 : currentPeriod === '12w' ? 84 : 365;
     const vol7 = workoutsWithinDays(7).reduce((sum,w)=>sum+workoutVolume(w),0);
     const volPeriod = workoutsWithinDays(periodDays).reduce((sum,w)=>sum+workoutVolume(w),0);
@@ -2704,7 +2706,7 @@ const exList = (w.exercises || []);
 
     // --- TAB CONTENT ---
     // --- PERIOD SELECTOR ---
-    const currentPeriod = state.reviewPeriod || '12w';
+    
     const periodSelector = `
       <div class="period-selector">
         <button class="period-btn ${currentPeriod==='7d'?'active':''}" onclick="state.reviewPeriod='7d'; render()">7T</button>
