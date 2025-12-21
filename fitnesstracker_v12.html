@@ -1042,11 +1042,6 @@
     if (t && t.id === 'toast') t.classList.remove('show');
   });
 
-  // Unlock on first interaction
-  document.addEventListener('pointerdown', unlockTimerSound, { once: true, passive: true });
-  document.addEventListener('touchstart', unlockTimerSound, { once: true, passive: true });
-
-
   function clampInt(n, min, max) {
     if (!Number.isFinite(n)) return null;
     const x = Math.trunc(n);
