@@ -1285,9 +1285,10 @@
   }
 
   function getMuscleGroupIdByName(name) {
-    const key = String(name || ‘’).trim().toLowerCase();
-    const hit = state.muscleGroups.find(g => String(g.name||’’).trim().toLowerCase() === key);
-  }
+  const key = String(name || '').trim().toLowerCase();
+  const hit = state.muscleGroups.find(g => String(g.name||'').trim().toLowerCase() === key);
+  return hit ? hit.id : null;
+}
 
   function sortMuscleGroups() {
     state.muscleGroups.sort((a,b)=>(a.order??0)-(b.order??0) || a.name.localeCompare(b.name,'de'));
@@ -2149,7 +2150,7 @@
     const map = new Map(state.muscleGroups.map(g => [g.id, 0]));
     for (const w of ws) {
       for (const ex of (w.exercises||[])) {
-        const gid = ex.muscleGroupIdSnapshot || getMuscleGroupIdByName(ex.muscleGroupSnapshot);
+        const gid = ex.muscleGroupIdSnapshot || getMuscleGroupIdByName(ex.muscleGroupSnapshot) || state.muscleGroups[0]?.id;
         if (!gid) continue;
         let v = 0;
         (ex.sets||[]).forEach(s => { if (isSetDone(s)) v += s.weight * s.reps; });
@@ -2372,7 +2373,6 @@
     // Keep template order for template workouts; for free/manual, group by muscle group
 // Keep insertion order (latest added stays at the bottom)
 const list = (w.exercises || []);
-const exList = list;
 
     return `
       <div class="sticky-header">
@@ -2857,6 +2857,7 @@ const frequentChips = (frequentIds.length ? frequentIds.slice(0, 8) : []).map(mk
   }
 
   function drawBodyweightChart() {
+  try {
     if (state.view !== 'bodyweight') return;
     const canvas = document.getElementById('bodyweightChart');
     if (!canvas) return;
@@ -3023,14 +3024,6 @@ const frequentChips = (frequentIds.length ? frequentIds.slice(0, 8) : []).map(mk
       ctx.fill();
     });
   }
-
-  window.addEventListener('resize', () => {
-    if (state.view === 'bodyweight') {
-      // allow layout to settle before reading bounding box
-      setTimeout(drawBodyweightChart, 0);
-    }
-  }, { passive: true });
-
 
   function parseISODateLocal(iso) {
     if (!iso || typeof iso !== 'string') return NaN;
@@ -3789,11 +3782,6 @@ series.forEach((s, idx) => {
     }
   }
 
-  window.addEventListener('resize', () => {
-    if (state.view === 'review') setTimeout(drawReviewCharts, 0);
-  }, { passive: true });
-
-
   function renderTemplates() {
     const list = state.templates.slice().sort((a,b)=>a.name.localeCompare(b.name,'de'));
     return `
@@ -4170,8 +4158,8 @@ series.forEach((s, idx) => {
     else app.innerHTML = renderSelect();
 
     if (state.view === 'workout') renderTimer();
-    if (state.view === 'bodyweight') setTimeout(drawBodyweightChart, 0);
-    if (state.view === 'review') setTimeout(drawReviewCharts, 0);
+    if (state.view === 'bodyweight') requestAnimationFrame(drawBodyweightChart);
+    if (state.view === 'review') requestAnimationFrame(drawReviewCharts);
   }
 
   function handleExSearch(inputEl) {
@@ -4278,6 +4266,18 @@ series.forEach((s, idx) => {
   window.closeModal = closeModal;
 
   window.handleExSearch = handleExSearch;
+
+  let chartRenderTimeout = null;
+function scheduleChartRender() {
+  if (chartRenderTimeout) clearTimeout(chartRenderTimeout);
+  chartRenderTimeout = setTimeout(() => {
+    if (state.view === 'bodyweight') drawBodyweightChart();
+    if (state.view === 'review') drawReviewCharts();
+    chartRenderTimeout = null;
+  }, 100);
+}
+
+window.addEventListener('resize', scheduleChartRender, { passive: true });
 
   try { render(); } catch (e) { showFatal(e); }
 })();
