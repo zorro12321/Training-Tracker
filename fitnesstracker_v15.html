@@ -3134,7 +3134,10 @@ const exList = (w.exercises || []);
     const formatCompactDate = (dateStr) => {
       const d = new Date(dateStr);
       const weekdays = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
-      return `${weekdays[d.getDay()]} ${d.getDate()}.`;
+      const day = d.getDate();
+      const month = d.getMonth() + 1;
+      const year = d.getFullYear();
+      return `${weekdays[d.getDay()]}, ${day}.${month}.${year}`;
     };
     
     // Render einzelnes Workout
