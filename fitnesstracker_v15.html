@@ -248,6 +248,22 @@
       background: var(--color-surface-hover);
     }
 
+    .mini-btn:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
+
+    .mini-btn:disabled:active {
+      transform: none;
+    }
+
+    .mini-btn.move-btn {
+      padding: var(--space-2);
+      min-width: 36px;
+      text-align: center;
+      font-size: var(--font-size-base);
+    }
+
     .btn-small { 
       padding: var(--space-2) var(--space-3);
       border-radius: var(--radius-sm);
@@ -1966,6 +1982,22 @@
     render();
   }
 
+  function moveExercise(logId, direction) {
+    if (!state.currentWorkout) return;
+    const exercises = state.currentWorkout.exercises || [];
+    const idx = exercises.findIndex(x => x.logId === logId);
+    if (idx === -1) return;
+    
+    const newIdx = idx + direction;
+    if (newIdx < 0 || newIdx >= exercises.length) return;
+    
+    // Swap
+    [exercises[idx], exercises[newIdx]] = [exercises[newIdx], exercises[idx]];
+    state.currentWorkout.exercises = exercises;
+    saveDraft();
+    render();
+  }
+
   function replaceExerciseInCurrentWorkout(logId, exerciseId) {
     if (!state.currentWorkout) return;
     const lid = String(logId || '');
@@ -3012,7 +3044,7 @@ const exList = (w.exercises || []);
       <div class="container" style="padding-bottom: calc(120px + env(safe-area-inset-bottom));">
       ${(isFreeLike && exList.length) ? '' : addExerciseBtn}
 
-        ${(exList.length ? exList.map(ex => {
+        ${(exList.length ? exList.map((ex, exIdx) => {
           const last = getLastExercisePerformance(ex.exerciseId);
           const lastBlock = last
             ? (() => {
@@ -3034,6 +3066,9 @@ const exList = (w.exercises || []);
               </div>
             `;
 
+          const isFirst = exIdx === 0;
+          const isLast = exIdx === exList.length - 1;
+
           return `
             <div class="card">
               <div class="exercise-header">
@@ -3050,6 +3085,8 @@ const exList = (w.exercises || []);
                       </div>
                     </div>
                     <div class="list-actions">
+                      <button class="mini-btn move-btn" onclick="moveExercise('${ex.logId}', -1)" ${isFirst ? 'disabled' : ''}>↑</button>
+                      <button class="mini-btn move-btn" onclick="moveExercise('${ex.logId}', 1)" ${isLast ? 'disabled' : ''}>↓</button>
                       <button class="mini-btn" onclick="openExercisePicker('workout_replace', null, '${ex.logId}')">Ersetzen</button>
                       <button class="btn-icon btn-icon-danger" onclick="removeExerciseFromWorkout('${ex.logId}')">🗑️</button>
                     </div>
@@ -5041,6 +5078,7 @@ series.forEach((s, idx) => {
   window.editPause = editPause;
   window.editTarget = editTarget;
   window.removeExerciseFromWorkout = removeExerciseFromWorkout;
+  window.moveExercise = moveExercise;
 
   window.startTimer = startTimer;
   window.stopTimer = stopTimer;
