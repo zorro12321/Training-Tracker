@@ -446,6 +446,70 @@
       grid-column: 1 / -1;
     }
 
+    /* Draft Card */
+    .draft-card {
+      display: flex;
+      align-items: stretch;
+      background: linear-gradient(135deg, rgba(16,185,129,0.15), rgba(16,185,129,0.05));
+      border: 1px solid var(--color-success);
+      border-radius: var(--radius-md);
+      margin-bottom: var(--space-3);
+      overflow: hidden;
+    }
+
+    .draft-content {
+      flex: 1;
+      padding: var(--space-3) var(--space-4);
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+
+    .draft-content:active {
+      background: rgba(16,185,129,0.1);
+    }
+
+    .draft-badge {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: var(--font-weight-bold);
+      color: var(--color-success);
+      background: rgba(16,185,129,0.2);
+      padding: 2px 6px;
+      border-radius: 4px;
+      letter-spacing: 0.05em;
+      margin-bottom: var(--space-1);
+    }
+
+    .draft-title {
+      font-size: var(--font-size-lg);
+      font-weight: var(--font-weight-semibold);
+      color: var(--color-text-primary);
+    }
+
+    .draft-action {
+      font-size: var(--font-size-sm);
+      color: var(--color-success);
+      margin-top: var(--space-1);
+    }
+
+    .draft-delete {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 48px;
+      background: rgba(239,68,68,0.1);
+      border: none;
+      border-left: 1px solid rgba(239,68,68,0.3);
+      color: var(--color-danger);
+      font-size: var(--font-size-lg);
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+
+    .draft-delete:active {
+      background: rgba(239,68,68,0.25);
+    }
+
     .next-workout-card {
       background: linear-gradient(135deg, rgba(96,165,250,0.15), rgba(96,165,250,0.05));
       border: 1px solid var(--color-accent);
@@ -1688,7 +1752,18 @@
     render();
   }
   function closeExercisePicker() { state.picker = null; render(); }
-  function setPickerSearch(v) { if (!state.picker) return; state.picker.search = v; render(); }
+  function setPickerSearch(inputEl) { 
+    if (!state.picker) return; 
+    const selectionStart = inputEl.selectionStart;
+    state.picker.search = inputEl.value; 
+    render(); 
+    // Fokus und Cursor-Position wiederherstellen
+    const newInput = document.getElementById('pickerSearchInput');
+    if (newInput) {
+      newInput.focus();
+      newInput.setSelectionRange(selectionStart, selectionStart);
+    }
+  }
   function setPickerGroup(gid) { if (!state.picker) return; state.picker.groupId = gid; render(); }
 
   function pickExercise(exerciseId) {
@@ -2562,14 +2637,19 @@
     const lastText = lastWorkout ? `Letztes Training: ${lastWorkout.daysAgo === 0 ? 'Heute' : lastWorkout.daysAgo === 1 ? 'Gestern' : 'vor ' + lastWorkout.daysAgo + 'T'}` : '';
     const statsText = [bwText, lastText].filter(Boolean).join('  ·  ');
 
-    // Draft Button mit Löschen-Option
+    // Draft Card - professionelles Design
+    const draftInfo = state.hasDraft ? loadJSON(KEY_DRAFT, null) : null;
+    const draftName = draftInfo?.nameSnapshot || 'Training';
+    
     const draftButton = state.hasDraft ? `
-      <div style="display: flex; gap: var(--space-2); margin-bottom: var(--space-3)">
-        <button class="btn btn-success" onclick="resumeDraft()" style="margin: 0; flex: 1">
-          <span>▶️ Training fortsetzen (Draft)</span><span style="opacity:0.7">→</span>
-        </button>
-        <button class="btn btn-danger" onclick="deleteDraft()" style="margin: 0; padding: 0 var(--space-4); min-width: auto;">
-          <span>🗑️</span>
+      <div class="draft-card">
+        <div class="draft-content" onclick="resumeDraft()">
+          <div class="draft-badge">DRAFT</div>
+          <div class="draft-title">${escapeHtml(draftName)}</div>
+          <div class="draft-action">Tippen zum Fortsetzen →</div>
+        </div>
+        <button class="draft-delete" onclick="event.stopPropagation(); deleteDraft()">
+          ✕
         </button>
       </div>
     ` : '';
@@ -4636,7 +4716,7 @@ series.forEach((s, idx) => {
           <h3>Übung auswählen</h3>
           <p>Sortiert nach Muskelgruppe. Du kannst suchen oder filtern.</p>
 
-          <input class="input" placeholder="Suchen..." value="${escapeHtml(p.search||'')}" oninput="setPickerSearch(this.value)" />
+          <input id="pickerSearchInput" class="input" placeholder="Suchen..." value="${escapeHtml(p.search||'')}" oninput="setPickerSearch(this)" />
 
           <div style="display:flex; gap:8px; flex-wrap:wrap; margin: 6px 0 10px">
             <button class="mini-btn" onclick="setPickerGroup(null)">Alle</button>
