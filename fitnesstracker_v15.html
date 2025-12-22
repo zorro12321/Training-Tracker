@@ -1519,56 +1519,94 @@
   // -----------------------
   // Start / resume workouts
   // -----------------------
-  function startTemplateWorkout(templateId, opts={}) {
-    const tpl = state.templates.find(t => t.templateId === templateId);
-    if (!tpl) return;
-
-    const exById = new Map(state.exercises.map(e => [e.id, e]));
-    const exercises = (tpl.items || []).map(item => {
-      const e = exById.get(item.exerciseId);
-      const name = e ? e.name : 'Unbekannte Übung';
-      const mgId = e ? e.muscleGroupId : findOrCreateMuscleGroup(state.muscleGroups, guessMuscleGroupName(name));
-      const mgName = getMuscleGroupNameById(mgId);
-      const plannedSets = Number(item.plannedSets) || DEFAULT_PLANNED_SETS;
-      const sets = Array(plannedSets).fill(null).map(() => ({ reps: null, weight: null }));
-      return {
-        logId: uid('log'),
-        exerciseId: item.exerciseId,
-        nameSnapshot: name,
-        muscleGroupIdSnapshot: mgId,
-        muscleGroupSnapshot: mgName,
-        plannedSets,
-        targetRepsText: String(item.targetRepsText || DEFAULT_TARGET),
-        pauseSec: Number(item.pauseSec) || DEFAULT_PAUSE_SEC,
-        sets
-      };
-    });
-
-    state.currentWorkout = {
-      id: Date.now(),
-      date: opts.date || new Date().toISOString(),
-      templateId: tpl.templateId,
-      kind: opts.kind || 'template',
-      nameSnapshot: opts.nameSnapshot || tpl.name,
-      exercises
-    };
-    state.view = 'workout';
-    saveDraft();
+  function deleteDraft() {
+    if (!confirm("Draft wirklich löschen? Der Fortschritt geht verloren.")) return;
+    clearDraft();
+    state.hasDraft = false;
+    state.currentWorkout = null;
     render();
   }
 
-  function startFreeWorkout(opts={}) {
-    state.currentWorkout = {
-      id: Date.now(),
-      date: opts.date || new Date().toISOString(),
-      templateId: null,
-      kind: opts.kind || 'free',
-      nameSnapshot: opts.nameSnapshot || 'Freies Training',
-      exercises: []
+  function checkDraftBeforeStart(callback) {
+    if (!state.hasDraft) {
+      callback();
+      return;
+    }
+    
+    const draft = loadJSON(KEY_DRAFT, null);
+    const draftName = draft?.nameSnapshot || 'Training';
+    const draftDate = draft?.date ? formatDate(draft.date) : '';
+    
+    const choice = confirm(
+      `⚠️ Du hast noch einen offenen Draft:\n\n"${draftName}"${draftDate ? ' vom ' + draftDate : ''}\n\nDraft verwerfen und neues Training starten?\n\n[OK] = Draft verwerfen\n[Abbrechen] = Zurück`
+    );
+    
+    if (choice) {
+      clearDraft();
+      state.hasDraft = false;
+      callback();
+    }
+    // Sonst: nichts tun, zurück zur Startseite
+  }
+
+  function startTemplateWorkout(templateId, opts={}) {
+    const doStart = () => {
+      const tpl = state.templates.find(t => t.templateId === templateId);
+      if (!tpl) return;
+
+      const exById = new Map(state.exercises.map(e => [e.id, e]));
+      const exercises = (tpl.items || []).map(item => {
+        const e = exById.get(item.exerciseId);
+        const name = e ? e.name : 'Unbekannte Übung';
+        const mgId = e ? e.muscleGroupId : findOrCreateMuscleGroup(state.muscleGroups, guessMuscleGroupName(name));
+        const mgName = getMuscleGroupNameById(mgId);
+        const plannedSets = Number(item.plannedSets) || DEFAULT_PLANNED_SETS;
+        const sets = Array(plannedSets).fill(null).map(() => ({ reps: null, weight: null }));
+        return {
+          logId: uid('log'),
+          exerciseId: item.exerciseId,
+          nameSnapshot: name,
+          muscleGroupIdSnapshot: mgId,
+          muscleGroupSnapshot: mgName,
+          plannedSets,
+          targetRepsText: String(item.targetRepsText || DEFAULT_TARGET),
+          pauseSec: Number(item.pauseSec) || DEFAULT_PAUSE_SEC,
+          sets
+        };
+      });
+
+      state.currentWorkout = {
+        id: Date.now(),
+        date: opts.date || new Date().toISOString(),
+        templateId: tpl.templateId,
+        kind: opts.kind || 'template',
+        nameSnapshot: opts.nameSnapshot || tpl.name,
+        exercises
+      };
+      state.view = 'workout';
+      saveDraft();
+      render();
     };
-    state.view = 'workout';
-    saveDraft();
-    render();
+
+    checkDraftBeforeStart(doStart);
+  }
+
+  function startFreeWorkout(opts={}) {
+    const doStart = () => {
+      state.currentWorkout = {
+        id: Date.now(),
+        date: opts.date || new Date().toISOString(),
+        templateId: null,
+        kind: opts.kind || 'free',
+        nameSnapshot: opts.nameSnapshot || 'Freies Training',
+        exercises: []
+      };
+      state.view = 'workout';
+      saveDraft();
+      render();
+    };
+
+    checkDraftBeforeStart(doStart);
   }
 
   function resumeDraft() {
@@ -1617,8 +1655,26 @@
   }
 
   function cancelWorkout() {
-    if (!confirm("Training abbrechen? Fortschritt bleibt als Draft gespeichert (Fortsetzen möglich).")) return;
+    const choice = confirm(
+      "Training abbrechen?\n\n[OK] = Draft behalten (Fortsetzen möglich)\n[Abbrechen] = Zurück zum Training"
+    );
+    
+    if (!choice) return; // Zurück zum Training
+    
+    // Draft behalten - fragen ob wirklich behalten oder löschen
+    const deleteDraftChoice = confirm(
+      "Möchtest du den Draft löschen?\n\n[OK] = Draft löschen\n[Abbrechen] = Draft behalten"
+    );
+    
     stopTimer();
+    
+    if (deleteDraftChoice) {
+      clearDraft();
+      state.hasDraft = false;
+    } else {
+      state.hasDraft = true;
+    }
+    
     state.currentWorkout = null;
     state.view = 'select';
     render();
@@ -2506,11 +2562,16 @@
     const lastText = lastWorkout ? `Letztes Training: ${lastWorkout.daysAgo === 0 ? 'Heute' : lastWorkout.daysAgo === 1 ? 'Gestern' : 'vor ' + lastWorkout.daysAgo + 'T'}` : '';
     const statsText = [bwText, lastText].filter(Boolean).join('  ·  ');
 
-    // Draft Button
+    // Draft Button mit Löschen-Option
     const draftButton = state.hasDraft ? `
-      <button class="btn btn-success" onclick="resumeDraft()" style="margin-bottom: var(--space-3)">
-        <span>▶️ Training fortsetzen (Draft)</span><span style="opacity:0.7">→</span>
-      </button>
+      <div style="display: flex; gap: var(--space-2); margin-bottom: var(--space-3)">
+        <button class="btn btn-success" onclick="resumeDraft()" style="margin: 0; flex: 1">
+          <span>▶️ Training fortsetzen (Draft)</span><span style="opacity:0.7">→</span>
+        </button>
+        <button class="btn btn-danger" onclick="deleteDraft()" style="margin: 0; padding: 0 var(--space-4); min-width: auto;">
+          <span>🗑️</span>
+        </button>
+      </div>
     ` : '';
 
     // Nächstes Training Karte
@@ -2930,17 +2991,6 @@ const exList = (w.exercises || []);
       .filter(x => Number.isFinite(x.t))
       .sort((a,b)=>b.t-a.t);
 
-    const recentIds = [];
-    const seenRecent = new Set();
-    sortedW.slice(0, 4).forEach(x => {
-      (x.w?.exercises || []).forEach(ex => {
-        const id = ex?.exerciseId;
-        if (!id || seenRecent.has(id) || !exById.has(id)) return;
-        seenRecent.add(id);
-        recentIds.push(id);
-      });
-    });
-
     const volByEx = new Map();
     const fourWeeksAgo = Date.now() - 28 * 24 * 60 * 60 * 1000;
     (state.workouts || [])
@@ -2978,7 +3028,6 @@ const exList = (w.exercises || []);
       `;
     };
 
-    const recentChips = (recentIds.length ? recentIds.slice(0, 8) : []).map(mkToggleChip).join('') || `<span class="muted small">Noch keine Workouts.</span>`;
     const topVolumeChips = (topVolumeIds.length ? topVolumeIds : []).map(mkToggleChip).join('') || `<span class="muted small">Noch keine Workouts.</span>`;
     // --- TAB CONTENT ---
     // --- PERIOD SELECTOR ---
@@ -3048,11 +3097,6 @@ const exList = (w.exercises || []);
         <div class="muted small" style="margin-top:10px">Ausgewählt</div>
         <div class="chips" style="margin-top:6px">
           ${selectedChips}
-        </div>
-
-        <div class="muted small" style="margin-top:12px">Most recent</div>
-        <div class="chips" style="margin-top:6px">
-          ${recentChips}
         </div>
 
        <div class="muted small" style="margin-top:12px">Top Volumen (4 Wochen)</div>
@@ -4681,6 +4725,7 @@ series.forEach((s, idx) => {
   window.startTemplateWorkout = startTemplateWorkout;
   window.startFreeWorkout = startFreeWorkout;
   window.resumeDraft = resumeDraft;
+  window.deleteDraft = deleteDraft;
   window.finishWorkout = finishWorkout;
   window.cancelWorkout = cancelWorkout;
   window.editWorkoutMeta = editWorkoutMeta;
