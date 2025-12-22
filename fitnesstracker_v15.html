@@ -2785,9 +2785,13 @@
     const cardLabel = trainedToday ? 'Nächstes Training' : 'Heute dran';
     const cardEmoji = trainedToday ? '📋' : '👉';
     
+    // Einheitliches Orange-Design für alle Zustände
+    const orangeStyle = 'background: linear-gradient(135deg, rgba(251,146,60,0.15), rgba(251,146,60,0.05)); border-color: #fb923c;';
+    const orangeLabelStyle = 'color: #fb923c;';
+    
     const nextWorkoutCard = nextTemplate ? `
-      <div class="next-workout-card" onclick="startTemplateWorkout('${nextTemplate.templateId}')"${trainedToday ? ' style="background: linear-gradient(135deg, rgba(148,163,184,0.15), rgba(148,163,184,0.05)); border-color: var(--color-text-tertiary);"' : ''}>
-        <div class="label"${trainedToday ? ' style="color: var(--color-text-secondary);"' : ''}>${cardLabel}</div>
+      <div class="next-workout-card" onclick="startTemplateWorkout('${nextTemplate.templateId}')" style="${orangeStyle}">
+        <div class="label" style="${orangeLabelStyle}">${cardLabel}</div>
         <div class="title">
           <span>${cardEmoji} ${escapeHtml(nextTemplate.name)}</span>
           <span style="opacity:0.6">→</span>
@@ -2795,8 +2799,8 @@
         ${lastWorkout ? `<div class="subtitle">${trainedToday ? '✅ Heute erledigt: ' : 'Zuletzt: '}${escapeHtml(lastWorkout.name)}${!trainedToday ? (lastWorkout.daysAgo === 0 ? ' (heute)' : lastWorkout.daysAgo === 1 ? ' (gestern)' : ' (vor ' + lastWorkout.daysAgo + ' Tagen)') : ''}</div>` : ''}
       </div>
     ` : (state.rotation.length === 0 && state.templates.length > 0 ? `
-      <div class="next-workout-card" onclick="go('rotation')" style="background: linear-gradient(135deg, rgba(251,146,60,0.15), rgba(251,146,60,0.05)); border-color: #fb923c;">
-        <div class="label" style="color: #fb923c;">Rotation einrichten</div>
+      <div class="next-workout-card" onclick="go('rotation')" style="${orangeStyle}">
+        <div class="label" style="${orangeLabelStyle}">Rotation einrichten</div>
         <div class="title">
           <span>🔄 Trainingsreihenfolge festlegen</span>
           <span style="opacity:0.6">→</span>
