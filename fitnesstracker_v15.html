@@ -775,9 +775,8 @@
       background: var(--color-surface);
       border-bottom: 1px solid var(--color-border);
       display: flex;
-      flex-wrap: wrap;
-      gap: var(--space-2);
-      align-items: baseline;
+      flex-direction: column;
+      gap: var(--space-1);
     }
 
     .last-label-compact {
@@ -3272,8 +3271,8 @@ const exList = (w.exercises || []);
 
         ${(exList.length ? exList.map((ex, exIdx) => {
           const last = getLastExercisePerformance(ex.exerciseId);
-          const lastText = last
-            ? last.sets.slice(0, 4).map(s => `${s.reps}×${formatDecimalDE(s.weight, 1)}`).join(' · ') + (last.sets.length > 4 ? ' …' : '')
+          const lastSets = last
+            ? last.sets.slice(0, 4).map(s => `${s.reps}×${formatDecimalDE(s.weight, 1)} kg`).join(' · ') + (last.sets.length > 4 ? ' …' : '')
             : '–';
           const lastDate = last ? formatDate(last.date) : '';
 
@@ -3309,8 +3308,8 @@ const exList = (w.exercises || []);
               </div>
 
               <div class="last-perf-compact">
-                <span class="last-label-compact">📊 Zuletzt${lastDate ? ' (' + lastDate + ')' : ''}:</span>
-                <span class="last-values">${lastText}</span>
+                <div class="last-label-compact">📊 Zuletzt${lastDate ? ' (' + lastDate + ')' : ''}:</div>
+                <div class="last-values">${lastSets}</div>
               </div>
 
               <div class="sets-container">
