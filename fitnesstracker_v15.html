@@ -2342,7 +2342,8 @@
       exercises: state.exercises,
       templates: state.templates,
       workouts: state.workouts,
-      bodyweightLogs: state.bodyweightLogs
+      bodyweightLogs: state.bodyweightLogs,
+      rotation: state.rotation || []
     };
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
@@ -2369,7 +2370,8 @@
         exercises: data.exercises,
         templates: data.templates,
         workouts: data.workouts,
-        bodyweightLogs: Array.isArray(data.bodyweightLogs) ? data.bodyweightLogs : []
+        bodyweightLogs: Array.isArray(data.bodyweightLogs) ? data.bodyweightLogs : [],
+        rotation: Array.isArray(data.rotation) ? data.rotation : []
       };
     }
 
@@ -2401,7 +2403,7 @@
       // workouts keep, normalize later
       const workouts = data.workouts.map(w => w);
 
-      return { muscleGroups: groups, exercises, templates, workouts, bodyweightLogs: [] };
+      return { muscleGroups: groups, exercises, templates, workouts, bodyweightLogs: [], rotation: [] };
     }
     return null;
   }
@@ -2423,12 +2425,14 @@
         state.templates = migrated.templates;
         state.workouts = migrated.workouts;
         state.bodyweightLogs = migrated.bodyweightLogs;
+        state.rotation = migrated.rotation || [];
 
         saveJSON(KEY_MUSCLEGROUPS, state.muscleGroups);
         saveJSON(KEY_EXERCISES, state.exercises);
         saveJSON(KEY_TEMPLATES, state.templates);
         saveJSON(KEY_HISTORY, state.workouts);
         saveJSON(KEY_BODYWEIGHT, state.bodyweightLogs);
+        saveJSON(KEY_ROTATION, state.rotation);
 
         normalizeAllWorkouts();
 
