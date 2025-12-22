@@ -795,38 +795,154 @@
 /* ========================================
        HISTORY
        ======================================== */
+    .history-group-title {
+      font-size: var(--font-size-xs);
+      font-weight: var(--font-weight-bold);
+      color: var(--color-text-tertiary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: var(--space-4) 0 var(--space-2) 0;
+      margin-top: var(--space-2);
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    .history-group-title:first-of-type {
+      margin-top: 0;
+    }
+
     .history-item { 
-      background: var(--color-bg-elevated);
-      border-radius: var(--radius-lg);
-      margin: var(--space-3) 0;
-      overflow: hidden;
-      border: 1px solid var(--color-border);
-      box-shadow: var(--shadow-sm);
-    }
-
-    .history-header { 
-      padding: var(--space-4);
       display: flex;
-      justify-content: space-between;
       align-items: center;
+      padding: var(--space-4);
+      background: var(--color-bg-elevated);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      margin: var(--space-2) 0;
       cursor: pointer;
-      gap: var(--space-3);
       transition: background 0.15s ease;
+      gap: var(--space-3);
     }
 
-    .history-header:active {
+    .history-item:active {
       background: var(--color-surface);
+    }
+
+    .history-main {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .history-name {
+      font-size: var(--font-size-base);
+      font-weight: var(--font-weight-bold);
+      color: var(--color-text-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .history-meta {
+      font-size: var(--font-size-sm);
+      color: var(--color-text-secondary);
+      margin-top: 2px;
+    }
+
+    .history-date {
+      font-size: var(--font-size-sm);
+      color: var(--color-text-tertiary);
+      white-space: nowrap;
+    }
+
+    .history-chevron {
+      color: var(--color-accent);
+      font-size: var(--font-size-lg);
+      width: 24px;
+      text-align: center;
     }
 
     .history-details { 
-      padding: var(--space-4);
-      border-top: 1px solid var(--color-border);
-      display: none;
+      padding: var(--space-3) var(--space-4);
       background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-top: none;
+      border-radius: 0 0 var(--radius-md) var(--radius-md);
+      margin-top: calc(-1 * var(--space-2));
+      margin-bottom: var(--space-2);
+      display: none;
     }
 
     .history-details.open { 
       display: block;
+    }
+
+    .history-exercise {
+      padding: var(--space-3) 0;
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    .history-exercise:last-of-type {
+      border-bottom: none;
+    }
+
+    .history-exercise-name {
+      font-size: var(--font-size-sm);
+      font-weight: var(--font-weight-semibold);
+      color: var(--color-text-primary);
+      margin-bottom: 2px;
+    }
+
+    .history-sets {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-1);
+      margin-top: var(--space-2);
+    }
+
+    .history-set {
+      font-size: var(--font-size-xs);
+      color: var(--color-text-secondary);
+      background: var(--color-bg-elevated);
+      padding: 4px 8px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--color-border);
+    }
+
+    .history-actions {
+      padding-top: var(--space-3);
+      margin-top: var(--space-2);
+      border-top: 1px solid var(--color-border);
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .btn-small {
+      font-size: var(--font-size-xs);
+      padding: var(--space-2) var(--space-3);
+      border-radius: var(--radius-sm);
+      border: none;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .btn-small.btn-danger {
+      background: rgba(239, 68, 68, 0.15);
+      color: var(--color-danger);
+    }
+
+    .btn-small.btn-danger:active {
+      background: rgba(239, 68, 68, 0.3);
+    }
+
+    .history-empty {
+      text-align: center;
+      padding: var(--space-8) var(--space-4);
+      color: var(--color-text-secondary);
+    }
+
+    .history-empty-icon {
+      font-size: 48px;
+      margin-bottom: var(--space-3);
+      opacity: 0.5;
     }
 
     /* ========================================
@@ -2978,7 +3094,108 @@ const exList = (w.exercises || []);
   }
 
   function renderHistory() {
-    const list = state.workouts || [];
+    // Sortiere nach Datum (neueste zuerst)
+    const sortedList = (state.workouts || []).slice().sort((a, b) => new Date(b.date) - new Date(a.date));
+    
+    // Gruppiere nach Zeitraum
+    const now = new Date();
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+    const weekStart = todayStart - ((now.getDay() + 6) % 7) * 24 * 60 * 60 * 1000; // Montag
+    const lastWeekStart = weekStart - 7 * 24 * 60 * 60 * 1000;
+    
+    const groups = {
+      today: [],
+      thisWeek: [],
+      lastWeek: [],
+      older: new Map() // month -> workouts
+    };
+    
+    sortedList.forEach(w => {
+      const wDate = new Date(w.date);
+      const wTime = wDate.getTime();
+      
+      if (wTime >= todayStart) {
+        groups.today.push(w);
+      } else if (wTime >= weekStart) {
+        groups.thisWeek.push(w);
+      } else if (wTime >= lastWeekStart) {
+        groups.lastWeek.push(w);
+      } else {
+        const monthKey = `${wDate.getFullYear()}-${String(wDate.getMonth() + 1).padStart(2, '0')}`;
+        const monthName = wDate.toLocaleDateString('de-DE', { month: 'long', year: 'numeric' });
+        if (!groups.older.has(monthKey)) {
+          groups.older.set(monthKey, { name: monthName, workouts: [] });
+        }
+        groups.older.get(monthKey).workouts.push(w);
+      }
+    });
+    
+    // Formatiere kompaktes Datum (z.B. "So 22.")
+    const formatCompactDate = (dateStr) => {
+      const d = new Date(dateStr);
+      const weekdays = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
+      return `${weekdays[d.getDay()]} ${d.getDate()}.`;
+    };
+    
+    // Render einzelnes Workout
+    const renderWorkoutItem = (w) => {
+      const vol = workoutVolume(w);
+      const doneExercises = (w.exercises || []).filter(ex => (ex.sets || []).some(isSetDone));
+      const exerciseCount = doneExercises.length;
+      
+      return `
+        <div class="history-item" onclick="toggleHistory(${w.id})">
+          <div class="history-main">
+            <div class="history-name">${escapeHtml(w.nameSnapshot)}</div>
+            <div class="history-meta">${formatVolume(vol)}${exerciseCount ? ` · ${exerciseCount} Übung${exerciseCount !== 1 ? 'en' : ''}` : ''}</div>
+          </div>
+          <div class="history-date">${formatCompactDate(w.date)}</div>
+          <div class="history-chevron">${state.expandedId === w.id ? '−' : '+'}</div>
+        </div>
+        
+        <div class="history-details ${state.expandedId === w.id ? 'open' : ''}">
+          ${doneExercises.length === 0 ? `
+            <div class="muted small" style="padding: 12px 0;">Keine geloggten Übungen.</div>
+          ` : doneExercises.map(ex => {
+            const setsDone = (ex.sets || []).filter(isSetDone);
+            return `
+              <div class="history-exercise">
+                <div class="history-exercise-name">${escapeHtml(ex.nameSnapshot)}</div>
+                <div class="muted small">${escapeHtml(ex.muscleGroupSnapshot)} · e1RM: ${formatE1RM(exerciseTopE1RM(ex))}</div>
+                <div class="history-sets">
+                  ${setsDone.map(s => `<span class="history-set">${s.reps}×${formatDecimalDE(s.weight, 1)}</span>`).join('')}
+                </div>
+              </div>
+            `;
+          }).join('')}
+          <div class="history-actions">
+            <button class="btn-small btn-danger" onclick="event.stopPropagation(); deleteWorkout(${w.id});">
+              🗑️ Löschen
+            </button>
+          </div>
+        </div>
+      `;
+    };
+    
+    // Render Gruppe mit Titel
+    const renderGroup = (title, workouts) => {
+      if (!workouts.length) return '';
+      return `
+        <div class="history-group-title">${title}</div>
+        ${workouts.map(renderWorkoutItem).join('')}
+      `;
+    };
+    
+    // Render ältere Monate
+    const renderOlderMonths = () => {
+      let html = '';
+      const sortedMonths = Array.from(groups.older.entries()).sort((a, b) => b[0].localeCompare(a[0]));
+      sortedMonths.forEach(([key, data]) => {
+        html += renderGroup(data.name, data.workouts);
+      });
+      return html;
+    };
+
     return `
       <div class="sticky-header">
         <button class="btn-icon" onclick="go('select')">←</button>
@@ -2987,49 +3204,23 @@ const exList = (w.exercises || []);
       </div>
 
       <div class="container">
-        <div style="margin:10px 0 18px 0">
-          <button class="btn btn-secondary" onclick="openManualAddModal()"><span>➕ Manuell hinzufügen</span><span style="opacity:0.7">→</span></button>
+        <button class="btn btn-secondary" onclick="openManualAddModal()" style="margin-bottom: var(--space-4)">
+          <span>＋ Manuell hinzufügen</span><span style="opacity:0.7">→</span>
+        </button>
 
-          <button class="btn btn-secondary" onclick="exportData()"><span>⬇️ Export / Backup</span><span style="opacity:0.7">JSON</span></button>
-          <button class="btn btn-secondary" onclick="triggerImport()"><span>⬆️ Import / Restore</span><span style="opacity:0.7">JSON</span></button>
-          <input id="import-file" type="file" accept="application/json" style="display:none" onchange="handleImportFile(event)" />
-        </div>
-
-        ${list.length === 0 ? `
-          <div style="text-align:center; padding: 40px; color:#64748b;">Keine Trainings gefunden.</div>
-        ` : list.map(w => {
-          const vol = workoutVolume(w);
-          const doneExercises = (w.exercises||[]).filter(ex => (ex.sets||[]).some(isSetDone));
-          return `
-            <div class="history-item">
-              <div class="history-header" onclick="toggleHistory(${w.id})">
-                <div style="flex:1">
-                  <div style="color:#e2e8f0; font-size: 16px; font-weight:900;">${escapeHtml(w.nameSnapshot)}</div>
-                  <div class="muted small">${formatDate(w.date)} · Volumen: ${formatVolume(vol)}</div>
-                </div>
-                <button class="btn-icon btn-icon-danger" onclick="(function(e){e.stopPropagation();})(event); deleteWorkout(${w.id});">🗑️</button>
-                <span style="color:#60a5fa; font-size:18px">${state.expandedId === w.id ? '−' : '+'}</span>
-              </div>
-
-              <div class="history-details ${state.expandedId === w.id ? 'open' : ''}">
-                ${doneExercises.length === 0 ? `
-                  <div class="muted small">Keine geloggten Übungen.</div>
-                ` : doneExercises.map(ex => {
-                  const setsDone = (ex.sets||[]).filter(isSetDone);
-                  return `
-                    <div style="margin-bottom: 14px; border-bottom: 1px solid #1e293b; padding-bottom:10px;">
-                      <div style="color:#e2e8f0; font-size:14px; font-weight:900; margin-bottom:4px;">${escapeHtml(ex.nameSnapshot)}</div>
-                      <div class="muted small">Muskelgruppe: ${escapeHtml(ex.muscleGroupSnapshot)} · Top e1RM: ${formatE1RM(exerciseTopE1RM(ex))}</div>
-                      <div class="chips">
-                        ${setsDone.map(s => `<span class="chip2">${s.reps} × ${formatDecimalDE(s.weight, 2)} kg</span>`).join('')}
-                      </div>
-                    </div>
-                  `;
-                }).join('')}
-              </div>
-            </div>
-          `;
-        }).join('')}
+        ${sortedList.length === 0 ? `
+          <div class="history-empty">
+            <div class="history-empty-icon">📋</div>
+            <div>Noch keine Trainings</div>
+            <div class="muted small">Starte dein erstes Workout!</div>
+          </div>
+        ` : `
+          ${renderGroup('Heute', groups.today)}
+          ${renderGroup('Diese Woche', groups.thisWeek)}
+          ${renderGroup('Letzte Woche', groups.lastWeek)}
+          ${renderOlderMonths()}
+        `}
+        
         ${renderModal()}
       </div>
     `;
