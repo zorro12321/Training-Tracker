@@ -2941,16 +2941,23 @@ const exList = (w.exercises || []);
       });
     });
 
-    const freq = new Map();
-    (state.workouts || []).forEach(w => (w.exercises || []).forEach(ex => {
-      const id = ex?.exerciseId;
-      if (!id || !exById.has(id)) return;
-      freq.set(id, (freq.get(id) || 0) + 1);
-    }));
-    const frequentIds = Array.from(freq.entries())
-      .sort((a,b)=>b[1]-a[1])
-      .slice(0, 8)
-      .map(([id])=>id);
+    const volByEx = new Map();
+    const fourWeeksAgo = Date.now() - 28 * 24 * 60 * 60 * 1000;
+    (state.workouts || [])
+      .filter(w => parseISODateLocal(w?.date) >= fourWeeksAgo)
+      .forEach(w => (w.exercises || []).forEach(ex => {
+        const id = ex?.exerciseId;
+        if (!id || !exById.has(id)) return;
+        let vol = 0;
+        (ex.sets || []).forEach(s => {
+          if (isSetDone(s)) vol += s.weight * s.reps;
+        });
+        volByEx.set(id, (volByEx.get(id) || 0) + vol);
+      }));
+    const topVolumeIds = Array.from(volByEx.entries())
+      .sort((a,b) => b[1] - a[1])
+      .slice(0, 10)
+      .map(([id]) => id);
 
     const nameOf = (id) => escapeHtml(exById.get(id)?.name || 'Übung');
 
@@ -2972,8 +2979,7 @@ const exList = (w.exercises || []);
     };
 
     const recentChips = (recentIds.length ? recentIds.slice(0, 8) : []).map(mkToggleChip).join('') || `<span class="muted small">Noch keine Workouts.</span>`;
-    const frequentChips = (frequentIds.length ? frequentIds.slice(0, 8) : []).map(mkToggleChip).join('') || `<span class="muted small">Noch keine Workouts.</span>`;
-
+    const topVolumeChips = (topVolumeIds.length ? topVolumeIds : []).map(mkToggleChip).join('') || `<span class="muted small">Noch keine Workouts.</span>`;
     // --- TAB CONTENT ---
     // --- PERIOD SELECTOR ---
     
@@ -3049,9 +3055,9 @@ const exList = (w.exercises || []);
           ${recentChips}
         </div>
 
-        <div class="muted small" style="margin-top:12px">Most frequent</div>
+       <div class="muted small" style="margin-top:12px">Top Volumen (4 Wochen)</div>
         <div class="chips" style="margin-top:6px">
-          ${frequentChips}
+          ${topVolumeChips}
         </div>
 
         <canvas id="chartStrengthTrend" class="chart-canvas tall" aria-label="Krafttrend Vergleich"></canvas>
