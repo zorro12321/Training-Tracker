@@ -1938,7 +1938,8 @@
   }
 
   function getLastExercisePerformance(exerciseId) {
-    for (const w of state.workouts) {
+    const sortedWorkouts = (state.workouts || []).slice().sort((a, b) => new Date(b.date) - new Date(a.date));
+    for (const w of sortedWorkouts) {
       const ex = (w.exercises || []).find(e => e.exerciseId === exerciseId);
       if (!ex) continue;
       const done = (ex.sets || []).filter(isSetDone);
