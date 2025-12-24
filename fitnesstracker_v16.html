@@ -4840,18 +4840,21 @@ function toggleReviewCompareExercise(exIdEnc) {
       });
       ctx.stroke();
 
-      // Punkte (Dreiecke für Kraft)
-      ctx.fillStyle = '#fb923c';
+      // Punkte (Dreiecke für Kraft) - helleres Orange mit dunklem Rand
       kraftData.forEach(d => {
         if (!Number.isFinite(d.value)) return;
         const x = weekToX(d.week);
         const y = kraftToY(d.value);
         ctx.beginPath();
-        ctx.moveTo(x, y - 5);
-        ctx.lineTo(x - 4, y + 3);
-        ctx.lineTo(x + 4, y + 3);
+        ctx.moveTo(x, y - 6);
+        ctx.lineTo(x - 5, y + 4);
+        ctx.lineTo(x + 5, y + 4);
         ctx.closePath();
+        ctx.fillStyle = '#fcd34d'; // Helleres Gelb-Orange
         ctx.fill();
+        ctx.strokeStyle = '#ea580c'; // Dunklerer Orange-Rand
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
       });
     }
 
