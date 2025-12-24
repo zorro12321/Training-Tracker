@@ -3067,12 +3067,14 @@
     const lastDate = new Date(last.date);
     const today = new Date();
     
-    // Prüfe ob das letzte Workout heute war (gleicher Tag)
-    const isToday = lastDate.getDate() === today.getDate() &&
-                    lastDate.getMonth() === today.getMonth() &&
-                    lastDate.getFullYear() === today.getFullYear();
+    // Setze beide Daten auf Mitternacht für korrekten Kalendertag-Vergleich
+    const lastMidnight = new Date(lastDate.getFullYear(), lastDate.getMonth(), lastDate.getDate()).getTime();
+    const todayMidnight = new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime();
     
-    const daysDiff = Math.floor((Date.now() - lastDate.getTime()) / (24 * 60 * 60 * 1000));
+    // Berechne Differenz in Kalendertagen
+    const daysDiff = Math.round((todayMidnight - lastMidnight) / (24 * 60 * 60 * 1000));
+    
+    const isToday = daysDiff === 0;
     
     return {
       name: last.nameSnapshot || 'Training',
@@ -3111,8 +3113,8 @@
 
     // Nächstes Training Karte
     const trainedToday = lastWorkout?.trainedToday || false;
-    const cardLabel = trainedToday ? 'Nächstes Training' : 'Heute dran';
-    const cardEmoji = trainedToday ? '📋' : '👉';
+    const cardLabel = 'Nächstes Training';
+    const cardEmoji = '📋';
     
     // Einheitliches Orange-Design für alle Zustände
     const orangeStyle = 'background: linear-gradient(135deg, rgba(251,146,60,0.15), rgba(251,146,60,0.05)); border-color: #fb923c;';
