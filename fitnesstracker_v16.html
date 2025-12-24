@@ -1392,6 +1392,28 @@
       height: 260px;
     }
 
+    .chart-legend {
+      display: flex;
+      justify-content: center;
+      gap: var(--space-4);
+      margin-top: var(--space-3);
+      padding-top: var(--space-2);
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      font-size: var(--font-size-sm);
+      color: var(--color-text-secondary);
+    }
+
+    .legend-line {
+      width: 16px;
+      height: 3px;
+      border-radius: 2px;
+    }
+
     .heatmap-wrap { 
       overflow-x: auto;
       -webkit-overflow-scrolling: touch;
@@ -3698,6 +3720,16 @@ const exList = (w.exercises || []);
       </div>
 
       <div class="card">
+        <div class="card-title">Kraft & Gewicht Trend</div>
+        <canvas id="chartKraftGewicht" class="chart-canvas tall" aria-label="Kraft und Gewicht Trend"></canvas>
+        <div class="chart-legend">
+          <span class="legend-item"><span class="legend-line" style="background: #fb923c;"></span> Kraft-Index</span>
+          <span class="legend-item"><span class="legend-line" style="background: #60a5fa;"></span> Körpergewicht</span>
+        </div>
+        <div class="card-sub">Zeigt Korrelation zwischen Kraft und Gewicht über die letzten 12 Wochen.</div>
+      </div>
+
+      <div class="card">
         <div class="card-title">Trainingsfrequenz ${currentPeriod === 'all' ? '(Gesamt)' : ''}</div>
         <canvas id="chartWeeklyFreq" class="chart-canvas compact" aria-label="Trainingsfrequenz"></canvas>
         <div class="card-sub">Workouts pro Woche + Trendlinie (4-Wochen-Mittel).</div>
@@ -4698,6 +4730,186 @@ function toggleReviewCompareExercise(exIdEnc) {
     return best;
   }
 
+  function drawKraftGewichtChart() {
+    const canvas = document.getElementById('chartKraftGewicht');
+    if (!canvas) return;
+
+    const { ctx, cssW, cssH } = getCanvasCtx(canvas, 260);
+
+    const weeks = 12;
+    const kraftData = [];
+    const gewichtData = [];
+
+    // Sammle Daten für die letzten 12 Wochen
+    for (let i = weeks - 1; i >= 0; i--) {
+      kraftData.push({ week: weeks - i, value: calculateKraftIndex(i) });
+      gewichtData.push({ week: weeks - i, value: bodyweightAvgForWeek(i) });
+    }
+
+    // Filtere valide Datenpunkte
+    const validKraft = kraftData.filter(d => Number.isFinite(d.value));
+    const validGewicht = gewichtData.filter(d => Number.isFinite(d.value));
+
+    if (!validKraft.length && !validGewicht.length) {
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = '13px -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif';
+      ctx.fillText('Noch nicht genügend Daten vorhanden.', 14, 30);
+      return;
+    }
+
+    // Berechne Y-Achsen-Bereiche
+    const kraftValues = validKraft.map(d => d.value);
+    const gewichtValues = validGewicht.map(d => d.value);
+
+    const kraftMin = kraftValues.length ? Math.min(...kraftValues) * 0.95 : 0;
+    const kraftMax = kraftValues.length ? Math.max(...kraftValues) * 1.05 : 100;
+    const gewichtMin = gewichtValues.length ? Math.min(...gewichtValues) * 0.98 : 0;
+    const gewichtMax = gewichtValues.length ? Math.max(...gewichtValues) * 1.02 : 100;
+
+    // Chart-Dimensionen
+    const padL = 45;
+    const padR = 45;
+    const padT = 20;
+    const padB = 35;
+    const w = cssW - padL - padR;
+    const h = cssH - padT - padB;
+
+    // Hintergrund-Linien
+    ctx.strokeStyle = 'rgba(148, 163, 184, 0.15)';
+    ctx.lineWidth = 1;
+    for (let i = 0; i <= 4; i++) {
+      const y = padT + (i / 4) * h;
+      ctx.beginPath();
+      ctx.moveTo(padL, y);
+      ctx.lineTo(padL + w, y);
+      ctx.stroke();
+    }
+
+    // Hilfsfunktion: Wert zu Y-Position
+    const kraftToY = (val) => padT + h - ((val - kraftMin) / (kraftMax - kraftMin)) * h;
+    const gewichtToY = (val) => padT + h - ((val - gewichtMin) / (gewichtMax - gewichtMin)) * h;
+    const weekToX = (week) => padL + ((week - 1) / (weeks - 1)) * w;
+
+    // Zeichne Körpergewicht-Linie (blau)
+    if (validGewicht.length > 1) {
+      ctx.strokeStyle = '#60a5fa';
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      let started = false;
+      gewichtData.forEach(d => {
+        if (!Number.isFinite(d.value)) return;
+        const x = weekToX(d.week);
+        const y = gewichtToY(d.value);
+        if (!started) {
+          ctx.moveTo(x, y);
+          started = true;
+        } else {
+          ctx.lineTo(x, y);
+        }
+      });
+      ctx.stroke();
+
+      // Punkte
+      ctx.fillStyle = '#60a5fa';
+      gewichtData.forEach(d => {
+        if (!Number.isFinite(d.value)) return;
+        const x = weekToX(d.week);
+        const y = gewichtToY(d.value);
+        ctx.beginPath();
+        ctx.arc(x, y, 4, 0, Math.PI * 2);
+        ctx.fill();
+      });
+    }
+
+    // Zeichne Kraft-Index-Linie (orange)
+    if (validKraft.length > 1) {
+      ctx.strokeStyle = '#fb923c';
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      let started = false;
+      kraftData.forEach(d => {
+        if (!Number.isFinite(d.value)) return;
+        const x = weekToX(d.week);
+        const y = kraftToY(d.value);
+        if (!started) {
+          ctx.moveTo(x, y);
+          started = true;
+        } else {
+          ctx.lineTo(x, y);
+        }
+      });
+      ctx.stroke();
+
+      // Punkte (Dreiecke für Kraft)
+      ctx.fillStyle = '#fb923c';
+      kraftData.forEach(d => {
+        if (!Number.isFinite(d.value)) return;
+        const x = weekToX(d.week);
+        const y = kraftToY(d.value);
+        ctx.beginPath();
+        ctx.moveTo(x, y - 5);
+        ctx.lineTo(x - 4, y + 3);
+        ctx.lineTo(x + 4, y + 3);
+        ctx.closePath();
+        ctx.fill();
+      });
+    }
+
+    // Linke Y-Achse (Körpergewicht) - Blau
+    ctx.fillStyle = '#60a5fa';
+    ctx.font = '11px -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif';
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'middle';
+    for (let i = 0; i <= 4; i++) {
+      const val = gewichtMin + (i / 4) * (gewichtMax - gewichtMin);
+      const y = padT + h - (i / 4) * h;
+      ctx.fillText(formatDecimalDE(val, 1), padL - 8, y);
+    }
+
+    // Rechte Y-Achse (Kraft-Index) - Orange
+    ctx.fillStyle = '#fb923c';
+    ctx.textAlign = 'left';
+    for (let i = 0; i <= 4; i++) {
+      const val = kraftMin + (i / 4) * (kraftMax - kraftMin);
+      const y = padT + h - (i / 4) * h;
+      ctx.fillText(formatDecimalDE(val, 1), padL + w + 8, y);
+    }
+
+    // X-Achse Beschriftung
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = '10px -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+    
+    // Zeige nur einige Wochen-Labels
+    [1, 4, 8, 12].forEach(week => {
+      if (week <= weeks) {
+        const x = weekToX(week);
+        const label = week === weeks ? 'Aktuell' : `W${week}`;
+        ctx.fillText(label, x, padT + h + 8);
+      }
+    });
+
+    // Achsen-Titel
+    ctx.save();
+    ctx.fillStyle = '#60a5fa';
+    ctx.font = '10px -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif';
+    ctx.translate(12, padT + h / 2);
+    ctx.rotate(-Math.PI / 2);
+    ctx.textAlign = 'center';
+    ctx.fillText('Gewicht (kg)', 0, 0);
+    ctx.restore();
+
+    ctx.save();
+    ctx.fillStyle = '#fb923c';
+    ctx.font = '10px -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif';
+    ctx.translate(cssW - 12, padT + h / 2);
+    ctx.rotate(Math.PI / 2);
+    ctx.textAlign = 'center';
+    ctx.fillText('Kraft (kg)', 0, 0);
+    ctx.restore();
+  }
+
   
   function drawStrengthTrendChart() {
   const canvas = document.getElementById('chartStrengthTrend');
@@ -5065,6 +5277,7 @@ series.forEach((s, idx) => {
       drawMuscleBalanceChart();
       drawStrengthTrendChart();
       drawPRHeatmapChart();
+      drawKraftGewichtChart();
     } catch (e) {
       // Fail silently to avoid breaking the whole UI; chart rendering is non-critical
       console && console.warn && console.warn('Review charts error', e);
