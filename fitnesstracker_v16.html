@@ -305,6 +305,56 @@
     }
 
     /* ========================================
+       STAT CARDS (Kraft-Index, Körpergewicht)
+       ======================================== */
+    .stat-main {
+      font-size: 32px;
+      font-weight: var(--font-weight-bold);
+      color: var(--color-text-primary);
+      margin-bottom: var(--space-1);
+    }
+
+    .stat-sub {
+      font-size: var(--font-size-sm);
+      color: var(--color-text-tertiary);
+      margin-bottom: var(--space-3);
+    }
+
+    .stat-row {
+      display: flex;
+      align-items: center;
+      padding: var(--space-2) 0;
+      border-top: 1px solid var(--color-border);
+      gap: var(--space-2);
+    }
+
+    .stat-label {
+      flex: 1;
+      font-size: var(--font-size-sm);
+      color: var(--color-text-secondary);
+    }
+
+    .stat-value {
+      font-size: var(--font-size-sm);
+      color: var(--color-text-tertiary);
+    }
+
+    .stat-trend {
+      font-size: var(--font-size-sm);
+      font-weight: var(--font-weight-semibold);
+      min-width: 70px;
+      text-align: right;
+    }
+
+    .stat-hint {
+      font-size: var(--font-size-xs);
+      color: var(--color-text-tertiary);
+      margin-top: var(--space-3);
+      padding-top: var(--space-2);
+      border-top: 1px solid var(--color-border);
+    }
+
+    /* ========================================
        PILLS & CHIPS
        ======================================== */
     .pill { 
@@ -3581,18 +3631,68 @@ const exList = (w.exercises || []);
   
     const currentTab = state.reviewTab || 'overview';
 
+    // Kraft-Index Berechnung
+    const kraftNow = calculateKraftIndex(0);
+    const kraft1W = calculateKraftIndex(1);
+    const kraft4W = calculateKraftIndex(4);
+    
+    const kraftDelta1W = (Number.isFinite(kraftNow) && Number.isFinite(kraft1W) && kraft1W > 0) 
+      ? ((kraftNow - kraft1W) / kraft1W * 100) : NaN;
+    const kraftDelta4W = (Number.isFinite(kraftNow) && Number.isFinite(kraft4W) && kraft4W > 0) 
+      ? ((kraftNow - kraft4W) / kraft4W * 100) : NaN;
+    
+    // Körpergewicht Durchschnitte
+    const bwNow = bodyweightAvgForWeek(0);
+    const bw1W = bodyweightAvgForWeek(1);
+    const bw4W = bodyweightAvgForWeek(4);
+    
+    const bwDelta1W = (Number.isFinite(bwNow) && Number.isFinite(bw1W)) ? (bwNow - bw1W) : NaN;
+    const bwDelta4W = (Number.isFinite(bwNow) && Number.isFinite(bw4W)) ? (bwNow - bw4W) : NaN;
+    
+    // Hilfsfunktion für Trend-Pfeil
+    const getTrendArrow = (delta, isPercent = true, threshold = 2) => {
+      if (!Number.isFinite(delta)) return { arrow: '–', color: 'var(--color-text-tertiary)', text: '–' };
+      const absThreshold = isPercent ? threshold : 0.3;
+      if (delta > absThreshold) return { arrow: '▲', color: 'var(--color-success)', text: (isPercent ? '+' + formatDecimalDE(delta, 1) + '%' : '+' + formatDecimalDE(delta, 1) + ' kg') };
+      if (delta < -absThreshold) return { arrow: '▼', color: 'var(--color-danger)', text: (isPercent ? formatDecimalDE(delta, 1) + '%' : formatDecimalDE(delta, 1) + ' kg') };
+      return { arrow: '→', color: 'var(--color-text-tertiary)', text: (isPercent ? '±' + formatDecimalDE(Math.abs(delta), 1) + '%' : '±' + formatDecimalDE(Math.abs(delta), 1) + ' kg') };
+    };
+    
+    const kraft1WTrend = getTrendArrow(kraftDelta1W, true);
+    const kraft4WTrend = getTrendArrow(kraftDelta4W, true);
+    const bw1WTrend = getTrendArrow(bwDelta1W, false);
+    const bw4WTrend = getTrendArrow(bwDelta4W, false);
+
     const tabOverview = `
       <div class="card">
-        <div class="card-title">Übersicht</div>
-        <div class="row"><div class="muted">Workouts gesamt</div><div style="font-weight:900">${state.workouts.length}</div></div>
-        <div style="height:8px"></div>
-        <div class="row"><div class="muted">Volumen 7 Tage</div><div style="font-weight:900">${formatVolume(vol7)}</div></div>
-        <div class="row"><div class="muted">Volumen ${currentPeriod === '7d' ? '7 Tage' : currentPeriod === '30d' ? '30 Tage' : currentPeriod === '12w' ? '12 Wochen' : 'Gesamt'}</div><div style="font-weight:900">${formatVolume(volPeriod)}</div></div>
-        <div style="height:10px"></div>
-        <div class="row"><div class="muted">Körpergewicht</div><div style="font-weight:900">${bw ? (formatDecimalDE(bw.weightKg, 1) + ' kg') : '-'}</div></div>
-        <div class="muted small" style="margin-top:6px">
-          ${bw ? ('Letzter Eintrag: ' + formatDate(bw.date)) : 'Noch keine Einträge.'}
-          ${Number.isFinite(bwDelta) ? (' · 7T Ø vs. 14T Ø: ' + (bwDelta>0?'+':'') + formatDecimalDE(bwDelta, 1) + ' kg') : ''}
+        <div class="card-title">Kraft-Index</div>
+        <div class="stat-main">${Number.isFinite(kraftNow) ? formatDecimalDE(kraftNow, 1) + ' kg' : '–'}</div>
+        <div class="stat-row">
+          <span class="stat-label">vs. letzte Woche</span>
+          <span class="stat-value">${Number.isFinite(kraft1W) ? formatDecimalDE(kraft1W, 1) + ' kg' : '–'}</span>
+          <span class="stat-trend" style="color: ${kraft1WTrend.color}">${kraft1WTrend.arrow} ${kraft1WTrend.text}</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">vs. vor 4 Wochen</span>
+          <span class="stat-value">${Number.isFinite(kraft4W) ? formatDecimalDE(kraft4W, 1) + ' kg' : '–'}</span>
+          <span class="stat-trend" style="color: ${kraft4WTrend.color}">${kraft4WTrend.arrow} ${kraft4WTrend.text}</span>
+        </div>
+        <div class="stat-hint">Ø e1RM der Top-Übungen pro Muskelgruppe</div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Körpergewicht</div>
+        <div class="stat-main">${Number.isFinite(bwNow) ? formatDecimalDE(bwNow, 1) + ' kg' : '–'}</div>
+        <div class="stat-sub">Aktuell (7T Ø)</div>
+        <div class="stat-row">
+          <span class="stat-label">vs. 7T davor</span>
+          <span class="stat-value">${Number.isFinite(bw1W) ? formatDecimalDE(bw1W, 1) + ' kg' : '–'}</span>
+          <span class="stat-trend" style="color: ${bw1WTrend.color}">${bw1WTrend.arrow} ${bw1WTrend.text}</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">vs. vor 4 Wochen</span>
+          <span class="stat-value">${Number.isFinite(bw4W) ? formatDecimalDE(bw4W, 1) + ' kg' : '–'}</span>
+          <span class="stat-trend" style="color: ${bw4WTrend.color}">${bw4WTrend.arrow} ${bw4WTrend.text}</span>
         </div>
         <button class="btn btn-secondary" style="margin-top:12px" onclick="openBodyweight()">⚖️ Körpergewicht öffnen</button>
       </div>
@@ -4043,6 +4143,128 @@ const exList = (w.exercises || []);
     const inRange = logs.filter(x => x.t >= startT && x.t <= endT);
     if (!inRange.length) return NaN;
     return inRange.reduce((s,x)=>s+x.w,0) / inRange.length;
+  }
+
+  // Berechne 7-Tage-Durchschnitt ab einem bestimmten Datum (weeksAgo = 0 für aktuelle Woche)
+  function bodyweightAvgForWeek(weeksAgo) {
+    const now = new Date();
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+    const dayOfWeek = (now.getDay() + 6) % 7; // Montag = 0
+    const thisWeekStart = todayStart - dayOfWeek * 24 * 60 * 60 * 1000;
+    
+    const weekStart = thisWeekStart - weeksAgo * 7 * 24 * 60 * 60 * 1000;
+    const weekEnd = weekStart + 7 * 24 * 60 * 60 * 1000;
+    
+    const logs = (state.bodyweightLogs || [])
+      .map(x => ({ t: parseISODateLocal(x?.date), w: Number(x?.weightKg) }))
+      .filter(x => Number.isFinite(x.t) && Number.isFinite(x.w))
+      .filter(x => x.t >= weekStart && x.t < weekEnd);
+    
+    if (!logs.length) return NaN;
+    return logs.reduce((s, x) => s + x.w, 0) / logs.length;
+  }
+
+  // Kraft-Index: Ø e1RM der Top-Übungen pro Muskelgruppe für eine bestimmte Woche
+  function calculateKraftIndex(weeksAgo) {
+    const now = new Date();
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+    const dayOfWeek = (now.getDay() + 6) % 7;
+    const thisWeekStart = todayStart - dayOfWeek * 24 * 60 * 60 * 1000;
+    
+    const weekStart = thisWeekStart - weeksAgo * 7 * 24 * 60 * 60 * 1000;
+    const weekEnd = weekStart + 7 * 24 * 60 * 60 * 1000;
+    
+    // Hole alle Workouts dieser Woche
+    const weekWorkouts = (state.workouts || []).filter(w => {
+      const t = parseISODateLocal(w?.date);
+      return Number.isFinite(t) && t >= weekStart && t < weekEnd;
+    });
+    
+    if (!weekWorkouts.length) return NaN;
+    
+    // Muskelgruppen die 2 Übungen bekommen
+    const bigMuscleGroups = ['brust', 'rücken', 'beine'];
+    
+    // Sammle beste Session-Volumen und beste e1RM pro Übung
+    // Key: exerciseId, Value: { muscleGroup, bestSessionVolume, bestE1RM }
+    const exerciseData = new Map();
+    
+    weekWorkouts.forEach(w => {
+      (w.exercises || []).forEach(ex => {
+        const exId = ex.exerciseId;
+        if (!exId) return;
+        
+        // Finde Muskelgruppe
+        const mgName = (ex.muscleGroupSnapshot || '').toLowerCase();
+        
+        // Berechne Volumen dieser Session
+        let sessionVolume = 0;
+        let sessionBestE1RM = 0;
+        (ex.sets || []).forEach(s => {
+          if (isSetDone(s)) {
+            sessionVolume += s.weight * s.reps;
+            const e1rm = calcE1RM(s.weight, s.reps);
+            if (Number.isFinite(e1rm) && e1rm > sessionBestE1RM) {
+              sessionBestE1RM = e1rm;
+            }
+          }
+        });
+        
+        if (sessionVolume === 0) return;
+        
+        if (!exerciseData.has(exId)) {
+          exerciseData.set(exId, {
+            muscleGroup: mgName,
+            bestSessionVolume: sessionVolume,
+            bestE1RM: sessionBestE1RM
+          });
+        } else {
+          const data = exerciseData.get(exId);
+          // Update beste Session (NICHT addieren!)
+          if (sessionVolume > data.bestSessionVolume) {
+            data.bestSessionVolume = sessionVolume;
+          }
+          // Update beste e1RM
+          if (sessionBestE1RM > data.bestE1RM) {
+            data.bestE1RM = sessionBestE1RM;
+          }
+        }
+      });
+    });
+    
+    // Gruppiere nach Muskelgruppe
+    const byMuscleGroup = new Map();
+    exerciseData.forEach((data, exId) => {
+      const mg = data.muscleGroup;
+      if (!byMuscleGroup.has(mg)) {
+        byMuscleGroup.set(mg, []);
+      }
+      byMuscleGroup.get(mg).push({ exId, ...data });
+    });
+    
+    // Wähle Top-Übungen pro Muskelgruppe
+    const selectedExercises = [];
+    
+    byMuscleGroup.forEach((exercises, mg) => {
+      // Sortiere nach bestem Session-Volumen
+      exercises.sort((a, b) => b.bestSessionVolume - a.bestSessionVolume);
+      
+      // Bestimme wie viele Übungen für diese Muskelgruppe
+      const isBigMuscle = bigMuscleGroups.some(bm => mg.includes(bm));
+      const numToSelect = isBigMuscle ? 2 : 1;
+      
+      // Wähle Top N
+      exercises.slice(0, numToSelect).forEach(ex => {
+        if (ex.bestE1RM > 0) {
+          selectedExercises.push(ex.bestE1RM);
+        }
+      });
+    });
+    
+    if (!selectedExercises.length) return NaN;
+    
+    // Berechne Durchschnitt
+    return selectedExercises.reduce((sum, e) => sum + e, 0) / selectedExercises.length;
   }
 
 function decodeMaybeUri(s) {
