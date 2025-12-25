@@ -1108,6 +1108,26 @@
       gap: var(--space-2);
       align-items: center;
       border: 1px solid var(--color-border);
+      position: relative;
+    }
+
+    .set-row.set-pr {
+      border-color: #fbbf24;
+      background: rgba(251, 191, 36, 0.1);
+    }
+
+    .pr-badge {
+      position: absolute;
+      right: -8px;
+      top: -8px;
+      font-size: 16px;
+      animation: prPulse 0.5s ease-out;
+    }
+
+    @keyframes prPulse {
+      0% { transform: scale(0); opacity: 0; }
+      50% { transform: scale(1.3); }
+      100% { transform: scale(1); opacity: 1; }
     }
 
     .set-label { 
@@ -2539,11 +2559,14 @@
   }
 
   // Finde den PR (besten Satz nach e1RM) für eine Übung
-  function getExercisePR(exerciseId) {
+  // Hole PR für eine Übung (inkl. aktuellem Draft-Workout)
+  function getExercisePR(exerciseId, excludeCurrentWorkout = false) {
     let bestSet = null;
     let bestE1RM = 0;
     let bestDate = null;
+    let isFromCurrentWorkout = false;
     
+    // Durchsuche gespeicherte Workouts
     (state.workouts || []).forEach(w => {
       const ex = (w.exercises || []).find(e => e.exerciseId === exerciseId);
       if (!ex) return;
@@ -2555,12 +2578,42 @@
           bestE1RM = e1rm;
           bestSet = { reps: s.reps, weight: s.weight };
           bestDate = w.date;
+          isFromCurrentWorkout = false;
         }
       });
     });
     
+    // Durchsuche auch aktuelles Draft-Workout (wenn nicht ausgeschlossen)
+    if (!excludeCurrentWorkout && state.draft) {
+      const ex = (state.draft.exercises || []).find(e => e.exerciseId === exerciseId);
+      if (ex) {
+        (ex.sets || []).forEach(s => {
+          if (!isSetDone(s)) return;
+          const e1rm = calcE1RM(s.weight, s.reps);
+          if (Number.isFinite(e1rm) && e1rm > bestE1RM) {
+            bestE1RM = e1rm;
+            bestSet = { reps: s.reps, weight: s.weight };
+            bestDate = new Date().toISOString();
+            isFromCurrentWorkout = true;
+          }
+        });
+      }
+    }
+    
     if (!bestSet) return null;
-    return { date: bestDate, reps: bestSet.reps, weight: bestSet.weight, e1rm: bestE1RM };
+    return { date: bestDate, reps: bestSet.reps, weight: bestSet.weight, e1rm: bestE1RM, isCurrentWorkout: isFromCurrentWorkout };
+  }
+  
+  // Prüfe ob ein Satz ein neuer PR ist
+  function isNewPR(exerciseId, weight, reps) {
+    const currentE1RM = calcE1RM(weight, reps);
+    if (!Number.isFinite(currentE1RM)) return false;
+    
+    // Hole bisherigen PR (ohne aktuelles Workout)
+    const pr = getExercisePR(exerciseId, true);
+    if (!pr) return true; // Erster Satz überhaupt = PR
+    
+    return currentE1RM > pr.e1rm;
   }
 
   // -----------------------
@@ -3564,8 +3617,10 @@ const exList = (w.exercises || []);
               </div>
 
               <div class="sets-container">
-                ${(ex.sets || []).map((set, setIdx) => `
-                  <div class="set-row">
+                ${(ex.sets || []).map((set, setIdx) => {
+                  const isPR = isSetDone(set) && isNewPR(ex.exerciseId, set.weight, set.reps);
+                  return `
+                  <div class="set-row ${isPR ? 'set-pr' : ''}">
                     <span class="set-label">${setIdx + 1}</span>
                     <select class="set-select" onchange="updateReps('${ex.logId}', ${setIdx}, this.value)">
                       ${repsOptions(set.reps)}
@@ -3579,8 +3634,9 @@ const exList = (w.exercises || []);
                            oninput="updateWeight('${ex.logId}', ${setIdx}, this.value)"
                            onblur="normalizeWeightInput(this)" />
                     <button class="set-remove-btn" onclick="removeSet('${ex.logId}', ${setIdx})">−</button>
+                    ${isPR ? '<span class="pr-badge">🏆</span>' : ''}
                   </div>
-                `).join('')}
+                `}).join('')}
                 <button class="add-set-btn" onclick="addSet('${ex.logId}')">+ Satz</button>
               </div>
             </div>
@@ -3836,10 +3892,10 @@ const exList = (w.exercises || []);
     const prog1W = calculateKraftProgression(1);
     const prog4W = calculateKraftProgression(4);
     
-    // Körpergewicht Durchschnitte
-    const bwNow = bodyweightAvgForWeek(0);
-    const bw1W = bodyweightAvgForWeek(1);
-    const bw4W = bodyweightAvgForWeek(4);
+    // Körpergewicht Durchschnitte (Rolling 7-Tage)
+    const bwNow = bodyweightAvgRolling7Days(0);      // Letzte 7 Tage
+    const bw1W = bodyweightAvgRolling7Days(7);       // 7 Tage davor
+    const bw4W = bodyweightAvgRolling7Days(28);      // 4 Wochen davor
     
     const bwDelta1W = (Number.isFinite(bwNow) && Number.isFinite(bw1W)) ? (bwNow - bw1W) : NaN;
     const bwDelta4W = (Number.isFinite(bwNow) && Number.isFinite(bw4W)) ? (bwNow - bw4W) : NaN;
@@ -4414,6 +4470,25 @@ const exList = (w.exercises || []);
     const inRange = logs.filter(x => x.t >= startT && x.t <= endT);
     if (!inRange.length) return NaN;
     return inRange.reduce((s,x)=>s+x.w,0) / inRange.length;
+  }
+
+  // Berechne 7-Tage-Durchschnitt für einen rollenden Zeitraum
+  // daysAgo = 0: heute bis vor 6 Tagen (letzte 7 Tage)
+  // daysAgo = 7: vor 7 Tagen bis vor 13 Tagen (7 Tage davor)
+  function bodyweightAvgRolling7Days(daysAgo) {
+    const now = new Date();
+    const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1).getTime(); // Ende von heute (Mitternacht morgen)
+    
+    const periodEnd = todayEnd - daysAgo * 24 * 60 * 60 * 1000;
+    const periodStart = periodEnd - 7 * 24 * 60 * 60 * 1000;
+    
+    const logs = (state.bodyweightLogs || [])
+      .map(x => ({ t: parseISODateLocal(x?.date), w: Number(x?.weightKg) }))
+      .filter(x => Number.isFinite(x.t) && Number.isFinite(x.w))
+      .filter(x => x.t >= periodStart && x.t < periodEnd);
+    
+    if (!logs.length) return NaN;
+    return logs.reduce((s, x) => s + x.w, 0) / logs.length;
   }
 
   // Berechne 7-Tage-Durchschnitt ab einem bestimmten Datum (weeksAgo = 0 für aktuelle Woche)
