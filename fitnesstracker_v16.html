@@ -355,6 +355,125 @@
     }
 
     /* ========================================
+       KRAFT-PROGRESSION
+       ======================================== */
+    .prog-summary {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: var(--space-3);
+      margin-top: var(--space-3);
+      background: var(--color-surface);
+      border-radius: var(--radius-md);
+      border: 1px solid var(--color-border);
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+
+    .prog-summary:active {
+      background: var(--color-surface-hover);
+    }
+
+    .prog-summary-left {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-1);
+    }
+
+    .prog-summary-left > span:first-child {
+      font-size: var(--font-size-sm);
+      font-weight: var(--font-weight-medium);
+      color: var(--color-text-primary);
+    }
+
+    .prog-counts {
+      font-size: var(--font-size-xs);
+      color: var(--color-text-secondary);
+    }
+
+    .prog-toggle {
+      font-size: var(--font-size-lg);
+      color: var(--color-text-tertiary);
+      padding: 0 var(--space-2);
+    }
+
+    .prog-details {
+      margin-top: var(--space-3);
+      padding: var(--space-3);
+      background: var(--color-surface);
+      border-radius: var(--radius-md);
+      border: 1px solid var(--color-border);
+    }
+
+    .prog-details-header {
+      font-size: var(--font-size-sm);
+      font-weight: var(--font-weight-semibold);
+      color: var(--color-text-primary);
+      margin-bottom: var(--space-3);
+      padding-bottom: var(--space-2);
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    .prog-section {
+      margin-bottom: var(--space-3);
+    }
+
+    .prog-section:last-child {
+      margin-bottom: 0;
+    }
+
+    .prog-section-title {
+      font-size: var(--font-size-xs);
+      font-weight: var(--font-weight-semibold);
+      color: var(--color-text-secondary);
+      margin-bottom: var(--space-2);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .prog-exercise {
+      display: flex;
+      align-items: center;
+      padding: var(--space-2) 0;
+      border-bottom: 1px solid var(--color-border);
+      gap: var(--space-2);
+    }
+
+    .prog-exercise:last-child {
+      border-bottom: none;
+    }
+
+    .prog-name {
+      flex: 1;
+      font-size: var(--font-size-sm);
+      color: var(--color-text-primary);
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .prog-values {
+      font-size: var(--font-size-xs);
+      color: var(--color-text-tertiary);
+      white-space: nowrap;
+    }
+
+    .prog-change {
+      font-size: var(--font-size-sm);
+      font-weight: var(--font-weight-semibold);
+      min-width: 55px;
+      text-align: right;
+    }
+
+    .prog-no-compare {
+      font-size: var(--font-size-xs);
+      color: var(--color-text-tertiary);
+      padding: var(--space-1) 0;
+      line-height: 1.4;
+    }
+
+    /* ========================================
        PILLS & CHIPS
        ======================================== */
     .pill { 
@@ -3655,15 +3774,9 @@ const exList = (w.exercises || []);
   
     const currentTab = state.reviewTab || 'overview';
 
-    // Kraft-Index Berechnung
-    const kraftNow = calculateKraftIndex(0);
-    const kraft1W = calculateKraftIndex(1);
-    const kraft4W = calculateKraftIndex(4);
-    
-    const kraftDelta1W = (Number.isFinite(kraftNow) && Number.isFinite(kraft1W) && kraft1W > 0) 
-      ? ((kraftNow - kraft1W) / kraft1W * 100) : NaN;
-    const kraftDelta4W = (Number.isFinite(kraftNow) && Number.isFinite(kraft4W) && kraft4W > 0) 
-      ? ((kraftNow - kraft4W) / kraft4W * 100) : NaN;
+    // Kraft-Progression Berechnung
+    const prog1W = calculateKraftProgression(1);
+    const prog4W = calculateKraftProgression(4);
     
     // Körpergewicht Durchschnitte
     const bwNow = bodyweightAvgForWeek(0);
@@ -3682,26 +3795,90 @@ const exList = (w.exercises || []);
       return { arrow: '→', color: 'var(--color-text-tertiary)', text: (isPercent ? '±' + formatDecimalDE(Math.abs(delta), 1) + '%' : '±' + formatDecimalDE(Math.abs(delta), 1) + ' kg') };
     };
     
-    const kraft1WTrend = getTrendArrow(kraftDelta1W, true);
-    const kraft4WTrend = getTrendArrow(kraftDelta4W, true);
+    const prog1WTrend = getTrendArrow(prog1W.avgChange, true);
+    const prog4WTrend = getTrendArrow(prog4W.avgChange, true);
     const bw1WTrend = getTrendArrow(bwDelta1W, false);
     const bw4WTrend = getTrendArrow(bwDelta4W, false);
 
+    // Progression Details State
+    const showProgressionDetails = state.showProgressionDetails || false;
+
+    // Render Übungsliste für Details
+    const renderExerciseList = (exercises, improved, same, worse, onlyThisWeek, onlyCompareWeek, label) => {
+      const improvedList = exercises.filter(e => e.changePct > 2);
+      const sameList = exercises.filter(e => e.changePct >= -2 && e.changePct <= 2);
+      const worseList = exercises.filter(e => e.changePct < -2);
+      
+      let html = '';
+      
+      if (improvedList.length) {
+        html += '<div class="prog-section"><div class="prog-section-title">🟢 VERBESSERT (' + improvedList.length + ')</div>';
+        improvedList.forEach(e => {
+          html += '<div class="prog-exercise"><span class="prog-name">' + escapeHtml(e.name) + '</span><span class="prog-values">' + formatDecimalDE(e.compareWeek, 1) + ' → ' + formatDecimalDE(e.thisWeek, 1) + '</span><span class="prog-change" style="color: var(--color-success)">+' + formatDecimalDE(e.changePct, 1) + '%</span></div>';
+        });
+        html += '</div>';
+      }
+      
+      if (sameList.length) {
+        html += '<div class="prog-section"><div class="prog-section-title">⚪ GLEICH (' + sameList.length + ')</div>';
+        sameList.forEach(e => {
+          html += '<div class="prog-exercise"><span class="prog-name">' + escapeHtml(e.name) + '</span><span class="prog-values">' + formatDecimalDE(e.compareWeek, 1) + ' → ' + formatDecimalDE(e.thisWeek, 1) + '</span><span class="prog-change" style="color: var(--color-text-tertiary)">' + (e.changePct >= 0 ? '+' : '') + formatDecimalDE(e.changePct, 1) + '%</span></div>';
+        });
+        html += '</div>';
+      }
+      
+      if (worseList.length) {
+        html += '<div class="prog-section"><div class="prog-section-title">🔴 SCHWÄCHER (' + worseList.length + ')</div>';
+        worseList.forEach(e => {
+          html += '<div class="prog-exercise"><span class="prog-name">' + escapeHtml(e.name) + '</span><span class="prog-values">' + formatDecimalDE(e.compareWeek, 1) + ' → ' + formatDecimalDE(e.thisWeek, 1) + '</span><span class="prog-change" style="color: var(--color-danger)">' + formatDecimalDE(e.changePct, 1) + '%</span></div>';
+        });
+        html += '</div>';
+      }
+      
+      if (onlyThisWeek.length || onlyCompareWeek.length) {
+        html += '<div class="prog-section"><div class="prog-section-title">📌 KEIN VERGLEICH</div>';
+        if (onlyThisWeek.length) {
+          html += '<div class="prog-no-compare">Nur diese Woche: ' + onlyThisWeek.map(e => escapeHtml(e.name)).join(', ') + '</div>';
+        }
+        if (onlyCompareWeek.length) {
+          html += '<div class="prog-no-compare">Nur ' + label + ': ' + onlyCompareWeek.map(e => escapeHtml(e.name)).join(', ') + '</div>';
+        }
+        html += '</div>';
+      }
+      
+      return html;
+    };
+
     const tabOverview = `
       <div class="card">
-        <div class="card-title">Kraft-Index</div>
-        <div class="stat-main">${Number.isFinite(kraftNow) ? formatDecimalDE(kraftNow, 1) + ' kg' : '–'}</div>
+        <div class="card-title">Kraft-Progression</div>
+        <div class="stat-sub" style="margin-bottom: 12px;">Ø Veränderung (vergleichbare Übungen)</div>
+        
         <div class="stat-row">
           <span class="stat-label">vs. letzte Woche</span>
-          <span class="stat-value">${Number.isFinite(kraft1W) ? formatDecimalDE(kraft1W, 1) + ' kg' : '–'}</span>
-          <span class="stat-trend" style="color: ${kraft1WTrend.color}">${kraft1WTrend.arrow} ${kraft1WTrend.text}</span>
+          <span class="stat-value">${prog1W.exercises.length} Übungen</span>
+          <span class="stat-trend" style="color: ${prog1WTrend.color}">${prog1WTrend.arrow} ${prog1WTrend.text}</span>
         </div>
         <div class="stat-row">
           <span class="stat-label">vs. vor 4 Wochen</span>
-          <span class="stat-value">${Number.isFinite(kraft4W) ? formatDecimalDE(kraft4W, 1) + ' kg' : '–'}</span>
-          <span class="stat-trend" style="color: ${kraft4WTrend.color}">${kraft4WTrend.arrow} ${kraft4WTrend.text}</span>
+          <span class="stat-value">${prog4W.exercises.length} Übungen</span>
+          <span class="stat-trend" style="color: ${prog4WTrend.color}">${prog4WTrend.arrow} ${prog4WTrend.text}</span>
         </div>
-        <div class="stat-hint">Ø e1RM der Top-Übungen pro Muskelgruppe</div>
+        
+        <div class="prog-summary" onclick="state.showProgressionDetails = !state.showProgressionDetails; render();">
+          <div class="prog-summary-left">
+            <span>Diese Woche: ${prog1W.totalThisWeek || 0} Übungen</span>
+            <span class="prog-counts">🟢 ${prog1W.improved} besser · ⚪ ${prog1W.same} gleich · 🔴 ${prog1W.worse} schwächer</span>
+          </div>
+          <span class="prog-toggle">${showProgressionDetails ? '∧' : '∨'}</span>
+        </div>
+        
+        ${showProgressionDetails ? `
+          <div class="prog-details">
+            <div class="prog-details-header">vs. Letzte Woche</div>
+            ${renderExerciseList(prog1W.exercises, prog1W.improved, prog1W.same, prog1W.worse, prog1W.onlyThisWeek, prog1W.onlyCompareWeek, 'letzte Woche')}
+          </div>
+        ` : ''}
       </div>
 
       <div class="card">
@@ -4299,6 +4476,122 @@ const exList = (w.exercises || []);
     
     // Berechne Durchschnitt
     return selectedExercises.reduce((sum, e) => sum + e, 0) / selectedExercises.length;
+  }
+
+  // Berechne Kraft-Progression: Vergleiche e1RMs zwischen zwei Wochen
+  function calculateKraftProgression(weeksAgo) {
+    // Hole e1RM-Daten für diese Woche und Vergleichswoche
+    const thisWeekData = getWeekExerciseE1RMs(0);
+    const compareWeekData = getWeekExerciseE1RMs(weeksAgo);
+    
+    if (!thisWeekData.size || !compareWeekData.size) {
+      return { avgChange: NaN, exercises: [], improved: 0, same: 0, worse: 0, onlyThisWeek: [], onlyCompareWeek: [] };
+    }
+    
+    // Finde gemeinsame Übungen
+    const exercises = [];
+    const onlyThisWeek = [];
+    const onlyCompareWeek = [];
+    
+    // Prüfe alle Übungen dieser Woche
+    thisWeekData.forEach((data, exId) => {
+      if (compareWeekData.has(exId)) {
+        const compareData = compareWeekData.get(exId);
+        const change = data.bestE1RM - compareData.bestE1RM;
+        const changePct = compareData.bestE1RM > 0 ? (change / compareData.bestE1RM) * 100 : 0;
+        exercises.push({
+          exId,
+          name: data.name,
+          thisWeek: data.bestE1RM,
+          compareWeek: compareData.bestE1RM,
+          change,
+          changePct
+        });
+      } else {
+        onlyThisWeek.push({ exId, name: data.name, e1rm: data.bestE1RM });
+      }
+    });
+    
+    // Finde Übungen nur in Vergleichswoche
+    compareWeekData.forEach((data, exId) => {
+      if (!thisWeekData.has(exId)) {
+        onlyCompareWeek.push({ exId, name: data.name, e1rm: data.bestE1RM });
+      }
+    });
+    
+    // Sortiere nach Veränderung
+    exercises.sort((a, b) => b.changePct - a.changePct);
+    
+    // Kategorisiere (Schwelle: ±2%)
+    const improved = exercises.filter(e => e.changePct > 2).length;
+    const worse = exercises.filter(e => e.changePct < -2).length;
+    const same = exercises.length - improved - worse;
+    
+    // Berechne durchschnittliche prozentuale Veränderung
+    const avgChange = exercises.length > 0 
+      ? exercises.reduce((sum, e) => sum + e.changePct, 0) / exercises.length 
+      : NaN;
+    
+    return {
+      avgChange,
+      exercises,
+      improved,
+      same,
+      worse,
+      onlyThisWeek,
+      onlyCompareWeek,
+      totalThisWeek: thisWeekData.size
+    };
+  }
+
+  // Hilfsfunktion: Hole alle Übungen mit e1RM für eine Woche
+  function getWeekExerciseE1RMs(weeksAgo) {
+    const now = new Date();
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+    const dayOfWeek = (now.getDay() + 6) % 7;
+    const thisWeekStart = todayStart - dayOfWeek * 24 * 60 * 60 * 1000;
+    
+    const weekStart = thisWeekStart - weeksAgo * 7 * 24 * 60 * 60 * 1000;
+    const weekEnd = weeksAgo === 0 ? (todayStart + 24 * 60 * 60 * 1000) : (weekStart + 7 * 24 * 60 * 60 * 1000);
+    
+    const weekWorkouts = (state.workouts || []).filter(w => {
+      const t = parseISODateLocal(w?.date);
+      return Number.isFinite(t) && t >= weekStart && t < weekEnd;
+    });
+    
+    const exerciseData = new Map();
+    
+    weekWorkouts.forEach(w => {
+      (w.exercises || []).forEach(ex => {
+        const exId = ex.exerciseId;
+        if (!exId) return;
+        
+        const exName = ex.nameSnapshot || 'Übung';
+        
+        let sessionBestE1RM = 0;
+        (ex.sets || []).forEach(s => {
+          if (isSetDone(s)) {
+            const e1rm = calcE1RM(s.weight, s.reps);
+            if (Number.isFinite(e1rm) && e1rm > sessionBestE1RM) {
+              sessionBestE1RM = e1rm;
+            }
+          }
+        });
+        
+        if (sessionBestE1RM === 0) return;
+        
+        if (!exerciseData.has(exId)) {
+          exerciseData.set(exId, { name: exName, bestE1RM: sessionBestE1RM });
+        } else {
+          const data = exerciseData.get(exId);
+          if (sessionBestE1RM > data.bestE1RM) {
+            data.bestE1RM = sessionBestE1RM;
+          }
+        }
+      });
+    });
+    
+    return exerciseData;
   }
 
 function decodeMaybeUri(s) {
