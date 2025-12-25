@@ -3963,7 +3963,7 @@ const exList = (w.exercises || []);
           <span class="legend-item"><span class="legend-line" style="background: #fb923c;"></span> Ø Progression (4W)</span>
           <span class="legend-item"><span class="legend-line" style="background: #60a5fa;"></span> Körpergewicht</span>
         </div>
-        <div class="card-sub">Rolling 4-Wochen Ø der Kraft-Progression vs. Körpergewicht. Gestrichelte Linie = 0% (keine Veränderung).</div>
+        <div class="card-sub">Rolling 4-Wochen Ø der Kraft-Progression vs. Körpergewicht.</div>
       </div>
 
       <div class="card">
@@ -5165,18 +5165,6 @@ function toggleReviewCompareExercise(exIdEnc) {
       ctx.moveTo(padL, y);
       ctx.lineTo(padL + w, y);
       ctx.stroke();
-    }
-
-    // Null-Linie für Progression (0%)
-    const zeroY = progToY(0);
-    if (zeroY >= padT && zeroY <= padT + h) {
-      ctx.strokeStyle = 'rgba(251, 146, 60, 0.3)';
-      ctx.setLineDash([4, 4]);
-      ctx.beginPath();
-      ctx.moveTo(padL, zeroY);
-      ctx.lineTo(padL + w, zeroY);
-      ctx.stroke();
-      ctx.setLineDash([]);
     }
 
     // Zeichne Körpergewicht-Linie (blau)
