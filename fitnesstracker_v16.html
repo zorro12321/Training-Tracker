@@ -3848,9 +3848,11 @@ const exList = (w.exercises || []);
     const getTrendArrow = (delta, isPercent = true, threshold = 2) => {
       if (!Number.isFinite(delta)) return { arrow: '–', color: 'var(--color-text-tertiary)', text: '–' };
       const absThreshold = isPercent ? threshold : 0.3;
-      if (delta > absThreshold) return { arrow: '▲', color: 'var(--color-success)', text: (isPercent ? '+' + formatDecimalDE(delta, 1) + '%' : '+' + formatDecimalDE(delta, 1) + ' kg') };
-      if (delta < -absThreshold) return { arrow: '▼', color: 'var(--color-danger)', text: (isPercent ? formatDecimalDE(delta, 1) + '%' : formatDecimalDE(delta, 1) + ' kg') };
-      return { arrow: '→', color: 'var(--color-text-tertiary)', text: (isPercent ? '±' + formatDecimalDE(Math.abs(delta), 1) + '%' : '±' + formatDecimalDE(Math.abs(delta), 1) + ' kg') };
+      const prefix = delta >= 0 ? '+' : '';
+      const suffix = isPercent ? '%' : ' kg';
+      if (delta > absThreshold) return { arrow: '▲', color: 'var(--color-success)', text: prefix + formatDecimalDE(delta, 1) + suffix };
+      if (delta < -absThreshold) return { arrow: '▼', color: 'var(--color-danger)', text: formatDecimalDE(delta, 1) + suffix };
+      return { arrow: '→', color: 'var(--color-text-tertiary)', text: prefix + formatDecimalDE(delta, 1) + suffix };
     };
     
     const prog1WTrend = getTrendArrow(prog1W.avgChange, true);
