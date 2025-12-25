@@ -3973,7 +3973,7 @@ const exList = (w.exercises || []);
       </div>
 
       <div class="card">
-        <div class="card-title">PR-Heatmap (${currentPeriod === '7d' ? '4 Wochen' : currentPeriod === '30d' ? '6 Wochen' : currentPeriod === '12w' ? '12 Wochen' : '26 Wochen'})</div>
+        <div class="card-title">PR-Heatmap (${currentPeriod === '7d' ? '1 Woche' : currentPeriod === '30d' ? '5 Wochen' : currentPeriod === '12w' ? '12 Wochen' : '26 Wochen'})</div>
         <div class="heatmap-wrap">
           <canvas id="chartPRHeatmap" class="heatmap-canvas" aria-label="PR Heatmap"></canvas>
         </div>
@@ -4012,7 +4012,7 @@ const exList = (w.exercises || []);
         </div>
 
         <canvas id="chartStrengthTrend" class="chart-canvas tall" aria-label="Krafttrend Vergleich"></canvas>
-        <div class="card-sub">Linien: e1RM-Verlauf je Übung (${currentPeriod === '7d' ? '4 Wochen' : currentPeriod === '30d' ? '6 Wochen' : currentPeriod === '12w' ? '12 Wochen' : 'Gesamt'}). Punkte: Top e1RM pro Workout.</div>
+        <div class="card-sub">Linien: e1RM-Verlauf je Übung (${currentPeriod === '7d' ? '7 Tage' : currentPeriod === '30d' ? '30 Tage' : currentPeriod === '12w' ? '12 Wochen' : 'Gesamt'}). Punkte: Top e1RM pro Workout.</div>
       </div>
     `;
 
@@ -5311,8 +5311,9 @@ function toggleReviewCompareExercise(exIdEnc) {
   const series = [];
   const skipped = [];
 
-  const strengthWeeks = (state.reviewPeriod === '7d') ? 4 : (state.reviewPeriod === '30d') ? 6 : (state.reviewPeriod === '12w') ? 12 : 9999;
-  const strengthCutoff = Date.now() - strengthWeeks * 7 * 24 * 60 * 60 * 1000;
+  // Zeitraum in Tagen berechnen (konsistent mit Labels)
+  const strengthDays = (state.reviewPeriod === '7d') ? 7 : (state.reviewPeriod === '30d') ? 30 : (state.reviewPeriod === '12w') ? 84 : 9999 * 365;
+  const strengthCutoff = Date.now() - strengthDays * 24 * 60 * 60 * 1000;
 
   const toPts = (id) => (state.workouts || [])
     .map(wk => ({ t: parseISODateLocal(wk?.date), v: bestE1RMInWorkoutForExercise(wk, id) }))
@@ -5569,7 +5570,7 @@ series.forEach((s, idx) => {
     const end = new Date(lastT);
     end.setHours(0,0,0,0);
 
-    const weeks = (state.reviewPeriod === '7d') ? 4 : (state.reviewPeriod === '30d') ? 6 : (state.reviewPeriod === '12w') ? 12 : 26;
+    const weeks = (state.reviewPeriod === '7d') ? 1 : (state.reviewPeriod === '30d') ? 5 : (state.reviewPeriod === '12w') ? 12 : 26;
     const days = weeks * 7;
     const dayMs = 24 * 60 * 60 * 1000;
     
