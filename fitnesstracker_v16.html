@@ -3899,13 +3899,13 @@ const exList = (w.exercises || []);
       </div>
 
       <div class="card">
-        <div class="card-title">Kraft & Gewicht Trend</div>
-        <canvas id="chartKraftGewicht" class="chart-canvas tall" aria-label="Kraft und Gewicht Trend"></canvas>
+        <div class="card-title">Gewicht & Progression Trend</div>
+        <canvas id="chartKraftGewicht" class="chart-canvas tall" aria-label="Gewicht und Progression Trend"></canvas>
         <div class="chart-legend">
-          <span class="legend-item"><span class="legend-line" style="background: #fb923c;"></span> Kraft-Index</span>
+          <span class="legend-item"><span class="legend-line" style="background: #fb923c;"></span> Ø Progression (4W)</span>
           <span class="legend-item"><span class="legend-line" style="background: #60a5fa;"></span> Körpergewicht</span>
         </div>
-        <div class="card-sub">Zeigt Korrelation zwischen Kraft und Gewicht über die letzten 12 Wochen.</div>
+        <div class="card-sub">Rolling 4-Wochen Ø der Kraft-Progression vs. Körpergewicht. Gestrichelte Linie = 0% (keine Veränderung).</div>
       </div>
 
       <div class="card">
@@ -5032,20 +5032,37 @@ function toggleReviewCompareExercise(exIdEnc) {
     const { ctx, cssW, cssH } = getCanvasCtx(canvas, 260);
 
     const weeks = 12;
-    const kraftData = [];
+    const progressionData = [];
     const gewichtData = [];
 
     // Sammle Daten für die letzten 12 Wochen
+    // Für jede Woche: Rolling 4W Ø Progression
     for (let i = weeks - 1; i >= 0; i--) {
-      kraftData.push({ week: weeks - i, value: calculateKraftIndex(i) });
+      // Berechne Rolling 4-Wochen Durchschnitt der Progression
+      let totalProg = 0;
+      let progCount = 0;
+      
+      for (let w = 0; w < 4; w++) {
+        const weekIdx = i + w;
+        if (weekIdx < weeks + 3) { // Haben wir Daten für diese Woche?
+          const prog = calculateKraftProgression(weekIdx + 1); // +1 weil wir gegen Vorwoche vergleichen
+          if (Number.isFinite(prog.avgChange) && prog.exercises.length >= 3) {
+            totalProg += prog.avgChange;
+            progCount++;
+          }
+        }
+      }
+      
+      const rolling4WAvg = progCount > 0 ? totalProg / progCount : NaN;
+      progressionData.push({ week: weeks - i, value: rolling4WAvg });
       gewichtData.push({ week: weeks - i, value: bodyweightAvgForWeek(i) });
     }
 
     // Filtere valide Datenpunkte
-    const validKraft = kraftData.filter(d => Number.isFinite(d.value));
+    const validProgression = progressionData.filter(d => Number.isFinite(d.value));
     const validGewicht = gewichtData.filter(d => Number.isFinite(d.value));
 
-    if (!validKraft.length && !validGewicht.length) {
+    if (!validProgression.length && !validGewicht.length) {
       ctx.fillStyle = '#94a3b8';
       ctx.font = '13px -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif';
       ctx.fillText('Noch nicht genügend Daten vorhanden.', 14, 30);
@@ -5053,21 +5070,33 @@ function toggleReviewCompareExercise(exIdEnc) {
     }
 
     // Berechne Y-Achsen-Bereiche
-    const kraftValues = validKraft.map(d => d.value);
+    const progValues = validProgression.map(d => d.value);
     const gewichtValues = validGewicht.map(d => d.value);
 
-    const kraftMin = kraftValues.length ? Math.min(...kraftValues) * 0.95 : 0;
-    const kraftMax = kraftValues.length ? Math.max(...kraftValues) * 1.05 : 100;
+    // Progression: Symmetrisch um 0, mindestens -5% bis +15%
+    const progAbsMax = Math.max(
+      Math.abs(Math.min(...progValues, 0)),
+      Math.abs(Math.max(...progValues, 0)),
+      10
+    );
+    const progMin = -Math.max(progAbsMax * 0.3, 5);
+    const progMax = Math.max(progAbsMax * 1.2, 15);
+    
     const gewichtMin = gewichtValues.length ? Math.min(...gewichtValues) * 0.98 : 0;
     const gewichtMax = gewichtValues.length ? Math.max(...gewichtValues) * 1.02 : 100;
 
     // Chart-Dimensionen
     const padL = 45;
-    const padR = 45;
+    const padR = 50;
     const padT = 20;
     const padB = 35;
     const w = cssW - padL - padR;
     const h = cssH - padT - padB;
+
+    // Hilfsfunktion: Wert zu Y-Position
+    const progToY = (val) => padT + h - ((val - progMin) / (progMax - progMin)) * h;
+    const gewichtToY = (val) => padT + h - ((val - gewichtMin) / (gewichtMax - gewichtMin)) * h;
+    const weekToX = (week) => padL + ((week - 1) / (weeks - 1)) * w;
 
     // Hintergrund-Linien
     ctx.strokeStyle = 'rgba(148, 163, 184, 0.15)';
@@ -5080,10 +5109,17 @@ function toggleReviewCompareExercise(exIdEnc) {
       ctx.stroke();
     }
 
-    // Hilfsfunktion: Wert zu Y-Position
-    const kraftToY = (val) => padT + h - ((val - kraftMin) / (kraftMax - kraftMin)) * h;
-    const gewichtToY = (val) => padT + h - ((val - gewichtMin) / (gewichtMax - gewichtMin)) * h;
-    const weekToX = (week) => padL + ((week - 1) / (weeks - 1)) * w;
+    // Null-Linie für Progression (0%)
+    const zeroY = progToY(0);
+    if (zeroY >= padT && zeroY <= padT + h) {
+      ctx.strokeStyle = 'rgba(251, 146, 60, 0.3)';
+      ctx.setLineDash([4, 4]);
+      ctx.beginPath();
+      ctx.moveTo(padL, zeroY);
+      ctx.lineTo(padL + w, zeroY);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
 
     // Zeichne Körpergewicht-Linie (blau)
     if (validGewicht.length > 1) {
@@ -5116,16 +5152,16 @@ function toggleReviewCompareExercise(exIdEnc) {
       });
     }
 
-    // Zeichne Kraft-Index-Linie (orange)
-    if (validKraft.length > 1) {
+    // Zeichne Progression-Linie (orange)
+    if (validProgression.length > 1) {
       ctx.strokeStyle = '#fb923c';
       ctx.lineWidth = 2.5;
       ctx.beginPath();
       let started = false;
-      kraftData.forEach(d => {
+      progressionData.forEach(d => {
         if (!Number.isFinite(d.value)) return;
         const x = weekToX(d.week);
-        const y = kraftToY(d.value);
+        const y = progToY(d.value);
         if (!started) {
           ctx.moveTo(x, y);
           started = true;
@@ -5135,25 +5171,25 @@ function toggleReviewCompareExercise(exIdEnc) {
       });
       ctx.stroke();
 
-      // Punkte (Dreiecke für Kraft) - helleres Orange mit dunklem Rand
-      kraftData.forEach(d => {
+      // Punkte (Dreiecke) - helleres Orange mit dunklem Rand
+      progressionData.forEach(d => {
         if (!Number.isFinite(d.value)) return;
         const x = weekToX(d.week);
-        const y = kraftToY(d.value);
+        const y = progToY(d.value);
         ctx.beginPath();
         ctx.moveTo(x, y - 6);
         ctx.lineTo(x - 5, y + 4);
         ctx.lineTo(x + 5, y + 4);
         ctx.closePath();
-        ctx.fillStyle = '#fcd34d'; // Helleres Gelb-Orange
+        ctx.fillStyle = '#fcd34d';
         ctx.fill();
-        ctx.strokeStyle = '#ea580c'; // Dunklerer Orange-Rand
+        ctx.strokeStyle = '#ea580c';
         ctx.lineWidth = 1.5;
         ctx.stroke();
       });
     }
 
-    // Linke Y-Achse (Körpergewicht) - Blau
+    // Linke Y-Achse (Körpergewicht in kg) - Blau
     ctx.fillStyle = '#60a5fa';
     ctx.font = '11px -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif';
     ctx.textAlign = 'right';
@@ -5164,13 +5200,13 @@ function toggleReviewCompareExercise(exIdEnc) {
       ctx.fillText(formatDecimalDE(val, 1), padL - 8, y);
     }
 
-    // Rechte Y-Achse (Kraft-Index) - Orange
+    // Rechte Y-Achse (Progression in %) - Orange
     ctx.fillStyle = '#fb923c';
     ctx.textAlign = 'left';
     for (let i = 0; i <= 4; i++) {
-      const val = kraftMin + (i / 4) * (kraftMax - kraftMin);
+      const val = progMin + (i / 4) * (progMax - progMin);
       const y = padT + h - (i / 4) * h;
-      ctx.fillText(formatDecimalDE(val, 1), padL + w + 8, y);
+      ctx.fillText((val >= 0 ? '+' : '') + formatDecimalDE(val, 0) + '%', padL + w + 8, y);
     }
 
     // X-Achse Beschriftung
