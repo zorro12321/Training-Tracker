@@ -2509,6 +2509,7 @@
     const v = value === '' ? null : clampInt(parseInt(value, 10), 1, 25);
     ex.sets[setIdx].reps = v;
     saveDraft(false);
+    render(); // Re-render für PR-Check
   }
 
   function updateWeight(logId, setIdx, value) {
@@ -2522,6 +2523,8 @@
   function normalizeWeightInput(el) {
     const n = parseDecimalDE(el.value);
     el.value = n === null ? '' : formatDecimalDE(n, 2);
+    // Re-render um PR-Badge zu aktualisieren
+    render();
   }
 
   function editPause(logId) {
