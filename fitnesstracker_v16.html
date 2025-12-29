@@ -1435,6 +1435,25 @@
       flex-shrink: 0;
     }
 
+    .ref-star {
+      background: none;
+      border: none;
+      font-size: 22px;
+      padding: var(--space-1);
+      cursor: pointer;
+      opacity: 0.4;
+      transition: opacity 0.15s ease, transform 0.15s ease;
+      flex-shrink: 0;
+    }
+
+    .ref-star:active {
+      transform: scale(1.2);
+    }
+
+    .ref-star.active {
+      opacity: 1;
+    }
+
 /* ========================================
        MODALS & BOTTOM SHEETS
        ======================================== */
@@ -2053,6 +2072,7 @@
     workouts: loadJSON(KEY_HISTORY, []),
     bodyweightLogs: loadJSON(KEY_BODYWEIGHT, []),
     rotation: loadJSON(KEY_ROTATION, []),
+    referenceChanges: loadJSON('ht_reference_changes', []),
     currentWorkout: null,
     expandedId: null,
     timer: { active: false, endAt: 0, interval: null, notified: false },
@@ -2064,7 +2084,8 @@
     mgSearch: '',
     reviewExerciseId: null,
     reviewCompareExerciseIds: [],
-    reviewStrengthMode: 'index'
+    reviewStrengthMode: 'index',
+    showProgressionDetails: false
   };
 
   function persistAll() {
@@ -2853,6 +2874,23 @@
     const inHistory = state.workouts.some(w => (w.exercises||[]).some(log => log.exerciseId === exId));
     const inDraft = state.currentWorkout && state.currentWorkout.exercises.some(log => log.exerciseId === exId);
     return !(inTemplates || inHistory || inDraft);
+  }
+
+  function toggleReference(exId) {
+    const ex = state.exercises.find(e => e.id === exId);
+    if (!ex) return;
+    ex.isReference = !ex.isReference;
+    // Speichere Zeitpunkt der Änderung für Chart-Marker
+    if (!state.referenceChanges) state.referenceChanges = [];
+    state.referenceChanges.push({
+      date: new Date().toISOString(),
+      exerciseId: exId,
+      exerciseName: ex.name,
+      action: ex.isReference ? 'added' : 'removed'
+    });
+    saveJSON(KEY_EXERCISES, state.exercises);
+    saveJSON('ht_reference_changes', state.referenceChanges);
+    render();
   }
 
   function deleteExercise(exId) {
@@ -4018,13 +4056,13 @@ const exList = (w.exercises || []);
       </div>
 
       <div class="card">
-        <div class="card-title">Gewicht & Progression Trend</div>
-        <canvas id="chartKraftGewicht" class="chart-canvas tall" aria-label="Gewicht und Progression Trend"></canvas>
+        <div class="card-title">Kraft-Entwicklung</div>
+        <canvas id="chartKraftGewicht" class="chart-canvas tall" aria-label="Kraft-Entwicklung"></canvas>
         <div class="chart-legend">
-          <span class="legend-item"><span class="legend-line" style="background: #fb923c;"></span> Ø Progression (4W)</span>
+          <span class="legend-item"><span class="legend-line" style="background: #fb923c;"></span> Ø e1RM (Referenz)</span>
           <span class="legend-item"><span class="legend-line" style="background: #60a5fa;"></span> Körpergewicht</span>
         </div>
-        <div class="card-sub">Rolling 4-Wochen Ø der Kraft-Progression vs. Körpergewicht.</div>
+        <div class="card-sub">Ø e1RM deiner Referenz-Übungen (⭐) vs. Körpergewicht. ⚡ = Referenz geändert.</div>
       </div>
 
       <div class="card">
@@ -4129,6 +4167,8 @@ const exList = (w.exercises || []);
 
     state.muscleGroups.forEach(g => grouped.get(g.id)?.sort((a,b)=>a.name.localeCompare(b.name,'de')));
 
+    const refCount = state.exercises.filter(ex => ex.isReference).length;
+
     return `
       <div class="sticky-header">
         <button class="btn-icon" onclick="go('select')">←</button>
@@ -4138,6 +4178,16 @@ const exList = (w.exercises || []);
 
       <div class="container">
         <input id="exerciseSearchInput" class="input" placeholder="Suchen..." value="${escapeHtml(state.exSearch||'')}" oninput="handleExSearch(this)" />
+
+        <div class="card" style="padding: var(--space-3); margin-bottom: var(--space-4);">
+          <div style="display: flex; align-items: center; gap: var(--space-2);">
+            <span style="font-size: 18px;">⭐</span>
+            <div>
+              <div style="font-weight: var(--font-weight-medium);">Referenz-Übungen: ${refCount}</div>
+              <div class="sub">Tippe auf ☆ um Übungen für den Kraft-Chart auszuwählen</div>
+            </div>
+          </div>
+        </div>
 
         <button class="btn btn-secondary" onclick="openNewExerciseModal('workout_add')">
           <span>✨ Neue Übung erstellen</span><span style="opacity:0.7">→</span>
@@ -4150,6 +4200,7 @@ const exList = (w.exercises || []);
             <div class="section-title">${escapeHtml(g.name)}</div>
             ${arr.map(ex => `
               <div class="list-item">
+                <button class="ref-star ${ex.isReference ? 'active' : ''}" onclick="toggleReference('${ex.id}')" title="Als Referenz-Übung markieren">${ex.isReference ? '⭐' : '☆'}</button>
                 <div style="flex:1">
                   <div class="name">${escapeHtml(ex.name)}</div>
                   <div class="sub">Muskelgruppe: ${escapeHtml(getMuscleGroupNameById(ex.muscleGroupId))}${(ex.aliases||[]).length ? ` · Aliases: ${escapeHtml(ex.aliases.slice(0,3).join(', '))}${ex.aliases.length>3?' …':''}` : ''}</div>
@@ -5169,38 +5220,84 @@ function toggleReviewCompareExercise(exIdEnc) {
 
     const { ctx, cssW, cssH } = getCanvasCtx(canvas, 260);
 
-    const weeks = 12;
-    const progressionData = [];
-    const gewichtData = [];
+    // Hole Referenz-Übungen
+    const refExercises = state.exercises.filter(ex => ex.isReference);
+    
+    if (!refExercises.length) {
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = '13px -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif';
+      ctx.fillText('Keine Referenz-Übungen ausgewählt.', 14, 30);
+      ctx.font = '12px -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif';
+      ctx.fillText('Gehe zu Übungen und tippe auf ☆', 14, 50);
+      return;
+    }
 
     // Sammle Daten für die letzten 12 Wochen
-    // Für jede Woche: Rolling 4W Ø Progression
+    const weeks = 12;
+    const kraftData = [];
+    const gewichtData = [];
+    const refChanges = []; // Wochen mit Referenz-Änderungen
+
+    const now = new Date();
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+    const dayOfWeek = (now.getDay() + 6) % 7;
+    const thisWeekStart = todayStart - dayOfWeek * 24 * 60 * 60 * 1000;
+
     for (let i = weeks - 1; i >= 0; i--) {
-      // Berechne Rolling 4-Wochen Durchschnitt der Progression
-      let totalProg = 0;
-      let progCount = 0;
-      
-      for (let w = 0; w < 4; w++) {
-        const weekIdx = i + w;
-        if (weekIdx < weeks + 3) { // Haben wir Daten für diese Woche?
-          const prog = calculateKraftProgression(weekIdx + 1); // +1 weil wir gegen Vorwoche vergleichen
-          if (Number.isFinite(prog.avgChange) && prog.exercises.length >= 3) {
-            totalProg += prog.avgChange;
-            progCount++;
-          }
+      const weekStart = thisWeekStart - i * 7 * 24 * 60 * 60 * 1000;
+      const weekEnd = weekStart + 7 * 24 * 60 * 60 * 1000;
+      const weekDate = new Date(weekStart);
+
+      // Berechne Ø e1RM der Referenz-Übungen für diese Woche
+      let totalE1RM = 0;
+      let countE1RM = 0;
+
+      refExercises.forEach(refEx => {
+        let bestE1RM = 0;
+        
+        (state.workouts || []).forEach(w => {
+          const wTime = parseISODateLocal(w?.date);
+          if (!Number.isFinite(wTime) || wTime < weekStart || wTime >= weekEnd) return;
+          
+          const ex = (w.exercises || []).find(e => e.exerciseId === refEx.id);
+          if (!ex) return;
+          
+          (ex.sets || []).forEach(s => {
+            if (!isSetDone(s)) return;
+            const e1rm = calcE1RM(s.weight, s.reps);
+            if (Number.isFinite(e1rm) && e1rm > bestE1RM) {
+              bestE1RM = e1rm;
+            }
+          });
+        });
+
+        if (bestE1RM > 0) {
+          totalE1RM += bestE1RM;
+          countE1RM++;
         }
-      }
+      });
+
+      const avgE1RM = countE1RM > 0 ? totalE1RM / countE1RM : NaN;
+      const weekLabel = weekDate.toLocaleDateString('de-DE', { day: 'numeric', month: 'short' });
       
-      const rolling4WAvg = progCount > 0 ? totalProg / progCount : NaN;
-      progressionData.push({ week: weeks - i, value: rolling4WAvg });
-      gewichtData.push({ week: weeks - i, value: bodyweightAvgForWeek(i) });
+      kraftData.push({ week: weeks - i, value: avgE1RM, date: weekStart, label: weekLabel });
+      gewichtData.push({ week: weeks - i, value: bodyweightAvgForWeek(i), date: weekStart, label: weekLabel });
+
+      // Prüfe ob in dieser Woche Referenz-Änderungen waren
+      const changes = (state.referenceChanges || []).filter(c => {
+        const cTime = parseISODateLocal(c.date);
+        return Number.isFinite(cTime) && cTime >= weekStart && cTime < weekEnd;
+      });
+      if (changes.length) {
+        refChanges.push({ week: weeks - i, changes });
+      }
     }
 
     // Filtere valide Datenpunkte
-    const validProgression = progressionData.filter(d => Number.isFinite(d.value));
+    const validKraft = kraftData.filter(d => Number.isFinite(d.value));
     const validGewicht = gewichtData.filter(d => Number.isFinite(d.value));
 
-    if (!validProgression.length && !validGewicht.length) {
+    if (!validKraft.length && !validGewicht.length) {
       ctx.fillStyle = '#94a3b8';
       ctx.font = '13px -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif';
       ctx.fillText('Noch nicht genügend Daten vorhanden.', 14, 30);
@@ -5208,31 +5305,24 @@ function toggleReviewCompareExercise(exIdEnc) {
     }
 
     // Berechne Y-Achsen-Bereiche
-    const progValues = validProgression.map(d => d.value);
+    const kraftValues = validKraft.map(d => d.value);
     const gewichtValues = validGewicht.map(d => d.value);
 
-    // Progression: Symmetrisch um 0, mindestens -5% bis +15%
-    const progAbsMax = Math.max(
-      Math.abs(Math.min(...progValues, 0)),
-      Math.abs(Math.max(...progValues, 0)),
-      10
-    );
-    const progMin = -Math.max(progAbsMax * 0.3, 5);
-    const progMax = Math.max(progAbsMax * 1.2, 15);
-    
+    const kraftMin = kraftValues.length ? Math.min(...kraftValues) * 0.95 : 0;
+    const kraftMax = kraftValues.length ? Math.max(...kraftValues) * 1.05 : 100;
     const gewichtMin = gewichtValues.length ? Math.min(...gewichtValues) * 0.98 : 0;
     const gewichtMax = gewichtValues.length ? Math.max(...gewichtValues) * 1.02 : 100;
 
     // Chart-Dimensionen
     const padL = 45;
-    const padR = 50;
+    const padR = 45;
     const padT = 20;
-    const padB = 35;
+    const padB = 40;
     const w = cssW - padL - padR;
     const h = cssH - padT - padB;
 
     // Hilfsfunktion: Wert zu Y-Position
-    const progToY = (val) => padT + h - ((val - progMin) / (progMax - progMin)) * h;
+    const kraftToY = (val) => padT + h - ((val - kraftMin) / (kraftMax - kraftMin)) * h;
     const gewichtToY = (val) => padT + h - ((val - gewichtMin) / (gewichtMax - gewichtMin)) * h;
     const weekToX = (week) => padL + ((week - 1) / (weeks - 1)) * w;
 
@@ -5278,16 +5368,16 @@ function toggleReviewCompareExercise(exIdEnc) {
       });
     }
 
-    // Zeichne Progression-Linie (orange)
-    if (validProgression.length > 1) {
+    // Zeichne Kraft-Linie (orange)
+    if (validKraft.length > 1) {
       ctx.strokeStyle = '#fb923c';
       ctx.lineWidth = 2.5;
       ctx.beginPath();
       let started = false;
-      progressionData.forEach(d => {
+      kraftData.forEach(d => {
         if (!Number.isFinite(d.value)) return;
         const x = weekToX(d.week);
-        const y = progToY(d.value);
+        const y = kraftToY(d.value);
         if (!started) {
           ctx.moveTo(x, y);
           started = true;
@@ -5297,11 +5387,11 @@ function toggleReviewCompareExercise(exIdEnc) {
       });
       ctx.stroke();
 
-      // Punkte (Dreiecke) - helleres Orange mit dunklem Rand
-      progressionData.forEach(d => {
+      // Punkte (Dreiecke)
+      kraftData.forEach(d => {
         if (!Number.isFinite(d.value)) return;
         const x = weekToX(d.week);
-        const y = progToY(d.value);
+        const y = kraftToY(d.value);
         ctx.beginPath();
         ctx.moveTo(x, y - 6);
         ctx.lineTo(x - 5, y + 4);
@@ -5315,6 +5405,25 @@ function toggleReviewCompareExercise(exIdEnc) {
       });
     }
 
+    // Zeichne Marker für Referenz-Änderungen
+    refChanges.forEach(rc => {
+      const x = weekToX(rc.week);
+      ctx.strokeStyle = '#a855f7';
+      ctx.lineWidth = 1;
+      ctx.setLineDash([3, 3]);
+      ctx.beginPath();
+      ctx.moveTo(x, padT);
+      ctx.lineTo(x, padT + h);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      
+      // Kleines Symbol oben
+      ctx.fillStyle = '#a855f7';
+      ctx.font = '10px -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('⚡', x, padT - 5);
+    });
+
     // Linke Y-Achse (Körpergewicht in kg) - Blau
     ctx.fillStyle = '#60a5fa';
     ctx.font = '11px -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif';
@@ -5326,27 +5435,28 @@ function toggleReviewCompareExercise(exIdEnc) {
       ctx.fillText(formatDecimalDE(val, 1), padL - 8, y);
     }
 
-    // Rechte Y-Achse (Progression in %) - Orange
+    // Rechte Y-Achse (Kraft in kg) - Orange
     ctx.fillStyle = '#fb923c';
     ctx.textAlign = 'left';
     for (let i = 0; i <= 4; i++) {
-      const val = progMin + (i / 4) * (progMax - progMin);
+      const val = kraftMin + (i / 4) * (kraftMax - kraftMin);
       const y = padT + h - (i / 4) * h;
-      ctx.fillText((val >= 0 ? '+' : '') + formatDecimalDE(val, 0) + '%', padL + w + 8, y);
+      ctx.fillText(formatDecimalDE(val, 1), padL + w + 8, y);
     }
 
-    // X-Achse Beschriftung
+    // X-Achse Beschriftung (echte Daten)
     ctx.fillStyle = '#94a3b8';
     ctx.font = '10px -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'top';
     
-    // Zeige nur einige Wochen-Labels
-    [1, 4, 8, 12].forEach(week => {
-      if (week <= weeks) {
+    // Zeige 4-5 Datumslabels
+    const labelWeeks = [1, 4, 8, 12].filter(w => w <= weeks);
+    labelWeeks.forEach(week => {
+      const d = kraftData.find(k => k.week === week);
+      if (d) {
         const x = weekToX(week);
-        const label = week === weeks ? 'Aktuell' : `W${week}`;
-        ctx.fillText(label, x, padT + h + 8);
+        ctx.fillText(d.label, x, padT + h + 8);
       }
     });
   }
