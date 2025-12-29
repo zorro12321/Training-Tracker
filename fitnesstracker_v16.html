@@ -2072,7 +2072,7 @@
     workouts: loadJSON(KEY_HISTORY, []),
     bodyweightLogs: loadJSON(KEY_BODYWEIGHT, []),
     rotation: loadJSON(KEY_ROTATION, []),
-    referenceChanges: loadJSON('ht_reference_changes', []),
+    referenceChanges: [],
     currentWorkout: null,
     expandedId: null,
     timer: { active: false, endAt: 0, interval: null, notified: false },
@@ -2880,16 +2880,7 @@
     const ex = state.exercises.find(e => e.id === exId);
     if (!ex) return;
     ex.isReference = !ex.isReference;
-    // Speichere Zeitpunkt der Änderung für Chart-Marker
-    if (!state.referenceChanges) state.referenceChanges = [];
-    state.referenceChanges.push({
-      date: new Date().toISOString(),
-      exerciseId: exId,
-      exerciseName: ex.name,
-      action: ex.isReference ? 'added' : 'removed'
-    });
     saveJSON(KEY_EXERCISES, state.exercises);
-    saveJSON('ht_reference_changes', state.referenceChanges);
     render();
   }
 
@@ -4062,7 +4053,7 @@ const exList = (w.exercises || []);
           <span class="legend-item"><span class="legend-line" style="background: #fb923c;"></span> Ø e1RM (Referenz)</span>
           <span class="legend-item"><span class="legend-line" style="background: #60a5fa;"></span> Körpergewicht</span>
         </div>
-        <div class="card-sub">Ø e1RM deiner Referenz-Übungen (⭐) vs. Körpergewicht. ⚡ = Referenz geändert.</div>
+        <div class="card-sub">Ø e1RM deiner Referenz-Übungen (⭐) vs. Körpergewicht.</div>
       </div>
 
       <div class="card">
@@ -5236,7 +5227,6 @@ function toggleReviewCompareExercise(exIdEnc) {
     const weeks = 12;
     const kraftData = [];
     const gewichtData = [];
-    const refChanges = []; // Wochen mit Referenz-Änderungen
 
     const now = new Date();
     const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
@@ -5280,17 +5270,8 @@ function toggleReviewCompareExercise(exIdEnc) {
       const avgE1RM = countE1RM > 0 ? totalE1RM / countE1RM : NaN;
       const weekLabel = weekDate.toLocaleDateString('de-DE', { day: 'numeric', month: 'short' });
       
-      kraftData.push({ week: weeks - i, value: avgE1RM, date: weekStart, label: weekLabel });
+      kraftData.push({ week: weeks - i, value: avgE1RM, date: weekStart, label: weekLabel, exerciseCount: countE1RM });
       gewichtData.push({ week: weeks - i, value: bodyweightAvgForWeek(i), date: weekStart, label: weekLabel });
-
-      // Prüfe ob in dieser Woche Referenz-Änderungen waren
-      const changes = (state.referenceChanges || []).filter(c => {
-        const cTime = parseISODateLocal(c.date);
-        return Number.isFinite(cTime) && cTime >= weekStart && cTime < weekEnd;
-      });
-      if (changes.length) {
-        refChanges.push({ week: weeks - i, changes });
-      }
     }
 
     // Filtere valide Datenpunkte
@@ -5404,25 +5385,6 @@ function toggleReviewCompareExercise(exIdEnc) {
         ctx.stroke();
       });
     }
-
-    // Zeichne Marker für Referenz-Änderungen
-    refChanges.forEach(rc => {
-      const x = weekToX(rc.week);
-      ctx.strokeStyle = '#a855f7';
-      ctx.lineWidth = 1;
-      ctx.setLineDash([3, 3]);
-      ctx.beginPath();
-      ctx.moveTo(x, padT);
-      ctx.lineTo(x, padT + h);
-      ctx.stroke();
-      ctx.setLineDash([]);
-      
-      // Kleines Symbol oben
-      ctx.fillStyle = '#a855f7';
-      ctx.font = '10px -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif';
-      ctx.textAlign = 'center';
-      ctx.fillText('⚡', x, padT - 5);
-    });
 
     // Linke Y-Achse (Körpergewicht in kg) - Blau
     ctx.fillStyle = '#60a5fa';
