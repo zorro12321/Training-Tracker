@@ -2243,6 +2243,7 @@
       state.currentWorkout = {
         id: Date.now(),
         date: opts.date || new Date().toISOString(),
+        startedAt: opts.startedAt || new Date().toISOString(),
         templateId: tpl.templateId,
         kind: opts.kind || 'template',
         nameSnapshot: opts.nameSnapshot || tpl.name,
@@ -2261,6 +2262,7 @@
       state.currentWorkout = {
         id: Date.now(),
         date: opts.date || new Date().toISOString(),
+        startedAt: opts.startedAt || new Date().toISOString(),
         templateId: null,
         kind: opts.kind || 'free',
         nameSnapshot: opts.nameSnapshot || 'Freies Training',
@@ -2309,6 +2311,14 @@
 
     const w = normalizeWorkout(state.currentWorkout);
     if (!w) { alert("Training konnte nicht gespeichert werden."); return; }
+
+    // Berechne Dauer
+    const startedAt = state.currentWorkout.startedAt || state.currentWorkout.date;
+    const endedAt = new Date().toISOString();
+    const durationMs = new Date(endedAt) - new Date(startedAt);
+    w.startedAt = startedAt;
+    w.endedAt = endedAt;
+    w.durationMin = Math.round(durationMs / 60000);
 
     state.workouts.unshift(w);
     saveJSON(KEY_HISTORY, state.workouts);
@@ -3583,12 +3593,19 @@
 // Keep insertion order (latest added stays at the bottom)
 const exList = (w.exercises || []);
 
+    // Berechne laufende Dauer
+    const startedAt = w.startedAt || w.date;
+    const elapsedMs = Date.now() - new Date(startedAt).getTime();
+    const elapsedMin = Math.floor(elapsedMs / 60000);
+    const elapsedSec = Math.floor((elapsedMs % 60000) / 1000);
+    const elapsedStr = `${elapsedMin}:${String(elapsedSec).padStart(2, '0')}`;
+
     return `
       <div class="sticky-header">
         <button class="btn-icon" onclick="go('select')">←</button>
         <div style="flex:1">
           <div class="sticky-title">${escapeHtml(w.nameSnapshot || 'Training')}</div>
-          <div class="muted small">⏱ Timer · Draft wird automatisch gespeichert · + Satz möglich</div>
+          <div class="muted small"><span id="workout-duration">⏱ ${elapsedStr}</span> · Draft wird gespeichert</div>
         </div>
         <button class="btn-icon" onclick="editWorkoutMeta()">🗓️</button>
         <button class="btn-success" style="padding: 10px 14px; border-radius: 12px; border:none; font-weight:900; cursor:pointer" onclick="finishWorkout()">Speichern</button>
@@ -3736,12 +3753,13 @@ const exList = (w.exercises || []);
       const vol = workoutVolume(w);
       const doneExercises = (w.exercises || []).filter(ex => (ex.sets || []).some(isSetDone));
       const exerciseCount = doneExercises.length;
+      const durationStr = w.durationMin ? `${w.durationMin} Min` : '';
       
       return `
         <div class="history-item" onclick="toggleHistory(${w.id})">
           <div class="history-main">
             <div class="history-name">${escapeHtml(w.nameSnapshot)}</div>
-            <div class="history-meta">${formatVolume(vol)}${exerciseCount ? ` · ${exerciseCount} Übung${exerciseCount !== 1 ? 'en' : ''}` : ''}</div>
+            <div class="history-meta">${formatVolume(vol)}${exerciseCount ? ` · ${exerciseCount} Übung${exerciseCount !== 1 ? 'en' : ''}` : ''}${durationStr ? ` · ⏱ ${durationStr}` : ''}</div>
           </div>
           <div class="history-date">${formatCompactDate(w.date)}</div>
           <div class="history-chevron">${state.expandedId === w.id ? '−' : '+'}</div>
@@ -6291,6 +6309,18 @@ series.forEach((s, idx) => {
   window.closeModal = closeModal;
 
   window.handleExSearch = handleExSearch;
+
+  // Workout Dauer Timer - aktualisiert alle 10 Sekunden
+  setInterval(() => {
+    if (state.view !== 'workout' || !state.currentWorkout) return;
+    const el = document.getElementById('workout-duration');
+    if (!el) return;
+    const startedAt = state.currentWorkout.startedAt || state.currentWorkout.date;
+    const elapsedMs = Date.now() - new Date(startedAt).getTime();
+    const elapsedMin = Math.floor(elapsedMs / 60000);
+    const elapsedSec = Math.floor((elapsedMs % 60000) / 1000);
+    el.textContent = `⏱ ${elapsedMin}:${String(elapsedSec).padStart(2, '0')}`;
+  }, 10000);
 
   let chartRenderTimeout = null;
 function scheduleChartRender() {
