@@ -2218,6 +2218,10 @@
       nameSnapshot: String(w.nameSnapshot || w.type || 'Training'),
       exercises: Array.isArray(w.exercises) ? w.exercises.map(normalizeExerciseLog).filter(Boolean) : []
     };
+    // Erhalte Dauer-Felder
+    if (w.startedAt) out.startedAt = w.startedAt;
+    if (w.endedAt) out.endedAt = w.endedAt;
+    if (w.durationMin !== undefined) out.durationMin = w.durationMin;
     return out;
   }
 
