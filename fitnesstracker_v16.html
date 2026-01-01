@@ -4067,7 +4067,7 @@ const exList = (w.exercises || []);
     let selected = Array.isArray(state.reviewCompareExerciseIds) ? state.reviewCompareExerciseIds.slice() : [];
     if (!selected.length && state.reviewExerciseId) selected = [state.reviewExerciseId];
     selected = selected.filter(id => !!id && exById.has(id));
-    selected = Array.from(new Set(selected)).slice(0, 3);
+    selected = Array.from(new Set(selected));
     state.reviewCompareExerciseIds = selected;
     if (selected[0] && !state.reviewExerciseId) state.reviewExerciseId = selected[0];
 
@@ -4299,8 +4299,14 @@ const exList = (w.exercises || []);
           </select>
         </div>
 
-        <div class="muted small" style="margin-top:10px">Ausgewählt</div>
-        <div class="chips" style="margin-top:6px">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top:10px">
+          <div class="muted small">Ausgewählt (${selected.length})</div>
+          <div style="display: flex; gap: 8px;">
+            <button class="btn-small btn-secondary" onclick="selectAllReviewExercises()">Alle</button>
+            <button class="btn-small btn-secondary" onclick="clearAllReviewExercises()">Keine</button>
+          </div>
+        </div>
+        <div class="chips" style="margin-top:6px; max-height: 150px; overflow-y: auto;">
           ${selectedChips}
         </div>
 
@@ -5010,7 +5016,6 @@ function addReviewCompareExercise(exId) {
 
   if (!sel.includes(id)) {
     sel.push(id);
-    if (sel.length > 3) sel = sel.slice(sel.length - 3); // keep most recent picks
     state.reviewCompareExerciseIds = sel;
   }
   if (!state.reviewExerciseId) state.reviewExerciseId = id;
@@ -5021,7 +5026,7 @@ function removeReviewCompareExercise(exIdEnc) {
   const id = decodeMaybeUri(exIdEnc || '');
   let sel = Array.isArray(state.reviewCompareExerciseIds) ? state.reviewCompareExerciseIds.slice() : [];
   sel = sel.filter(x => x && x !== id);
-  state.reviewCompareExerciseIds = sel.slice(0, 3);
+  state.reviewCompareExerciseIds = sel;
   if (state.reviewExerciseId === id) state.reviewExerciseId = sel[0] || null;
   render();
 }
@@ -5037,10 +5042,30 @@ function toggleReviewCompareExercise(exIdEnc) {
     sel = sel.filter(x => x !== id);
   } else {
     sel.push(id);
-    if (sel.length > 3) sel = sel.slice(sel.length - 3);
   }
   state.reviewCompareExerciseIds = sel;
   if (!state.reviewExerciseId) state.reviewExerciseId = sel[0] || id || null;
+  render();
+}
+
+function selectAllReviewExercises() {
+  // Hole alle Übungen die in der Historie vorkommen
+  const exercisesInHistory = new Set();
+  (state.workouts || []).forEach(w => {
+    (w.exercises || []).forEach(ex => {
+      if (ex.exerciseId) exercisesInHistory.add(ex.exerciseId);
+    });
+  });
+  state.reviewCompareExerciseIds = Array.from(exercisesInHistory);
+  if (!state.reviewExerciseId && state.reviewCompareExerciseIds.length) {
+    state.reviewExerciseId = state.reviewCompareExerciseIds[0];
+  }
+  render();
+}
+
+function clearAllReviewExercises() {
+  state.reviewCompareExerciseIds = [];
+  state.reviewExerciseId = null;
   render();
 }
 
@@ -5638,11 +5663,11 @@ function toggleReviewCompareExercise(exIdEnc) {
 
   const { ctx, cssW, cssH } = getCanvasCtx(canvas, 290);
 
-  // Determine selected exercises (max 3)
+  // Determine selected exercises (unlimited)
   let sel = Array.isArray(state.reviewCompareExerciseIds) ? state.reviewCompareExerciseIds.slice() : [];
   if (!sel.length && state.reviewExerciseId) sel = [state.reviewExerciseId];
   sel = sel.filter(Boolean);
-  sel = Array.from(new Set(sel)).slice(0, 3);
+  sel = Array.from(new Set(sel));
   state.reviewCompareExerciseIds = sel;
 
   if (!sel.length) {
@@ -5757,11 +5782,18 @@ series.forEach(s => {
   const xOf = (t) => padL + (t - tMin) / Math.max(1, (tMax - tMin)) * w;
   const yOf = (v) => padT + h - (v - yMin) / Math.max(1e-9, (yMax - yMin)) * h;
 
-  // Colors (max 3)
+  // Colors (extended palette for unlimited exercises)
   const colors = [
-    'rgba(96,165,250,0.95)',  // blue
-    'rgba(251,146,60,0.95)',  // orange
-    'rgba(167,139,250,0.95)'  // purple
+    'rgba(96,165,250,0.95)',   // blue
+    'rgba(251,146,60,0.95)',   // orange
+    'rgba(167,139,250,0.95)',  // purple
+    'rgba(52,211,153,0.95)',   // green
+    'rgba(251,113,133,0.95)',  // pink
+    'rgba(250,204,21,0.95)',   // yellow
+    'rgba(148,163,184,0.95)',  // gray
+    'rgba(34,211,238,0.95)',   // cyan
+    'rgba(244,114,182,0.95)',  // magenta
+    'rgba(163,230,53,0.95)'    // lime
   ];
 
 
@@ -6471,6 +6503,8 @@ series.forEach((s, idx) => {
   window.addReviewCompareExercise = addReviewCompareExercise;
   window.removeReviewCompareExercise = removeReviewCompareExercise;
   window.toggleReviewCompareExercise = toggleReviewCompareExercise;
+  window.selectAllReviewExercises = selectAllReviewExercises;
+  window.clearAllReviewExercises = clearAllReviewExercises;
 
   window.startTemplateWorkout = startTemplateWorkout;
   window.startFreeWorkout = startFreeWorkout;
