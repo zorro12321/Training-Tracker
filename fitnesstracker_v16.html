@@ -1666,6 +1666,30 @@
       padding-top: var(--space-2);
     }
 
+    .chart-legend-wrap {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-2) var(--space-3);
+      margin-top: var(--space-2);
+      padding: var(--space-2) 0;
+    }
+
+    .chart-legend-wrap .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: var(--font-size-xs);
+      color: var(--color-text-secondary);
+      white-space: nowrap;
+    }
+
+    .chart-legend-wrap .legend-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
     .legend-item {
       display: flex;
       align-items: center;
@@ -4316,6 +4340,7 @@ const exList = (w.exercises || []);
         </div>
 
         <canvas id="chartStrengthTrend" class="chart-canvas tall" aria-label="Krafttrend Vergleich"></canvas>
+        <div id="chartStrengthLegend" class="chart-legend-wrap"></div>
         <div class="card-sub">Linien: e1RM-Verlauf je Übung (${currentPeriod === '7d' ? '7 Tage' : currentPeriod === '30d' ? '30 Tage' : currentPeriod === '12w' ? '12 Wochen' : 'Gesamt'}). Punkte: Top e1RM pro Workout.</div>
       </div>
     `;
@@ -5835,48 +5860,22 @@ series.forEach((s, idx) => {
   }
 });
 
-  // Legend (top-left, wraps)
-  const truncate = (s, n) => {
-    const str = String(s || '');
-    return str.length > n ? (str.slice(0, n - 1) + '…') : str;
-  };
-
-  ctx.font = '12px -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif';
-  ctx.textBaseline = 'top';
-  let lx = padL;
-  let ly = 8;
-
-  series.forEach((s, idx) => {
-    const col = colors[idx % colors.length];
-    const label = truncate(s.name, 18);
-
-    // measure
-    const textW = ctx.measureText(label).width;
-    const itemW = 10 + 6 + textW + 10;
-    if (lx + itemW > padL + w) {
-      lx = padL;
-      ly += 16;
+  // Legend as HTML (below canvas)
+  const legendEl = document.getElementById('chartStrengthLegend');
+  if (legendEl) {
+    const legendColors = [
+      '#60a5fa', '#fb923c', '#a78bfa', '#34d399', '#fb7185',
+      '#facc15', '#94a3b8', '#22d3ee', '#f472b6', '#a3e635'
+    ];
+    let legendHtml = '';
+    series.forEach((s, idx) => {
+      const col = legendColors[idx % legendColors.length];
+      legendHtml += `<span class="legend-item"><span class="legend-dot" style="background:${col}"></span>${escapeHtml(s.name)}</span>`;
+    });
+    if (skipped.length) {
+      legendHtml += `<span class="legend-item" style="opacity:0.6">(${skipped.length} ohne Trend)</span>`;
     }
-
-    // color dot
-    ctx.fillStyle = col;
-    ctx.beginPath();
-    ctx.arc(lx + 5, ly + 6, 4, 0, Math.PI * 2);
-    ctx.fill();
-
-    // text
-    ctx.fillStyle = '#94a3b8';
-    ctx.textAlign = 'left';
-    ctx.fillText(label, lx + 14, ly);
-
-    lx += itemW;
-  });
-
-  // Note about skipped selections (if any)
-  if (skipped.length) {
-    ctx.fillStyle = '#64748b';
-    ctx.textAlign = 'right';
-    ctx.fillText(`(${skipped.length} ohne Trend)`, padL + w, 8);
+    legendEl.innerHTML = legendHtml;
   }
 
   // X labels (start/end)
