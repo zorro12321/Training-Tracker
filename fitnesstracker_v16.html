@@ -1237,6 +1237,81 @@
 /* ========================================
        HISTORY
        ======================================== */
+    .history-year {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      padding: var(--space-4) 0;
+      cursor: pointer;
+      border-bottom: 2px solid var(--color-border);
+      margin-top: var(--space-3);
+    }
+
+    .history-year:first-of-type {
+      margin-top: 0;
+    }
+
+    .history-year-chevron {
+      color: var(--color-accent);
+      font-size: var(--font-size-sm);
+      width: 16px;
+    }
+
+    .history-year-name {
+      font-size: var(--font-size-lg);
+      font-weight: var(--font-weight-bold);
+      color: var(--color-text-primary);
+    }
+
+    .history-year-count {
+      font-size: var(--font-size-sm);
+      color: var(--color-text-tertiary);
+    }
+
+    .history-year-content {
+      display: none;
+      padding-left: var(--space-2);
+    }
+
+    .history-year-content.open {
+      display: block;
+    }
+
+    .history-month {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      padding: var(--space-3) 0;
+      cursor: pointer;
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    .history-month-chevron {
+      color: var(--color-accent);
+      font-size: var(--font-size-xs);
+      width: 14px;
+    }
+
+    .history-month-name {
+      font-size: var(--font-size-base);
+      font-weight: var(--font-weight-semibold);
+      color: var(--color-text-primary);
+    }
+
+    .history-month-count {
+      font-size: var(--font-size-sm);
+      color: var(--color-text-tertiary);
+    }
+
+    .history-month-content {
+      display: none;
+      padding-left: var(--space-3);
+    }
+
+    .history-month-content.open {
+      display: block;
+    }
+
     .history-group-title {
       font-size: var(--font-size-xs);
       font-weight: var(--font-weight-bold);
@@ -2868,6 +2943,18 @@
   // History
   // -----------------------
   function toggleHistory(id) { state.expandedId = state.expandedId === id ? null : id; render(); }
+  
+  function toggleHistoryYear(year) {
+    if (!state.expandedYears) state.expandedYears = {};
+    state.expandedYears[year] = !state.expandedYears[year];
+    render();
+  }
+  
+  function toggleHistoryMonth(monthKey) {
+    if (!state.expandedMonths) state.expandedMonths = {};
+    state.expandedMonths[monthKey] = !state.expandedMonths[monthKey];
+    render();
+  }
 
   function deleteWorkout(id) {
     if (!confirm("Dieses Training wirklich löschen?")) return;
@@ -3921,32 +4008,33 @@ const exList = (w.exercises || []);
     // Sortiere nach Datum (neueste zuerst)
     const sortedList = (state.workouts || []).slice().sort((a, b) => new Date(b.date) - new Date(a.date));
     
-    // Berechne Wochenstart (Montag)
     const now = new Date();
-    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
-    const dayOfWeek = (now.getDay() + 6) % 7; // Montag = 0
-    const weekStart = todayStart - dayOfWeek * 24 * 60 * 60 * 1000;
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth();
     
-    // Gruppiere: Diese Woche + Monate (Monate enthalten auch diese Woche)
-    const thisWeekWorkouts = [];
-    const monthGroups = new Map();
+    // Initialisiere expandedYears und expandedMonths falls nicht vorhanden
+    if (!state.expandedYears) state.expandedYears = { [currentYear]: true };
+    if (!state.expandedMonths) state.expandedMonths = { [`${currentYear}-${String(currentMonth + 1).padStart(2, '0')}`]: true };
+    
+    // Gruppiere nach Jahr und Monat
+    const yearGroups = new Map();
     
     sortedList.forEach(w => {
       const wDate = new Date(w.date);
-      const wTime = wDate.getTime();
+      const year = wDate.getFullYear();
+      const month = wDate.getMonth();
+      const monthKey = `${year}-${String(month + 1).padStart(2, '0')}`;
+      const monthName = wDate.toLocaleDateString('de-DE', { month: 'long' });
       
-      // Diese Woche (zusätzlich, nicht exklusiv)
-      if (wTime >= weekStart) {
-        thisWeekWorkouts.push(w);
+      if (!yearGroups.has(year)) {
+        yearGroups.set(year, new Map());
       }
+      const yearData = yearGroups.get(year);
       
-      // Immer zum Monat hinzufügen
-      const monthKey = `${wDate.getFullYear()}-${String(wDate.getMonth() + 1).padStart(2, '0')}`;
-      const monthName = wDate.toLocaleDateString('de-DE', { month: 'long', year: 'numeric' });
-      if (!monthGroups.has(monthKey)) {
-        monthGroups.set(monthKey, { name: monthName, workouts: [] });
+      if (!yearData.has(monthKey)) {
+        yearData.set(monthKey, { name: monthName, workouts: [] });
       }
-      monthGroups.get(monthKey).workouts.push(w);
+      yearData.get(monthKey).workouts.push(w);
     });
     
     // Formatiere kompaktes Datum
@@ -3955,8 +4043,7 @@ const exList = (w.exercises || []);
       const weekdays = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
       const day = d.getDate();
       const month = d.getMonth() + 1;
-      const year = d.getFullYear();
-      return `${weekdays[d.getDay()]}, ${day}.${month}.${year}`;
+      return `${weekdays[d.getDay()]}, ${day}.${month}.`;
     };
     
     // Render einzelnes Workout
@@ -4003,23 +4090,45 @@ const exList = (w.exercises || []);
       `;
     };
     
-    // Render Gruppe mit Titel
-    const renderGroup = (title, workouts) => {
-      if (!workouts.length) return '';
+    // Render Monat (einklappbar)
+    const renderMonth = (monthKey, monthData) => {
+      const isExpanded = !!state.expandedMonths[monthKey];
+      const count = monthData.workouts.length;
+      
       return `
-        <div class="history-group-title">${title}</div>
-        ${workouts.map(renderWorkoutItem).join('')}
+        <div class="history-month ${isExpanded ? 'expanded' : ''}" onclick="toggleHistoryMonth('${monthKey}')">
+          <span class="history-month-chevron">${isExpanded ? '▼' : '▶'}</span>
+          <span class="history-month-name">${monthData.name}</span>
+          <span class="history-month-count">(${count})</span>
+        </div>
+        <div class="history-month-content ${isExpanded ? 'open' : ''}">
+          ${monthData.workouts.map(renderWorkoutItem).join('')}
+        </div>
       `;
     };
     
-    // Render alle Monate
-    const renderMonths = () => {
-      let html = '';
-      const sortedMonths = Array.from(monthGroups.entries()).sort((a, b) => b[0].localeCompare(a[0]));
-      sortedMonths.forEach(([key, data]) => {
-        html += renderGroup(data.name, data.workouts);
-      });
-      return html;
+    // Render Jahr (einklappbar)
+    const renderYear = (year, monthsMap) => {
+      const isExpanded = !!state.expandedYears[year];
+      const totalWorkouts = Array.from(monthsMap.values()).reduce((sum, m) => sum + m.workouts.length, 0);
+      const sortedMonths = Array.from(monthsMap.entries()).sort((a, b) => b[0].localeCompare(a[0]));
+      
+      return `
+        <div class="history-year ${isExpanded ? 'expanded' : ''}" onclick="toggleHistoryYear(${year})">
+          <span class="history-year-chevron">${isExpanded ? '▼' : '▶'}</span>
+          <span class="history-year-name">${year}</span>
+          <span class="history-year-count">(${totalWorkouts} Workouts)</span>
+        </div>
+        <div class="history-year-content ${isExpanded ? 'open' : ''}">
+          ${sortedMonths.map(([key, data]) => renderMonth(key, data)).join('')}
+        </div>
+      `;
+    };
+    
+    // Render alle Jahre
+    const renderYears = () => {
+      const sortedYears = Array.from(yearGroups.entries()).sort((a, b) => b[0] - a[0]);
+      return sortedYears.map(([year, months]) => renderYear(year, months)).join('');
     };
 
     return `
@@ -4040,10 +4149,7 @@ const exList = (w.exercises || []);
             <div>Noch keine Trainings</div>
             <div class="muted small">Starte dein erstes Workout!</div>
           </div>
-        ` : `
-          ${renderGroup('Diese Woche', thisWeekWorkouts)}
-          ${renderMonths()}
-        `}
+        ` : renderYears()}
         
         ${renderModal()}
       </div>
@@ -6540,6 +6646,8 @@ series.forEach((s, idx) => {
   window.addTime = addTime;
 
   window.toggleHistory = toggleHistory;
+  window.toggleHistoryYear = toggleHistoryYear;
+  window.toggleHistoryMonth = toggleHistoryMonth;
   window.deleteWorkout = deleteWorkout;
   window.openEditWorkoutModal = openEditWorkoutModal;
   window.updateEditWorkoutField = updateEditWorkoutField;
